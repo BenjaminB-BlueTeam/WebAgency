@@ -49,19 +49,19 @@ export default function DashboardLayout({
         {/* Ambient blob violet — haut droite */}
         <div
           aria-hidden="true"
-          className="pointer-events-none fixed right-0 top-0 h-96 w-96 -translate-y-1/2 translate-x-1/2"
+          className="pointer-events-none fixed right-0 top-0 h-[600px] w-[600px] -translate-y-1/2 translate-x-1/2"
           style={{
             background:
-              "radial-gradient(circle, rgba(124,58,237,0.08), transparent 70%)",
+              "radial-gradient(circle, rgba(124,58,237,0.18), transparent 70%)",
           }}
         />
         {/* Ambient blob bleu — bas gauche */}
         <div
           aria-hidden="true"
-          className="pointer-events-none fixed bottom-0 left-60 h-72 w-72 translate-y-1/2"
+          className="pointer-events-none fixed bottom-0 left-60 h-96 w-96 translate-y-1/2"
           style={{
             background:
-              "radial-gradient(circle, rgba(59,130,246,0.05), transparent 70%)",
+              "radial-gradient(circle, rgba(59,130,246,0.12), transparent 70%)",
           }}
         />
         <Sidebar />
