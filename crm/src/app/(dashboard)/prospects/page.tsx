@@ -1,5 +1,5 @@
 import { db } from "@/lib/db";
-import { ProspectsList } from "@/components/prospects/prospects-list";
+import { ProspectsPageTabs } from "@/components/prospects/prospects-page-tabs";
 
 export const dynamic = "force-dynamic";
 
@@ -12,5 +12,5 @@ export default async function ProspectsPage() {
     orderBy: { createdAt: "desc" },
   });
 
-  return <ProspectsList initialData={JSON.parse(JSON.stringify(prospects))} />;
+  return <ProspectsPageTabs initialData={JSON.parse(JSON.stringify(prospects))} />;
 }
