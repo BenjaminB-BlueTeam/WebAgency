@@ -1,4 +1,4 @@
-export default function Home() {
+export default function DashboardPage() {
   return (
     <div className="flex flex-1 items-center justify-center">
       <div className="text-center">
@@ -6,7 +6,7 @@ export default function Home() {
           WebAgency CRM
         </h1>
         <p className="mt-2 text-muted-foreground">
-          Tableau de bord en construction
+          Tableau de bord &mdash; en construction...
         </p>
       </div>
     </div>
