@@ -17,6 +17,8 @@ import { execSync } from "child_process";
 import "dotenv/config";
 import FirecrawlApp from "@mendable/firecrawl-js";
 
+const __dirname = path.dirname(new URL(import.meta.url).pathname).replace(/^\/([A-Z]:)/, "$1");
+
 const wait = (ms) => new Promise(r => setTimeout(r, ms));
 
 async function apiCall(params, attempt = 0) {
@@ -25,8 +27,10 @@ async function apiCall(params, attempt = 0) {
   } catch (err) {
     const is429 = err?.status === 429 || err?.message?.includes('429') || err?.message?.includes('rate_limit');
     if (is429 && attempt < 3) {
-      console.log(`\n⏳  Rate limit — attente 60s (tentative ${attempt + 1}/3)...\n`);
-      await wait(60000);
+      const retryAfter = err?.headers?.['retry-after'];
+      const delay = retryAfter ? parseInt(retryAfter) * 1000 : Math.min(60000 * Math.pow(2, attempt), 300000);
+      console.log(`\n⏳  Rate limit — attente ${Math.round(delay / 1000)}s (tentative ${attempt + 1}/3)...\n`);
+      await wait(delay);
       return apiCall(params, attempt + 1);
     }
     throw err;
@@ -47,6 +51,17 @@ if (!ANTHROPIC_KEY || !NETLIFY_TOKEN || !GOOGLE_PLACES_KEY) {
 if (!FIRECRAWL_KEY) {
   console.warn("⚠️  FIRECRAWL_KEY absent — fallback fetch() activé (sites JS et anti-bot non garantis)");
 }
+
+// ─── Constantes ──────────────────────────────────────────────────────────────
+
+const RETRY_DELAY_MS = 60000;
+const FETCH_TIMEOUT_MS = 8000;
+const MAX_SCRAPE_BYTES = 30000;
+const INTER_PROSPECT_PAUSE_MS = 45000;
+const MAX_CONTENT_SLICE = 3000;
+const MAX_PLACES_RESULTS = 10;
+const DEPLOY_POLL_INTERVAL_MS = 3000;
+const DEPLOY_POLL_MAX_ATTEMPTS = 10;
 
 const client = new Anthropic({ apiKey: ANTHROPIC_KEY });
 const firecrawl = FIRECRAWL_KEY ? new FirecrawlApp({ apiKey: FIRECRAWL_KEY }) : null;
@@ -79,19 +94,19 @@ console.log(`\n🔍  Requête : "${query}"  |  Mode : ${mode.toUpperCase()}${tou
 
 // ─── CRM léger ────────────────────────────────────────────────────────────────
 
-const CRM_FILE = "crm.json";
+const CRM_FILE = path.join(__dirname, "crm.json");
 
 function chargerCRM() {
   if (!fs.existsSync(CRM_FILE)) return { prospects: [], mises_a_jour: [] };
   return JSON.parse(fs.readFileSync(CRM_FILE, "utf8"));
 }
 
-function ajouterAuCRM(prospects) {
+function ajouterAuCRM(prospects, query) {
   const crm = chargerCRM();
   const date = new Date().toISOString().split("T")[0];
   let added = 0;
   for (const p of prospects) {
-    const exists = crm.prospects.find((c) => c.nom === p.nom && c.ville === p.ville);
+    const exists = crm.prospects.find((c) => c.nom.toLowerCase().trim() === p.nom.toLowerCase().trim() && c.ville.toLowerCase().trim() === p.ville.toLowerCase().trim());
     if (!exists) {
       crm.prospects.push({
         ...p,
@@ -280,7 +295,7 @@ async function scrapeUrl(url) {
   // Fallback : fetch() natif (HTML brut tronqué à 30kb)
   try {
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 8000);
+    const timeout = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
     const res = await fetch(url, {
       signal: controller.signal,
       headers: { "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36" },
@@ -288,13 +303,26 @@ async function scrapeUrl(url) {
     clearTimeout(timeout);
     if (!res.ok) return { content: null, source: null };
     const html = await res.text();
-    const maxBytes = 30000;
-    const truncated = html.length > maxBytes
-      ? html.slice(0, maxBytes).replace(/<[^>]*$/, "")
+    const truncated = html.length > MAX_SCRAPE_BYTES
+      ? html.slice(0, MAX_SCRAPE_BYTES).replace(/<[^>]*$/, "")
       : html;
     return { content: truncated, source: "fetch" };
   } catch {
     return { content: null, source: null };
+  }
+}
+
+// ─── Parsing JSON Claude (utilitaire dédupliqué) ─────────────────────────────
+
+function parseClaudeJSON(text, fallbackValue = null, label = "Claude") {
+  const clean = text.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();
+  try {
+    return JSON.parse(clean);
+  } catch {
+    const match = clean.match(/\{[\s\S]*\}/);
+    if (match) { try { return JSON.parse(match[0]); } catch {} }
+    console.warn(`   ⚠️  ${label} : JSON invalide`);
+    return fallbackValue;
   }
 }
 
@@ -343,14 +371,7 @@ Réponds UNIQUEMENT en JSON valide :
   });
 
   const text = response.content.find((b) => b.type === "text")?.text || "";
-  try {
-    return JSON.parse(text.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim());
-  } catch {
-    const match = text.match(/\{[\s\S]*\}/);
-    if (match) { try { return JSON.parse(match[0]); } catch {} }
-    console.warn("   ⚠️  Analyse site : JSON invalide");
-    return null;
-  }
+  return parseClaudeJSON(text, null, "Analyse site");
 }
 
 // ─── Analyse concurrentielle ──────────────────────────────────────────────────
@@ -364,12 +385,20 @@ async function analyserConcurrents(query, prospects) {
   const nomsProspe = new Set(prospects.map((p) => p.nom.toLowerCase().trim()));
   const concurrentsRaw = [];
 
-  for (const ville of villes) {
-    if (concurrentsRaw.length >= 3) break;
-    const places = await placesTextSearch(`${secteur} ${ville}`);
-    for (const place of places) {
+  // Rechercher en parallèle dans les 5 villes
+  const allPlacesResults = await Promise.all(
+    villes.map(ville => placesTextSearch(`${secteur} ${ville}`))
+  );
+
+  // Collecter les 3 premiers concurrents avec un site (cap sur les appels Details)
+  let detailCalls = 0;
+  const MAX_DETAIL_CALLS = 15;
+  for (let vi = 0; vi < allPlacesResults.length && concurrentsRaw.length < 3; vi++) {
+    for (const place of allPlacesResults[vi]) {
       if (concurrentsRaw.length >= 3) break;
+      if (detailCalls >= MAX_DETAIL_CALLS) break;
       if (nomsProspe.has(place.name.toLowerCase().trim())) continue;
+      detailCalls++;
       const details = await placesDetails(place.place_id);
       if (!details?.website) continue;
       concurrentsRaw.push({
@@ -405,7 +434,7 @@ Réponds UNIQUEMENT en JSON valide, sans markdown ni backtick.`,
 
 ${concurrentsAvecContenu.map((c) => `
 ### ${c.nom} — ${c.url} (note Google : ${c.rating ?? "?"}/5)
-${c.content ? c.content.slice(0, 3000) : "Contenu inaccessible — analyse basée sur l'URL."}
+${c.content ? c.content.slice(0, MAX_CONTENT_SLICE) : "Contenu inaccessible — analyse basée sur l'URL."}
 `).join("\n")}
 
 Pour chaque concurrent : ce qu'ils font bien visuellement et commercialement, ce qu'ils font mal, l'argument différenciant.
@@ -427,14 +456,7 @@ Réponds UNIQUEMENT en JSON valide :
   });
 
   const text = response.content.find((b) => b.type === "text")?.text || "";
-  try {
-    return JSON.parse(text.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim());
-  } catch {
-    const match = text.match(/\{[\s\S]*\}/);
-    if (match) { try { return JSON.parse(match[0]); } catch {} }
-    console.warn("   ⚠️  Analyse concurrents : JSON invalide");
-    return { concurrents: [], benchmark_resume: "" };
-  }
+  return parseClaudeJSON(text, { concurrents: [], benchmark_resume: "" }, "Analyse concurrents");
 }
 
 // ─── Recherche & analyse prospects ───────────────────────────────────────────
@@ -451,28 +473,35 @@ async function rechercherProspects(query) {
 
   console.log(`   📍  ${places.length} résultats trouvés — enrichissement en cours...`);
 
-  // 2. Enrichir avec Details + contenu du site
-  const enrichis = await Promise.all(
-    places.slice(0, 10).map(async (place) => {
-      const details = await placesDetails(place.place_id);
-      const website = details?.website || null;
-      let siteContent = null;
-      if (website) {
-        process.stdout.write(`   🔗  Scrape : ${website.slice(0, 60)}...\n`);
-        const scraped = await scrapeUrl(website);
-        siteContent = scraped?.content ? scraped.content.slice(0, 3000) : null;
-      }
-      return {
-        nom: place.name,
-        adresse: place.formatted_address,
-        rating: place.rating || null,
-        types: place.types || [],
-        telephone: details?.formatted_phone_number || null,
-        website,
-        siteContent,
-      };
-    })
-  );
+  // 2. Enrichir par batch de 3 pour éviter le rate limiting
+  const enrichis = [];
+  const placesToProcess = places.slice(0, MAX_PLACES_RESULTS);
+  for (let i = 0; i < placesToProcess.length; i += 3) {
+    const batch = placesToProcess.slice(i, i + 3);
+    const results = await Promise.all(
+      batch.map(async (place) => {
+        const details = await placesDetails(place.place_id);
+        const website = details?.website || null;
+        let siteContent = null;
+        if (website) {
+          process.stdout.write(`   🔗  Scrape : ${website.slice(0, 60)}...
+`);
+          const scraped = await scrapeUrl(website);
+          siteContent = scraped?.content ? scraped.content.slice(0, MAX_CONTENT_SLICE) : null;
+        }
+        return {
+          nom: place.name,
+          adresse: place.formatted_address,
+          rating: place.rating || null,
+          types: place.types || [],
+          telephone: details?.formatted_phone_number || null,
+          website,
+          siteContent,
+        };
+      })
+    );
+    enrichis.push(...results);
+  }
 
   // 3. Claude classifie (1 appel, sans tool)
   const date = new Date().toISOString().split("T")[0];
@@ -513,14 +542,8 @@ Réponds UNIQUEMENT en JSON valide :
   });
 
   const text = response.content.find((b) => b.type === "text")?.text || "";
-  let result = null;
-  try {
-    result = JSON.parse(text.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim());
-  } catch {
-    const match = text.match(/\{[\s\S]*\}/);
-    if (match) { try { result = JSON.parse(match[0]); } catch {} }
-    if (!result) console.error("⚠️  JSON invalide:", text.slice(0, 200));
-  }
+  let result = parseClaudeJSON(text, null, "Classification prospects");
+  if (!result) console.error("   ❌  Impossible de parser la réponse Claude");
 
   if (result?.prospects?.length) {
     result.concurrents = await analyserConcurrents(query, result.prospects);
@@ -677,6 +700,16 @@ document.addEventListener('DOMContentLoaded', function() {
       html = html.replace("</body>", fallbackScript + "\n</body>");
     } else {
       html += "\n" + fallbackScript;
+    }
+  }
+
+  // Validation minimale du HTML généré
+  if (!html.startsWith("<!DOCTYPE") && !html.startsWith("<html")) {
+    console.warn("   ⚠️   HTML invalide reçu de Claude — début:", html.slice(0, 100));
+    // Tenter de trouver le HTML dans la réponse (Claude ajoute parfois du texte avant)
+    const htmlStart = html.indexOf("<!DOCTYPE");
+    if (htmlStart > 0) {
+      html = html.slice(htmlStart);
     }
   }
 
@@ -1006,8 +1039,8 @@ async function deployerNetlify(dossier, existingSiteId = null) {
     }
 
     // Attendre que le deploy soit ready (max 30s)
-    for (let i = 0; i < 10; i++) {
-      await wait(3000);
+    for (let i = 0; i < DEPLOY_POLL_MAX_ATTEMPTS; i++) {
+      await wait(DEPLOY_POLL_INTERVAL_MS);
       const statusRes = await fetch(`https://api.netlify.com/api/v1/deploys/${deployId}`, {
         headers: { Authorization: `Bearer ${NETLIFY_TOKEN}` },
       });
@@ -1036,7 +1069,7 @@ async function deployerNetlify(dossier, existingSiteId = null) {
 
 async function traiterProspect(prospect, mode, concurrents = null) {
   const slug = slugify(prospect.nom);
-  const dossier = path.join("output", slug);
+  const dossier = path.join(__dirname, "output", slug);
   fs.mkdirSync(dossier, { recursive: true });
 
   // Analyser le site existant si disponible
@@ -1050,7 +1083,7 @@ async function traiterProspect(prospect, mode, concurrents = null) {
 
   // Chercher un site_id existant dans le CRM pour éviter les sites orphelins
   const crmForId = chargerCRM();
-  const existingEntry = crmForId.prospects.find((p) => p.nom === prospect.nom && p.ville === prospect.ville);
+  const existingEntry = crmForId.prospects.find((p) => p.nom.toLowerCase().trim() === prospect.nom.toLowerCase().trim() && p.ville.toLowerCase().trim() === prospect.ville.toLowerCase().trim());
   const existingDemoSiteId = existingEntry?.netlify_demo_site_id || null;
   const existingPropSiteId = existingEntry?.netlify_prop_site_id || null;
 
@@ -1061,11 +1094,14 @@ async function traiterProspect(prospect, mode, concurrents = null) {
     await genererMaquetteAstro(prospect, dossier);
     let deployDir = dossier;
     try {
-      execSync("npm install", { cwd: dossier, stdio: "ignore" });
-      execSync("npm run build", { cwd: dossier, stdio: "ignore" });
+      execSync("npm install", { cwd: dossier, stdio: "pipe" });
+      execSync("npm run build", { cwd: dossier, stdio: "pipe" });
       deployDir = path.join(dossier, "dist");
       console.log("   🏗️   Build Astro OK");
-    } catch { console.warn("   ⚠️   Build Astro échoué, déploiement dossier source"); }
+    } catch (buildErr) {
+      const stderr = buildErr.stderr?.toString().slice(0, 300) || "";
+      console.warn(`   ⚠️   Build Astro échoué${stderr ? ": " + stderr : ""}, déploiement dossier source`);
+    }
     console.log("\n🚀  Déploiement maquette...");
     const demoResult = await deployerNetlify(deployDir, existingDemoSiteId);
     demoUrl = demoResult.url;
@@ -1085,7 +1121,7 @@ async function traiterProspect(prospect, mode, concurrents = null) {
   const pagePresentation = genererPagePresentation(prospect, demoUrl);
   fs.writeFileSync(path.join(dossier, "PROPOSITION.html"), pagePresentation, "utf8");
 
-  const presentDir = path.join("output", `${slug}-proposition`);
+  const presentDir = path.join(__dirname, "output", `${slug}-proposition`);
   fs.mkdirSync(presentDir, { recursive: true });
   fs.writeFileSync(path.join(presentDir, "index.html"), pagePresentation, "utf8");
   console.log("🚀  Déploiement page de présentation...");
@@ -1096,7 +1132,7 @@ async function traiterProspect(prospect, mode, concurrents = null) {
 
   // Mettre à jour le CRM avec les URLs + site IDs (réutilisés au prochain deploy)
   const crm = chargerCRM();
-  const entry = crm.prospects.find((p) => p.nom === prospect.nom && p.ville === prospect.ville);
+  const entry = crm.prospects.find((p) => p.nom.toLowerCase().trim() === prospect.nom.toLowerCase().trim() && p.ville.toLowerCase().trim() === prospect.ville.toLowerCase().trim());
   if (entry) {
     entry.url_demo = demoUrl;
     entry.url_proposition = propositionUrl;
@@ -1110,7 +1146,7 @@ async function traiterProspect(prospect, mode, concurrents = null) {
 
 // ─── Rapport final ────────────────────────────────────────────────────────────
 
-function genererRapport(prospectsData, resultats) {
+function genererRapport(prospectsData, resultats, query) {
   const date = new Date().toLocaleDateString("fr-FR", { day:"numeric", month:"long", year:"numeric" });
   const E = { SANS_SITE:"🔴", SITE_OBSOLETE:"🟠", SITE_BASIQUE:"🟡", SITE_CORRECT:"🟢" };
   const P = { HAUTE:"⭐⭐⭐", MOYENNE:"⭐⭐", FAIBLE:"⭐" };
@@ -1182,7 +1218,7 @@ function genererRapport(prospectsData, resultats) {
 // ─── Main ─────────────────────────────────────────────────────────────────────
 
 async function main() {
-  if (!fs.existsSync("output")) fs.mkdirSync("output");
+  if (!fs.existsSync(path.join(__dirname, "output"))) fs.mkdirSync(path.join(__dirname, "output"));
 
   // 1. Recherche
   const prospectsData = await rechercherProspects(query);
@@ -1198,11 +1234,11 @@ async function main() {
   for (const p of prospects) console.log("│  " + c(p.nom,26) + "  " + c(p.statut,14) + "  " + c(p.priorite,10) + "  " + c(p.telephone||"—",15) + "  │");
   console.log("└" + "─".repeat(73) + "┘\n");
 
-  ajouterAuCRM(prospects);
+  ajouterAuCRM(prospects, query);
 
   if (index) {
-    const rapport = genererRapport(prospectsData, []);
-    const rp = path.join("output", `rapport-${Date.now()}.md`);
+    const rapport = genererRapport(prospectsData, [], query);
+    const rp = path.join(__dirname, "output", `rapport-${Date.now()}.md`);
     fs.writeFileSync(rp, rapport, "utf8");
     console.log(`\n📋  Rapport : ${rp}\n`);
     return;
@@ -1220,7 +1256,7 @@ async function main() {
     const prospect = cibles[i];
     if (tous && i > 0) {
       console.log("\n⏳  Pause 45s avant le prospect suivant...\n");
-      await wait(45000);
+      await wait(INTER_PROSPECT_PAUSE_MS);
     }
     console.log(`\n${"─".repeat(60)}\n🎨  Traitement : "${prospect.nom}" — ${prospect.activite}\n${"─".repeat(60)}`);
     const res = await traiterProspect(prospect, mode, prospectsData.concurrents);
@@ -1228,8 +1264,8 @@ async function main() {
   }
 
   // 3. Rapport
-  const rapport = genererRapport(prospectsData, resultats);
-  const rapportPath = path.join("output", `rapport-${Date.now()}.md`);
+  const rapport = genererRapport(prospectsData, resultats, query);
+  const rapportPath = path.join(__dirname, "output", `rapport-${Date.now()}.md`);
   fs.writeFileSync(rapportPath, rapport, "utf8");
 
   // 4. Résumé
