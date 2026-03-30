@@ -7,7 +7,7 @@ const secret = new TextEncoder().encode(
 
 export async function verifyPassword(password: string): Promise<boolean> {
   const hash = process.env.CRM_PASSWORD_HASH;
-  if (!hash || hash.includes("placeholder")) return password === "admin"; // dev fallback
+  if (!hash || hash.length < 10) return password === "admin"; // dev fallback (empty or placeholder)
   return bcrypt.compare(password, hash);
 }
 

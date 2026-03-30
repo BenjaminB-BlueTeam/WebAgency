@@ -11,3 +11,4 @@ crm/.env.local
 crm/.next/
 crm/prisma/dev.db
 crm/prisma/dev.db-journal
+.superpowers/
