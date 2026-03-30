@@ -12,6 +12,7 @@
 import Anthropic from "@anthropic-ai/sdk";
 import fs from "fs";
 import path from "path";
+import crypto from "crypto";
 import { execSync } from "child_process";
 import "dotenv/config";
 import FirecrawlApp from "@mendable/firecrawl-js";
@@ -219,7 +220,15 @@ function getDesignDirection(activite) {
 // ─── Google Places helpers ────────────────────────────────────────────────────
 
 async function placesTextSearch(query) {
-  const url = `https://maps.googleapis.com/maps/api/place/textsearch/json?query=${encodeURIComponent(query)}&language=fr&region=fr&key=${GOOGLE_PLACES_KEY}`;
+  // Si la requête est un seul mot (probablement un nom de ville), ajouter "commerces" pour cibler des entreprises
+  const words = query.trim().split(/\s+/);
+  let effectiveQuery = query;
+  if (words.length === 1) {
+    effectiveQuery = `commerces ${query}`;
+    console.log(`   ℹ️  Requête enrichie : "${query}" → "${effectiveQuery}"`);
+  }
+
+  const url = `https://maps.googleapis.com/maps/api/place/textsearch/json?query=${encodeURIComponent(effectiveQuery)}&language=fr&region=fr&key=${GOOGLE_PLACES_KEY}`;
   try {
     const res = await fetch(url);
     const data = await res.json();
@@ -231,7 +240,13 @@ async function placesTextSearch(query) {
       }
       return [];
     }
-    return data.results || [];
+    // Filtrer les résultats qui sont des villes/régions, pas des entreprises
+    const nonGeoTypes = new Set(["locality", "political", "administrative_area_level_1", "administrative_area_level_2", "country"]);
+    const filtered = (data.results || []).filter(r => !r.types?.every(t => nonGeoTypes.has(t)));
+    if (filtered.length < (data.results || []).length) {
+      console.log(`   🔎  ${data.results.length - filtered.length} résultat(s) géographique(s) filtré(s)`);
+    }
+    return filtered;
   } catch (err) {
     console.error("❌  Places Text Search échoué :", err.message);
     return [];
@@ -615,7 +630,14 @@ NAVIGATION : sticky, blur backdrop-filter au scroll, hamburger mobile (animation
 
 FOOTER : 4 col desktop / 1 col mobile (flex-direction:column, centré), copyright, "Site réalisé par Benjamin Bourger — Steenvoorde"
 
-JS : Intersection Observer fade-up sur toutes sections, compteurs animés, nav scroll, hamburger complet avec overlay, formulaire async, ripple effect sur CTAs principaux
+JS OBLIGATOIRE (sans ce script le site est CASSÉ — les éléments restent invisibles à opacity:0) :
+- <script> en fin de <body> — JAMAIS l'omettre
+- Au DOMContentLoaded : ajouter immédiatement .animate sur TOUS les éléments du hero (badge, titre, sous-titre, phone, CTAs) pour qu'ils passent de opacity:0 à opacity:1
+- Intersection Observer fade-up sur toutes les sections restantes
+- Compteurs animés (rAF + easeOutQuart)
+- Nav scroll + hamburger complet avec overlay + fermeture clic extérieur
+- Formulaire async avec validation + loading state
+- Ripple effect sur CTAs principaux
 
 Commence par <!DOCTYPE html>. AUCUNE explication. AUCUN markdown. AUCUN backtick.`;
 
@@ -623,7 +645,42 @@ Commence par <!DOCTYPE html>. AUCUNE explication. AUCUN markdown. AUCUN backtick
     model: "claude-sonnet-4-20250514", max_tokens: 16000,
     system, messages: [{ role: "user", content: user }],
   });
-  return (response.content.find((b) => b.type === "text")?.text || "").trim();
+  let html = (response.content.find((b) => b.type === "text")?.text || "").trim();
+
+  // Sécurité : si Claude a omis le <script>, injecter un fallback qui rend les éléments visibles
+  // Détection case-insensitive pour couvrir <Script>, <SCRIPT>, etc.
+  if (!/<script/i.test(html)) {
+    console.warn("   ⚠️   JS manquant dans la maquette — injection du fallback animations");
+    // NB: var intentionnel dans le script injecté — compatibilité navigateurs max
+    const fallbackScript = `<script>
+document.addEventListener('DOMContentLoaded', function() {
+  ['heroBadge','heroTitle','heroSubtitle','heroPhone','heroCtas'].forEach(function(id) {
+    var el = document.getElementById(id);
+    if (el) el.classList.add('animate');
+  });
+  var observer = new IntersectionObserver(function(entries) {
+    entries.forEach(function(e) { if (e.isIntersecting) { e.target.style.opacity='1'; e.target.style.transform='translateY(0)'; } });
+  }, { threshold: 0.1 });
+  document.querySelectorAll('section:not(.hero)').forEach(function(s) { observer.observe(s); });
+  var nav = document.getElementById('navbar');
+  if (nav) window.addEventListener('scroll', function() { nav.classList.toggle('scrolled', window.scrollY > 50); });
+  var toggle = document.querySelector('.hamburger');
+  var menu = document.querySelector('.nav-links');
+  var overlay = document.querySelector('.nav-overlay');
+  if (toggle && menu) {
+    toggle.addEventListener('click', function() { toggle.classList.toggle('active'); menu.classList.toggle('open'); if(overlay) overlay.classList.toggle('active'); });
+    if(overlay) overlay.addEventListener('click', function() { toggle.classList.remove('active'); menu.classList.remove('open'); overlay.classList.remove('active'); });
+  }
+});
+</script>`;
+    if (html.includes("</body>")) {
+      html = html.replace("</body>", fallbackScript + "\n</body>");
+    } else {
+      html += "\n" + fallbackScript;
+    }
+  }
+
+  return html;
 }
 
 // ─── Génération maquette Astro (fichiers séparés, robuste) ───────────────────
@@ -858,19 +915,104 @@ function slugify(str) {
   return str.toLowerCase().replace(/[^a-z0-9]/g, "-").replace(/-+/g, "-").replace(/^-|-$/g, "");
 }
 
-async function deployerNetlify(dossier) {
+function collectFiles(dir, base = dir) {
+  let files = {};
+  for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+    const full = path.join(dir, entry.name);
+    if (entry.isDirectory()) {
+      Object.assign(files, collectFiles(full, base));
+    } else {
+      const rel = "/" + path.relative(base, full).replace(/\\/g, "/");
+      files[rel] = fs.readFileSync(full);
+    }
+  }
+  return files;
+}
+
+async function deployerNetlify(dossier, existingSiteId = null) {
   try {
-    const result = execSync(
-      `npx netlify-cli deploy --dir="${dossier}" --auth="${NETLIFY_TOKEN}" --json 2>/dev/null`,
-      { encoding: "utf8", timeout: 60000 }
-    );
-    const data = JSON.parse(result);
-    return data.deploy_url || data.url || null;
+    const files = collectFiles(dossier);
+    const fileHashes = {};
+    for (const [filePath, content] of Object.entries(files)) {
+      fileHashes[filePath] = crypto.createHash("sha1").update(content).digest("hex");
+    }
+
+    let siteId, deployId, siteUrl;
+
+    if (existingSiteId) {
+      // Redéployer sur un site existant
+      const deployRes = await fetch(`https://api.netlify.com/api/v1/sites/${existingSiteId}/deploys`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${NETLIFY_TOKEN}` },
+        body: JSON.stringify({ files: fileHashes }),
+      });
+      if (!deployRes.ok) {
+        const errBody = await deployRes.json().catch(() => ({}));
+        console.warn(`   ⚠️   Netlify redeploy: ${deployRes.status} ${errBody.message || ""}`);
+        return { url: null, siteId: existingSiteId };
+      }
+      const deploy = await deployRes.json();
+      siteId = existingSiteId;
+      deployId = deploy.id;
+      siteUrl = deploy.ssl_url || deploy.url;
+    } else {
+      // Créer un nouveau site
+      const createRes = await fetch("https://api.netlify.com/api/v1/sites", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${NETLIFY_TOKEN}` },
+        body: JSON.stringify({ files: fileHashes }),
+      });
+      if (!createRes.ok) {
+        const errBody = await createRes.json().catch(() => ({}));
+        if (createRes.status === 401) {
+          console.warn("   ⚠️   Netlify 401 — vérifiez NETLIFY_TOKEN dans .env");
+        } else {
+          console.warn(`   ⚠️   Netlify create site: ${createRes.status} ${errBody.message || ""}`);
+        }
+        return { url: null, siteId: null };
+      }
+      const site = await createRes.json();
+      siteId = site.id;
+      deployId = site.deploy_id;
+      siteUrl = site.ssl_url || site.url;
+    }
+
+    // Uploader tous les fichiers (sites vitrines légers — pas besoin d'optimiser par SHA)
+    for (const filePath of Object.keys(fileHashes)) {
+      const uploadRes = await fetch(`https://api.netlify.com/api/v1/deploys/${deployId}/files${filePath}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/octet-stream", Authorization: `Bearer ${NETLIFY_TOKEN}` },
+        body: files[filePath],
+      });
+      if (!uploadRes.ok) {
+        console.warn(`   ⚠️   Upload ${filePath}: ${uploadRes.status}`);
+      }
+    }
+
+    // Attendre que le deploy soit ready (max 30s)
+    for (let i = 0; i < 10; i++) {
+      await wait(3000);
+      const statusRes = await fetch(`https://api.netlify.com/api/v1/deploys/${deployId}`, {
+        headers: { Authorization: `Bearer ${NETLIFY_TOKEN}` },
+      });
+      if (!statusRes.ok) break;
+      const deploy = await statusRes.json();
+      if (deploy.state === "ready") {
+        return { url: deploy.ssl_url || deploy.deploy_ssl_url || deploy.url || null, siteId };
+      }
+      if (deploy.state === "error") {
+        console.warn(`   ⚠️   Deploy échoué: ${deploy.error_message || "erreur inconnue"}`);
+        return { url: null, siteId };
+      }
+    }
+
+    // Timeout — le deploy n'a pas confirmé "ready" en 30s
+    console.warn("   ⚠️   Deploy non confirmé après 30s — URL potentiellement instable");
+    const fallbackUrl = siteUrl?.replace(/^http:/, "https:") || null;
+    return { url: fallbackUrl, siteId };
   } catch (err) {
-    const match = (err.stdout || "").match(/"deploy_url"\s*:\s*"([^"]+)"/);
-    if (match) return match[1];
-    console.warn("   ⚠️   Netlify :", err.message?.slice(0, 80));
-    return null;
+    console.warn("   ⚠️   Netlify :", err.message?.slice(0, 120));
+    return { url: null, siteId: null };
   }
 }
 
@@ -890,7 +1032,15 @@ async function traiterProspect(prospect, mode, concurrents = null) {
     }
   }
 
+  // Chercher un site_id existant dans le CRM pour éviter les sites orphelins
+  const crmForId = chargerCRM();
+  const existingEntry = crmForId.prospects.find((p) => p.nom === prospect.nom && p.ville === prospect.ville);
+  const existingDemoSiteId = existingEntry?.netlify_demo_site_id || null;
+  const existingPropSiteId = existingEntry?.netlify_prop_site_id || null;
+
   // Générer le site
+  let demoUrl = null;
+  let demoSiteId = null;
   if (mode === "astro") {
     await genererMaquetteAstro(prospect, dossier);
     let deployDir = dossier;
@@ -901,12 +1051,16 @@ async function traiterProspect(prospect, mode, concurrents = null) {
       console.log("   🏗️   Build Astro OK");
     } catch { console.warn("   ⚠️   Build Astro échoué, déploiement dossier source"); }
     console.log("\n🚀  Déploiement maquette...");
-    var demoUrl = await deployerNetlify(deployDir);
+    const demoResult = await deployerNetlify(deployDir, existingDemoSiteId);
+    demoUrl = demoResult.url;
+    demoSiteId = demoResult.siteId;
   } else {
     const html = await genererMaquetteHTML(prospect, analyse, concurrents);
     fs.writeFileSync(path.join(dossier, "index.html"), html, "utf8");
     console.log("\n🚀  Déploiement maquette...");
-    var demoUrl = await deployerNetlify(dossier);
+    const demoResult = await deployerNetlify(dossier, existingDemoSiteId);
+    demoUrl = demoResult.url;
+    demoSiteId = demoResult.siteId;
   }
 
   if (demoUrl) console.log(`   🌐  Démo : ${demoUrl}`);
@@ -915,18 +1069,24 @@ async function traiterProspect(prospect, mode, concurrents = null) {
   const pagePresentation = genererPagePresentation(prospect, demoUrl);
   fs.writeFileSync(path.join(dossier, "PROPOSITION.html"), pagePresentation, "utf8");
 
-  let propositionUrl = null;
   const presentDir = path.join("output", `${slug}-proposition`);
   fs.mkdirSync(presentDir, { recursive: true });
   fs.writeFileSync(path.join(presentDir, "index.html"), pagePresentation, "utf8");
   console.log("🚀  Déploiement page de présentation...");
-  propositionUrl = await deployerNetlify(presentDir);
+  const propResult = await deployerNetlify(presentDir, existingPropSiteId);
+  const propositionUrl = propResult.url;
+  const propSiteId = propResult.siteId;
   if (propositionUrl) console.log(`   📋  Proposition : ${propositionUrl}`);
 
-  // Mettre à jour le CRM avec les URLs
+  // Mettre à jour le CRM avec les URLs + site IDs (réutilisés au prochain deploy)
   const crm = chargerCRM();
   const entry = crm.prospects.find((p) => p.nom === prospect.nom && p.ville === prospect.ville);
-  if (entry) { entry.url_demo = demoUrl; entry.url_proposition = propositionUrl; }
+  if (entry) {
+    entry.url_demo = demoUrl;
+    entry.url_proposition = propositionUrl;
+    entry.netlify_demo_site_id = demoSiteId;
+    entry.netlify_prop_site_id = propSiteId;
+  }
   fs.writeFileSync(CRM_FILE, JSON.stringify(crm, null, 2), "utf8");
 
   return { nom: prospect.nom, slug, dossier, demoUrl, propositionUrl };
