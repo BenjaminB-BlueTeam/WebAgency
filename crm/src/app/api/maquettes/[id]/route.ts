@@ -1,0 +1,29 @@
+import { NextRequest, NextResponse } from "next/server";
+import { db } from "@/lib/db";
+
+export async function PATCH(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const { id } = await params;
+
+  try {
+    const body = await request.json();
+
+    const data: Record<string, unknown> = {};
+    if (body.statut !== undefined) data.statut = String(body.statut);
+    if (body.retourClient !== undefined) data.retourClient = String(body.retourClient);
+
+    const maquette = await db.maquette.update({
+      where: { id },
+      data,
+    });
+
+    return NextResponse.json(maquette);
+  } catch (error) {
+    return NextResponse.json(
+      { error: "Maquette non trouv\u00e9e ou erreur de mise \u00e0 jour" },
+      { status: 404 }
+    );
+  }
+}
