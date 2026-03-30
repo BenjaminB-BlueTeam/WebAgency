@@ -93,57 +93,55 @@
 }
 
 .dark {
-  /* Pure zinc grays — clean, no blue tint */
-  /* Background: zinc-950 #09090b */
-  --background: oklch(0.07 0 0);
-  /* Foreground: zinc-50 #fafafa */
+  /* Background : quasi-noir teinté bleu */
+  --background: oklch(0.06 0.02 260);
   --foreground: oklch(0.985 0 0);
-  /* Card: zinc-900 #18181b */
-  --card: oklch(0.14 0 0);
+  /* Card : légèrement plus clair que bg */
+  --card: oklch(0.10 0.01 260);
   --card-foreground: oklch(0.985 0 0);
-  /* Popover: same as card */
-  --popover: oklch(0.14 0 0);
+  --popover: oklch(0.10 0.01 260);
   --popover-foreground: oklch(0.985 0 0);
-  /* Primary: amber-500 #f59e0b */
-  --primary: oklch(0.77 0.17 75);
-  --primary-foreground: oklch(0.07 0 0);
-  /* Secondary: zinc-800 #27272a */
-  --secondary: oklch(0.22 0 0);
+  /* Primary : violet #7c3aed */
+  --primary: oklch(0.55 0.25 280);
+  --primary-foreground: oklch(0.985 0 0);
+  /* Secondary */
+  --secondary: oklch(0.18 0.01 260);
   --secondary-foreground: oklch(0.985 0 0);
-  /* Muted: zinc-800 */
-  --muted: oklch(0.22 0 0);
-  /* Muted foreground: zinc-400 #a1a1aa */
-  --muted-foreground: oklch(0.71 0 0);
-  /* Accent: zinc-800 */
-  --accent: oklch(0.22 0 0);
+  /* Muted */
+  --muted: oklch(0.18 0.01 260);
+  --muted-foreground: oklch(0.65 0 0);
+  /* Accent */
+  --accent: oklch(0.18 0.01 260);
   --accent-foreground: oklch(0.985 0 0);
-  /* Destructive: red-500 #ef4444 */
+  /* Destructive */
   --destructive: oklch(0.63 0.24 25);
-  /* Border: zinc-800 #27272a */
-  --border: oklch(0.24 0 0);
-  /* Input: zinc-900 */
-  --input: oklch(0.14 0 0);
-  /* Ring: amber */
-  --ring: oklch(0.77 0.17 75);
-  /* Chart colors */
+  /* Border / Input */
+  --border: oklch(0.20 0.01 260);
+  --input: oklch(0.10 0.01 260);
+  /* Ring focus : violet */
+  --ring: oklch(0.55 0.25 280);
+  /* Chart colors (inchangés) */
   --chart-1: oklch(0.77 0.17 75);
   --chart-2: oklch(0.65 0.17 160);
   --chart-3: oklch(0.7 0.15 250);
   --chart-4: oklch(0.8 0.15 85);
   --chart-5: oklch(0.63 0.24 25);
-  /* Sidebar: slightly darker than bg */
-  --sidebar: oklch(0.095 0 0);
+  /* Sidebar */
+  --sidebar: oklch(0.07 0.02 265);
   --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.77 0.17 75);
-  --sidebar-primary-foreground: oklch(0.07 0 0);
-  --sidebar-accent: oklch(0.19 0 0);
+  --sidebar-primary: oklch(0.55 0.25 280);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.14 0.01 260);
   --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(0.24 0 0);
-  --sidebar-ring: oklch(0.77 0.17 75);
-  /* Semantic colors */
+  --sidebar-border: oklch(0.16 0.02 265);
+  --sidebar-ring: oklch(0.55 0.25 280);
+  /* Semantic */
   --success: oklch(0.65 0.17 160);
   --warning: oklch(0.8 0.15 85);
   --info: oklch(0.7 0.15 250);
+  /* Glow variables */
+  --glow-primary: rgba(124, 58, 237, 0.3);
+  --glow-danger: rgba(239, 68, 68, 0.2);
 }
 
 @layer base {
@@ -155,5 +153,61 @@
   }
   html {
     @apply font-sans;
+  }
+}
+
+@layer utilities {
+  /* Glass neutre */
+  .glass {
+    background: rgba(255, 255, 255, 0.04);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.3),
+                inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  }
+
+  /* Glass violet */
+  .glass-violet {
+    background: rgba(124, 58, 237, 0.1);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(124, 58, 237, 0.25);
+    box-shadow: 0 4px 24px rgba(124, 58, 237, 0.15),
+                inset 0 1px 0 rgba(167, 139, 250, 0.12);
+  }
+
+  /* Glass danger */
+  .glass-danger {
+    background: rgba(239, 68, 68, 0.07);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(239, 68, 68, 0.2);
+    box-shadow: 0 4px 24px rgba(239, 68, 68, 0.08),
+                inset 0 1px 0 rgba(252, 165, 165, 0.08);
+  }
+
+  /* Ligne de reflet haut de card */
+  .glow-line::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(167, 139, 250, 0.3), transparent);
+    pointer-events: none;
+  }
+
+  /* Glow line variante danger */
+  .glow-line-danger::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(239, 68, 68, 0.4), transparent);
+    pointer-events: none;
   }
 }
