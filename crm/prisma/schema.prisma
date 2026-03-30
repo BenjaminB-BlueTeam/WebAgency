@@ -1,0 +1,128 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model Prospect {
+  id                 String     @id @default(cuid())
+  nom                String
+  activite           String
+  ville              String
+  telephone          String?
+  email              String?
+  siteUrl            String?
+  statut             String
+  priorite           String
+  raison             String?
+  argumentCommercial String?
+  statutPipeline     String     @default("PROSPECT")
+  dateAjout          DateTime   @default(now())
+  dateContact        DateTime?
+  dateRdv            DateTime?
+  dateDevis          DateTime?
+  dateSignature      DateTime?
+  dateLivraison      DateTime?
+  notes              String?
+  source             String?
+
+  maquettes          Maquette[]
+  devis              Devis[]
+  factures           Facture[]
+  activites          Activite[]
+
+  createdAt          DateTime   @default(now())
+  updatedAt          DateTime   @updatedAt
+
+  @@unique([nom, ville])
+}
+
+model Maquette {
+  id                String   @id @default(cuid())
+  prospectId        String
+  prospect          Prospect @relation(fields: [prospectId], references: [id], onDelete: Cascade)
+  type              String   @default("html")
+  htmlPath          String?
+  demoUrl           String?
+  propositionUrl    String?
+  netlifySiteId     String?
+  netlifyPropSiteId String?
+  statut            String   @default("BROUILLON")
+  dateCreation      DateTime @default(now())
+  dateEnvoi         DateTime?
+  dateValidation    DateTime?
+  retourClient      String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+}
+
+model Devis {
+  id              String    @id @default(cuid())
+  prospectId      String
+  prospect        Prospect  @relation(fields: [prospectId], references: [id], onDelete: Cascade)
+  reference       String    @unique
+  offre           String
+  montantHT       Float
+  montantTTC      Float
+  lignes          String
+  statut          String    @default("BROUILLON")
+  dateCreation    DateTime  @default(now())
+  dateEnvoi       DateTime?
+  dateAcceptation DateTime?
+  dateExpiration  DateTime?
+  validiteJours   Int       @default(30)
+  pdfPath         String?
+  notes           String?
+  facture         Facture?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+}
+
+model Facture {
+  id             String    @id @default(cuid())
+  prospectId     String
+  prospect       Prospect  @relation(fields: [prospectId], references: [id], onDelete: Cascade)
+  devisId        String?   @unique
+  devis          Devis?    @relation(fields: [devisId], references: [id])
+  reference      String    @unique
+  montantHT      Float
+  montantTTC     Float
+  statut         String    @default("EN_ATTENTE")
+  dateCreation   DateTime  @default(now())
+  dateEcheance   DateTime?
+  dateAcompte    DateTime?
+  datePaiement   DateTime?
+  montantAcompte Float?
+  pdfPath        String?
+  notes          String?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+}
+
+model Activite {
+  id          String    @id @default(cuid())
+  prospectId  String?
+  prospect    Prospect? @relation(fields: [prospectId], references: [id], onDelete: Cascade)
+  type        String
+  description String
+  date        DateTime  @default(now())
+  createdAt   DateTime  @default(now())
+}
+
+model Recherche {
+  id               String   @id @default(cuid())
+  query            String
+  resultatsCount   Int
+  prospectsAjoutes Int
+  date             DateTime @default(now())
+  rapport          String?
+}
+
+model Parametre {
+  id     String @id @default(cuid())
+  cle    String @unique
+  valeur String
+}
