@@ -186,8 +186,14 @@
     box-shadow: 0 4px 24px rgba(239, 68, 68, 0.08),
                 inset 0 1px 0 rgba(252, 165, 165, 0.08);
   }
+}
 
+@layer components {
   /* Ligne de reflet haut de card */
+  .glow-line {
+    position: relative;
+  }
+
   .glow-line::before {
     content: "";
     position: absolute;
@@ -200,6 +206,10 @@
   }
 
   /* Glow line variante danger */
+  .glow-line-danger {
+    position: relative;
+  }
+
   .glow-line-danger::before {
     content: "";
     position: absolute;
