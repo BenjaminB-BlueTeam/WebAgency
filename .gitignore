@@ -5,3 +5,9 @@ crm.json
 *.log
 .DS_Store
 Thumbs.db
+
+# CRM Next.js app
+crm/.env.local
+crm/.next/
+crm/prisma/dev.db
+crm/prisma/dev.db-journal
