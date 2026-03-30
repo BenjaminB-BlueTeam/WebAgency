@@ -28,6 +28,9 @@ model Prospect {
   dateLivraison      DateTime?
   notes              String?
   source             String?
+  adresse            String?
+  noteGoogle         Float?
+  nbAvisGoogle       Int?
 
   maquettes          Maquette[]
   devis              Devis[]
