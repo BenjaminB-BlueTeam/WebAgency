@@ -20,7 +20,7 @@ export interface ProspectResult {
   siteUrl: string | null;
   adresse: string | null;
   noteGoogle: number | null;
-  nbAvisGoogle: number | null;
+  nbAvisGoogle?: number | null;
   statut: string;
   priorite: string;
   argumentCommercial: string | null;

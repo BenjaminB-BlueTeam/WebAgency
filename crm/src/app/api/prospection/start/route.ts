@@ -24,13 +24,13 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "query is required" }, { status: 400 });
   }
 
+  const safeMode: "html" | "astro" = mode === "astro" ? "astro" : "html";
+
   const jobId = randomUUID();
-  createJob(jobId, query.trim(), mode as "html" | "astro");
+  createJob(jobId, query.trim(), safeMode);
 
   // Spawn pipeline asynchronously — do not await
-  runPipeline(jobId, query.trim(), mode as "html" | "astro").catch(
-    console.error
-  );
+  runPipeline(jobId, query.trim(), safeMode).catch(console.error);
 
   return NextResponse.json({ jobId });
 }
@@ -104,10 +104,7 @@ function parseAndUpdateSteps(jobId: string, line: string): void {
   } else if (line.includes("Déploiement maquette")) {
     if (s.maquettes !== "done") s.maquettes = "done";
     s.deploiement = "running";
-  } else if (
-    line.includes("Démo :") ||
-    line.includes("page de présentation")
-  ) {
+  } else if (line.includes("Démo :")) {
     if (s.deploiement !== "done") s.deploiement = "done";
     s.crm = "running";
   } else if (line.includes("CRM :")) {
@@ -195,7 +192,6 @@ async function syncResults(query: string): Promise<ProspectResult[]> {
       siteUrl: record.siteUrl,
       adresse: record.adresse,
       noteGoogle: record.noteGoogle,
-      nbAvisGoogle: record.nbAvisGoogle,
       statut: record.statut,
       priorite: record.priorite,
       argumentCommercial: record.argumentCommercial,
@@ -208,7 +204,7 @@ async function syncResults(query: string): Promise<ProspectResult[]> {
     data: {
       query,
       resultatsCount: results.length,
-      prospectsAjoutes: results.filter((r) => r.maquettes.length === 0).length,
+      prospectsAjoutes: results.length,
       date: new Date(),
     },
   });
