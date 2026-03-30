@@ -4,9 +4,11 @@
 
 **Goal:** Plateforme web personnelle pour Benjamin Bourger permettant de gérer l'intégralité du cycle commercial : prospection automatisée, gestion prospects/clients, maquettes de sites, devis et facturation.
 
-**Architecture:** Application Next.js full-stack (App Router) avec SQLite (via Prisma) pour la persistance, déployée localement en dev puis sur Vercel en prod. Le pipeline de prospection existant (`prospect.js`) est intégré comme module backend appelé depuis l'UI.
+**Architecture:** Application Next.js full-stack (App Router) avec Turso (SQLite cloud) via Prisma pour la persistance, déployée sur Netlify avec accès protégé par mot de passe. Le pipeline de prospection existant (`prospect.js`) est intégré comme module backend appelé depuis l'UI.
 
-**Tech Stack:** Next.js 15 (App Router) · React 19 · Tailwind CSS 4 · shadcn/ui · Prisma + SQLite · TypeScript
+**Tech Stack:** Next.js 15 (App Router) · React 19 · Tailwind CSS 4 · shadcn/ui · Prisma + Turso (SQLite cloud) · TypeScript
+
+**Déploiement:** Netlify (compte existant) · Turso (SQLite hébergé, gratuit) · Accès protégé par mot de passe (middleware Next.js)
 
 ---
 
@@ -20,8 +22,10 @@
 | Style | Full dark mode, accent ambre/doré (#f59e0b, #e8a020) |
 | Pages | Dashboard, Prospects, Clients, Maquettes, Prospection, Devis, Factures, Paramètres |
 | Scope | Plateforme complète en 3 phases |
-| Base de données | SQLite local (Prisma), migratable vers PostgreSQL plus tard |
-| Auth | Aucune en phase 1, préparé pour NextAuth en phase future |
+| Base de données | Turso (SQLite cloud) via Prisma — fichier local en dev, Turso en prod |
+| Hébergement | Netlify (compte existant avec token) |
+| Accès | Mot de passe simple via middleware Next.js (cookie de session) |
+| Auth future | Extensible vers NextAuth si multi-user nécessaire |
 
 ---
 
@@ -448,9 +452,47 @@ Les fonctions `deployerNetlify` et `collectFiles` sont extraites dans `src/lib/n
 
 ---
 
+## Protection d'accès
+
+**Page de login simple** (`/login`) :
+- Champ mot de passe unique (pas de username — un seul utilisateur)
+- Le mot de passe est stocké hashé dans la variable d'environnement `CRM_PASSWORD_HASH`
+- À la validation, un cookie HTTP-only `session` est posé (durée : 30 jours)
+- Middleware Next.js (`middleware.ts`) vérifie le cookie sur toutes les routes sauf `/login`
+- Si cookie absent ou invalide → redirect vers `/login`
+
+**Variables d'environnement supplémentaires :**
+```
+CRM_PASSWORD_HASH=...     # bcrypt hash du mot de passe
+CRM_SESSION_SECRET=...    # Clé pour signer le cookie
+```
+
+---
+
+## Déploiement
+
+### Dev (local)
+- `npm run dev` → http://localhost:3000
+- SQLite local (`prisma/dev.db`)
+- `.env.local` avec les clés API + credentials Turso
+
+### Prod (Netlify)
+- Build Next.js via `@netlify/plugin-nextjs`
+- Variables d'environnement dans le dashboard Netlify
+- Base de données Turso (URL + auth token en env vars)
+- Domaine : sous-domaine Netlify gratuit (ex: `benjamin-crm.netlify.app`) ou domaine custom
+
+### Turso setup
+- Créer un compte sur turso.tech (gratuit)
+- `turso db create webagency-crm`
+- `turso db tokens create webagency-crm`
+- Variables : `TURSO_DATABASE_URL` + `TURSO_AUTH_TOKEN`
+
+---
+
 ## Ce qui est hors scope
 
-- Auth / multi-user (préparé mais pas implémenté)
+- Auth multi-user / rôles (architecture prête, pas implémenté)
 - Espace client
 - Intégration Calendly / prise de RDV en ligne
 - Google Analytics / métriques de fréquentation
