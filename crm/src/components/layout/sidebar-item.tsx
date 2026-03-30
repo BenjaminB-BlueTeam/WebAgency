@@ -18,22 +18,25 @@ interface SidebarItemProps {
 
 export function SidebarItem({ href, icon: Icon, label }: SidebarItemProps) {
   const pathname = usePathname();
-  const { collapsed } = useLayout();
+  const { collapsed, mobileOpen, closeMobile } = useLayout();
 
   const isActive = href === "/" ? pathname === "/" : pathname.startsWith(href);
+
+  // On mobile (when mobileOpen), sidebar is always expanded
+  const isCollapsed = collapsed && !mobileOpen;
 
   const classes = `flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors duration-200 ${
     isActive
       ? "bg-[hsl(var(--sidebar-primary))]/15 text-[hsl(var(--sidebar-primary))]"
       : "text-[hsl(var(--sidebar-foreground))]/60 hover:text-[hsl(var(--sidebar-foreground))] hover:bg-[hsl(var(--sidebar-accent))]"
-  } ${collapsed ? "justify-center px-0" : ""}`;
+  } ${isCollapsed ? "justify-center px-0" : ""}`;
 
-  if (collapsed) {
+  if (isCollapsed) {
     return (
       <Tooltip>
         <TooltipTrigger
           render={
-            <Link href={href} className={classes}>
+            <Link href={href} className={classes} onClick={closeMobile}>
               <Icon className="size-5 shrink-0" />
             </Link>
           }
@@ -46,7 +49,7 @@ export function SidebarItem({ href, icon: Icon, label }: SidebarItemProps) {
   }
 
   return (
-    <Link href={href} className={classes}>
+    <Link href={href} className={classes} onClick={closeMobile}>
       <Icon className="size-5 shrink-0" />
       <span>{label}</span>
     </Link>

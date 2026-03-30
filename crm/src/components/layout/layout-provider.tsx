@@ -5,15 +5,22 @@ import { createContext, useContext, useState, useEffect } from "react";
 interface LayoutContextType {
   collapsed: boolean;
   toggle: () => void;
+  mobileOpen: boolean;
+  openMobile: () => void;
+  closeMobile: () => void;
 }
 
 const LayoutContext = createContext<LayoutContextType>({
   collapsed: false,
   toggle: () => {},
+  mobileOpen: false,
+  openMobile: () => {},
+  closeMobile: () => {},
 });
 
 export function LayoutProvider({ children }: { children: React.ReactNode }) {
   const [collapsed, setCollapsed] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
 
   useEffect(() => {
     const saved = localStorage.getItem("sidebar-collapsed");
@@ -28,8 +35,16 @@ export function LayoutProvider({ children }: { children: React.ReactNode }) {
     });
   }
 
+  function openMobile() {
+    setMobileOpen(true);
+  }
+
+  function closeMobile() {
+    setMobileOpen(false);
+  }
+
   return (
-    <LayoutContext.Provider value={{ collapsed, toggle }}>
+    <LayoutContext.Provider value={{ collapsed, toggle, mobileOpen, openMobile, closeMobile }}>
       {children}
     </LayoutContext.Provider>
   );
