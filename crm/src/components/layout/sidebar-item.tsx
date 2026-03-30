@@ -21,22 +21,33 @@ export function SidebarItem({ href, icon: Icon, label }: SidebarItemProps) {
   const { collapsed, mobileOpen, closeMobile } = useLayout();
 
   const isActive = href === "/" ? pathname === "/" : pathname.startsWith(href);
-
-  // On mobile (when mobileOpen), sidebar is always expanded
   const isCollapsed = collapsed && !mobileOpen;
 
-  const classes = `flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors duration-200 ${
-    isActive
-      ? "bg-sidebar-primary/20 text-sidebar-primary border-l-2 border-sidebar-primary"
-      : "text-sidebar-foreground/60 hover:text-sidebar-foreground hover:bg-sidebar-accent/80"
-  } ${isCollapsed ? "justify-center px-0" : ""}`;
+  const baseClasses =
+    "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-200";
+
+  const activeStyle = {
+    background: "rgba(124,58,237,0.15)",
+    border: "1px solid rgba(124,58,237,0.25)",
+    boxShadow:
+      "0 0 12px rgba(124,58,237,0.1), inset 0 1px 0 rgba(167,139,250,0.1)",
+    color: "#a78bfa",
+  };
+
+  const inactiveClasses =
+    "text-white/50 hover:text-white/90 hover:bg-white/5 border border-transparent";
 
   if (isCollapsed) {
     return (
       <Tooltip>
         <TooltipTrigger
           render={
-            <Link href={href} className={classes} onClick={closeMobile}>
+            <Link
+              href={href}
+              className={`${baseClasses} justify-center px-0 ${isActive ? "" : inactiveClasses}`}
+              style={isActive ? activeStyle : undefined}
+              onClick={closeMobile}
+            >
               <Icon className="size-5 shrink-0" />
             </Link>
           }
@@ -49,7 +60,12 @@ export function SidebarItem({ href, icon: Icon, label }: SidebarItemProps) {
   }
 
   return (
-    <Link href={href} className={classes} onClick={closeMobile}>
+    <Link
+      href={href}
+      className={`${baseClasses} ${isActive ? "" : inactiveClasses}`}
+      style={isActive ? activeStyle : undefined}
+      onClick={closeMobile}
+    >
       <Icon className="size-5 shrink-0" />
       <span>{label}</span>
     </Link>

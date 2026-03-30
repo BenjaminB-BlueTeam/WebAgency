@@ -1,5 +1,3 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-
 interface ActivityItem {
   id: string;
   type: string;
@@ -11,12 +9,12 @@ interface RecentActivityProps {
   activites: ActivityItem[];
 }
 
-const TYPE_COLORS: Record<string, string> = {
-  CREATION: "bg-blue-500",
-  CONTACT: "bg-yellow-500",
-  MAQUETTE: "bg-purple-500",
-  DEVIS: "bg-emerald-500",
-  RELANCE: "bg-orange-500",
+const TYPE_DOT_COLORS: Record<string, { bg: string; glow: string }> = {
+  CREATION: { bg: "#3b82f6", glow: "rgba(59,130,246,0.5)" },
+  CONTACT: { bg: "#eab308", glow: "rgba(234,179,8,0.4)" },
+  MAQUETTE: { bg: "#a78bfa", glow: "rgba(167,139,250,0.5)" },
+  DEVIS: { bg: "#34d399", glow: "rgba(52,211,153,0.4)" },
+  RELANCE: { bg: "#fb923c", glow: "rgba(251,146,60,0.4)" },
 };
 
 function formatDate(date: Date): string {
@@ -30,31 +28,39 @@ function formatDate(date: Date): string {
 
 export function RecentActivity({ activites }: RecentActivityProps) {
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Activit&eacute; r&eacute;cente</CardTitle>
-      </CardHeader>
-      <CardContent>
-        {activites.length === 0 ? (
-          <p className="text-sm text-muted-foreground">Aucune activit&eacute;</p>
-        ) : (
-          <ul className="space-y-3">
-            {activites.map((a) => (
-              <li key={a.id} className="flex items-start gap-3">
+    <div className="glass glow-line relative overflow-hidden rounded-xl p-4">
+      <p className="mb-3 text-[9px] font-medium uppercase tracking-[0.12em] text-white/40">
+        Activité récente
+      </p>
+      {activites.length === 0 ? (
+        <p className="text-sm italic text-white/25">Aucune activité</p>
+      ) : (
+        <ul className="space-y-2.5">
+          {activites.map((a) => {
+            const dot = TYPE_DOT_COLORS[a.type] ?? {
+              bg: "#71717a",
+              glow: "rgba(113,113,122,0.3)",
+            };
+            return (
+              <li key={a.id} className="flex items-center gap-3">
                 <span
-                  className={`mt-1.5 h-2 w-2 shrink-0 rounded-full ${TYPE_COLORS[a.type] ?? "bg-muted-foreground"}`}
+                  className="mt-0.5 h-1.5 w-1.5 shrink-0 rounded-full"
+                  style={{
+                    backgroundColor: dot.bg,
+                    boxShadow: `0 0 6px ${dot.glow}`,
+                  }}
                 />
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm leading-snug">{a.description}</p>
-                  <p className="text-xs text-muted-foreground">
-                    {formatDate(a.date)}
-                  </p>
-                </div>
+                <p className="min-w-0 flex-1 truncate text-[10px] leading-snug text-white/70">
+                  {a.description}
+                </p>
+                <span className="shrink-0 text-[9px] text-white/25">
+                  {formatDate(a.date)}
+                </span>
               </li>
-            ))}
-          </ul>
-        )}
-      </CardContent>
-    </Card>
+            );
+          })}
+        </ul>
+      )}
+    </div>
   );
 }

@@ -70,25 +70,26 @@ export default async function DashboardPage() {
           label="Prospects"
           value={totalProspects}
           subtitle={`${hauteCount} haute priorité`}
-          subtitleColor="text-primary"
+          subtitleColor="text-violet-400"
         />
         <StatCard
           label="Maquettes"
           value={maquettesCount}
           subtitle="envoyées ou validées"
-          subtitleColor="text-primary"
         />
         <StatCard
           label="CA potentiel"
-          value={`${caPotentiel.toLocaleString("fr-FR")}\u00a0\u20ac`}
-          subtitle={`${hauteCount} prospects \u00d7 400\u00a0\u20ac`}
-          subtitleColor="text-green-600"
+          value={`${caPotentiel.toLocaleString("fr-FR")} €`}
+          subtitle={`${hauteCount} prospects × 400 €`}
+          subtitleColor="text-emerald-400"
+          variant="violet"
         />
         <StatCard
           label="À relancer"
           value={relances.length}
-          subtitle={relances.length > 0 ? "en attente de contact" : "tout est à jour"}
-          subtitleColor={relances.length > 0 ? "text-destructive" : "text-green-600"}
+          subtitle={relances.length === 0 ? "tout est à jour" : "urgents"}
+          subtitleColor={relances.length === 0 ? "text-emerald-400" : "text-red-400"}
+          variant={relances.length > 0 ? "danger" : "default"}
         />
       </div>
 

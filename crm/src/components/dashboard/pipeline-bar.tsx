@@ -1,12 +1,43 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-
-const PIPELINE_COLORS: Record<string, string> = {
-  PROSPECT: "#f87171",
-  CONTACTE: "#fbbf24",
-  RDV: "#60a5fa",
-  DEVIS: "#a78bfa",
-  SIGNE: "#34d399",
-  LIVRE: "#22c55e",
+const PIPELINE_COLORS: Record<
+  string,
+  { from: string; to: string; glow: string; dot: string }
+> = {
+  PROSPECT: {
+    from: "#ef4444",
+    to: "#dc2626",
+    glow: "rgba(239,68,68,0.4)",
+    dot: "#ef4444",
+  },
+  CONTACTE: {
+    from: "#eab308",
+    to: "#ca8a04",
+    glow: "rgba(234,179,8,0.4)",
+    dot: "#eab308",
+  },
+  RDV: {
+    from: "#3b82f6",
+    to: "#2563eb",
+    glow: "rgba(59,130,246,0.4)",
+    dot: "#3b82f6",
+  },
+  DEVIS: {
+    from: "#a855f7",
+    to: "#9333ea",
+    glow: "rgba(168,85,247,0.4)",
+    dot: "#a855f7",
+  },
+  SIGNE: {
+    from: "#22c55e",
+    to: "#16a34a",
+    glow: "rgba(34,197,94,0.4)",
+    dot: "#22c55e",
+  },
+  LIVRE: {
+    from: "#10b981",
+    to: "#059669",
+    glow: "rgba(16,185,129,0.4)",
+    dot: "#10b981",
+  },
 };
 
 const PIPELINE_LABELS: Record<string, string> = {
@@ -27,40 +58,66 @@ export function PipelineBar({ segments }: PipelineBarProps) {
   const visible = segments.filter((s) => s.count > 0);
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Pipeline</CardTitle>
-      </CardHeader>
-      <CardContent>
-        {total === 0 ? (
-          <p className="text-sm text-muted-foreground">Aucun prospect</p>
-        ) : (
-          <div className="flex h-10 w-full overflow-hidden rounded-lg border border-border">
-            {visible.map((seg, i) => {
-              const color = PIPELINE_COLORS[seg.status] ?? "#94a3b8";
+    <div className="glass glow-line relative overflow-hidden rounded-xl p-4">
+      <p className="mb-3 text-[9px] font-medium uppercase tracking-[0.12em] text-white/40">
+        Pipeline
+      </p>
+      {total === 0 ? (
+        <p className="text-sm text-white/30">Aucun prospect</p>
+      ) : (
+        <>
+          {/* Barre segmentée */}
+          <div className="mb-3 flex h-2.5 w-full gap-0.5 overflow-hidden rounded-full">
+            {visible.map((seg) => {
+              const c = PIPELINE_COLORS[seg.status] ?? {
+                from: "#94a3b8",
+                to: "#64748b",
+                glow: "rgba(148,163,184,0.3)",
+                dot: "#94a3b8",
+              };
               const pct = (seg.count / total) * 100;
-              const isFirst = i === 0;
-              const isLast = i === visible.length - 1;
               return (
                 <div
                   key={seg.status}
-                  className="flex items-center justify-center text-xs font-semibold"
                   style={{
                     width: `${pct}%`,
-                    minWidth: "3rem",
-                    backgroundColor: `${color}40`,
-                    color,
-                    borderRight: !isLast ? `1px solid ${color}60` : "none",
-                    borderRadius: isFirst && isLast ? "0.5rem" : isFirst ? "0.5rem 0 0 0.5rem" : isLast ? "0 0.5rem 0.5rem 0" : "0",
+                    minWidth: "1.5rem",
+                    background: `linear-gradient(90deg, ${c.from}, ${c.to})`,
+                    boxShadow: `0 0 8px ${c.glow}`,
                   }}
-                >
-                  {seg.count} {PIPELINE_LABELS[seg.status] ?? seg.status}
-                </div>
+                />
               );
             })}
           </div>
-        )}
-      </CardContent>
-    </Card>
+
+          {/* Légende dots */}
+          <div className="flex flex-wrap gap-x-4 gap-y-1.5">
+            {visible.map((seg) => {
+              const c = PIPELINE_COLORS[seg.status] ?? {
+                from: "#94a3b8",
+                to: "#64748b",
+                glow: "rgba(148,163,184,0.3)",
+                dot: "#94a3b8",
+              };
+              return (
+                <span
+                  key={seg.status}
+                  className="flex items-center gap-1.5 text-[9px] uppercase tracking-[0.08em] text-white/50"
+                >
+                  <span
+                    className="inline-block h-1.5 w-1.5 shrink-0 rounded-full"
+                    style={{
+                      backgroundColor: c.dot,
+                      boxShadow: `0 0 4px ${c.glow}`,
+                    }}
+                  />
+                  {PIPELINE_LABELS[seg.status] ?? seg.status} · {seg.count}
+                </span>
+              );
+            })}
+          </div>
+        </>
+      )}
+    </div>
   );
 }
