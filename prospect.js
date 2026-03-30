@@ -762,13 +762,20 @@ Bouton: loading state CSS spinner → message succès JS.` },
 
 function genererPagePresentation(prospect, demoUrl) {
   const date = new Date().toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" });
-  const slugClient = prospect.nom.toLowerCase().replace(/[^a-z]/g, "-");
+  const slugClient = slugify(prospect.nom);
+  // Échapper toutes les données prospect pour empêcher l'injection XSS
+  const nom = escapeHtml(prospect.nom);
+  const ville = escapeHtml(prospect.ville);
+  const raison = escapeHtml(prospect.raison);
+  const statut = escapeHtml(prospect.statut);
+  // Valider que demoUrl est bien une URL Netlify HTTPS
+  const safeDemoUrl = (demoUrl && /^https:\/\/[a-z0-9-]+\.netlify\.app\/?$/i.test(demoUrl)) ? demoUrl : null;
 
   return `<!DOCTYPE html>
 <html lang="fr">
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Proposition de site web — ${prospect.nom}</title>
+<title>Proposition de site web — ${nom}</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -833,8 +840,8 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 </div>
 
 <section class="hero">
-  <div class="hero-tag"><span>✦</span> Préparé spécialement pour ${prospect.nom}</div>
-  <h1>Voici à quoi pourrait ressembler<br><em>${prospect.nom}</em> sur le web</h1>
+  <div class="hero-tag"><span>✦</span> Préparé spécialement pour ${nom}</div>
+  <h1>Voici à quoi pourrait ressembler<br><em>${nom}</em> sur le web</h1>
   <p>J'ai créé cette maquette gratuitement pour vous montrer le potentiel d'une vraie présence en ligne. Professionnelle, moderne, et trouvable sur Google.</p>
   <div class="hero-meta">Préparée le ${date} · Benjamin Bourger · 06.63.78.57.62 · Steenvoorde (59114)</div>
 </section>
@@ -844,10 +851,10 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
   <div class="preview-label"><span class="live-dot"></span>Aperçu de votre future vitrine</div>
   <div class="browser">
     <div class="dots"><span></span><span></span><span></span></div>
-    <div class="url-bar">🔒 ${slugClient}-${prospect.ville.toLowerCase().replace(/[^a-z]/g,"-")}.fr</div>
+    <div class="url-bar">🔒 ${slugClient}-${slugify(prospect.ville)}.fr</div>
   </div>
-  ${demoUrl
-    ? `<iframe class="preview-frame" src="${demoUrl}" title="Aperçu ${prospect.nom}"></iframe>`
+  ${safeDemoUrl
+    ? `<iframe class="preview-frame" src="${safeDemoUrl}" title="Aperçu ${nom}"></iframe>`
     : `<div class="no-preview">
         <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
         <div>Ouvrez <strong>output/${slugClient}/index.html</strong> dans votre navigateur</div>
@@ -859,7 +866,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
       <div class="card-main" style="color:${prospect.statut==='SANS_SITE'?'var(--red)':'#d97706'}">
         ${prospect.statut==='SANS_SITE' ? '❌ Aucun site web' : '⚠️ Site à moderniser'}
       </div>
-      <div class="card-sub" style="margin-top:.5rem">${prospect.raison}</div>
+      <div class="card-sub" style="margin-top:.5rem">${raison}</div>
       <div class="alert">💡 Vos concurrents avec un site moderne captent les clients qui vous cherchent sur Google — sans que vous le sachiez.</div>
     </div>
 
@@ -911,8 +918,17 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 
 // ─── Utilitaires ──────────────────────────────────────────────────────────────
 
+function escapeHtml(str) {
+  return String(str ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
 function slugify(str) {
-  return str.toLowerCase().replace(/[^a-z0-9]/g, "-").replace(/-+/g, "-").replace(/^-|-$/g, "");
+  return str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]/g, "-").replace(/-+/g, "-").replace(/^-|-$/g, "");
 }
 
 function collectFiles(dir, base = dir) {
