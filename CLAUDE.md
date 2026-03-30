@@ -201,13 +201,12 @@ Tu lis `crm.json` et tu affiches :
 
 | Offre | Prix | Contenu |
 |---|---|---|
-| Essentielle | 299 € | 1 page, formulaire, hébergement 1 an |
-| Professionnelle | 499 € | 3-5 pages, galerie, SEO, domaine inclus |
-| Premium | 799 € | 5-10 pages, blog, RDV en ligne, 3 mois maintenance |
-| Maintenance | 29 €/mois | Mises à jour, surveillance, renouvellements |
-| Modification ponctuelle | 30 €/unité | Texte, photo, ajout section simple |
+| **Offre de base** | **690 €** | Jusqu'à 5 pages, design premium adapté à l'identité visuelle, SEO local, domaine .fr + hébergement 1 an inclus, livraison 7j |
+| Maintenance | 49 €/mois | Mises à jour, surveillance 24/7, renouvellements domaine+hébergement, rapport mensuel, réactivité 48h |
 
-**Règle de négociation** : on peut aller jusqu'à -10% max sur l'Essentielle, jamais sur les autres. En dessous de 270€, ce n'est pas rentable pour Benjamin.
+**Options à la carte :** page supp +80€, galerie +120€, RDV Calendly +150€, formulaire devis +180€, WhatsApp +80€, blog statique +200€, blog CMS client +400€, multilingue FR/NL +400€
+
+**Règle de négociation** : prix plancher absolu 620 € (-10% max). En dessous ce n'est pas viable. Toujours offrir le 1er mois de maintenance.
 
 ---
 
