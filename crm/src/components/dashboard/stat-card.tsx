@@ -1,26 +1,49 @@
-import { Card, CardContent } from "@/components/ui/card";
+import { cn } from "@/lib/utils";
 
 interface StatCardProps {
   label: string;
   value: string | number;
   subtitle?: string;
   subtitleColor?: string;
+  variant?: "default" | "violet" | "danger";
 }
 
-export function StatCard({ label, value, subtitle, subtitleColor }: StatCardProps) {
+export function StatCard({
+  label,
+  value,
+  subtitle,
+  subtitleColor,
+  variant = "default",
+}: StatCardProps) {
+  const glassClass =
+    variant === "violet"
+      ? "glass-violet"
+      : variant === "danger"
+        ? "glass-danger"
+        : "glass";
+
+  const glowLineClass =
+    variant === "danger" ? "glow-line-danger" : "glow-line";
+
   return (
-    <Card className="border border-border hover:border-primary/20 transition-colors duration-200">
-      <CardContent className="pt-2">
-        <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-          {label}
+    <div
+      className={cn(
+        "relative rounded-xl p-4 overflow-hidden",
+        glassClass,
+        glowLineClass
+      )}
+    >
+      <p className="text-[9px] font-medium uppercase tracking-[0.12em] text-white/40">
+        {label}
+      </p>
+      <p className="mt-2 text-[2rem] font-bold leading-none tracking-tight text-white">
+        {value}
+      </p>
+      {subtitle && (
+        <p className={cn("mt-1.5 text-[10px]", subtitleColor ?? "text-white/35")}>
+          {subtitle}
         </p>
-        <p className="mt-1 text-3xl font-bold text-foreground">{value}</p>
-        {subtitle && (
-          <p className={`mt-1 text-sm ${subtitleColor ?? "text-muted-foreground"}`}>
-            {subtitle}
-          </p>
-        )}
-      </CardContent>
-    </Card>
+      )}
+    </div>
   );
 }
