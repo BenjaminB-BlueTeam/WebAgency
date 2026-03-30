@@ -32,6 +32,7 @@ export default async function MaquettesPage() {
               statut={m.statut}
               type={m.type}
               demoUrl={m.demoUrl}
+              htmlPath={m.htmlPath}
               createdAt={m.createdAt.toISOString()}
             />
           ))}

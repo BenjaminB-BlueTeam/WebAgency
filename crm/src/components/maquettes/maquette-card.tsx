@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+import { MaquettePreview } from "./maquette-preview";
 
 interface MaquetteCardProps {
   id: string;
@@ -8,6 +9,7 @@ interface MaquetteCardProps {
   statut: string;
   type: string;
   demoUrl: string | null;
+  htmlPath: string | null;
   createdAt: string;
 }
 
@@ -27,12 +29,6 @@ const MAQUETTE_STATUT_LABELS: Record<string, string> = {
   REFUSE: "Refus\u00e9",
 };
 
-function getGradient(name: string): string {
-  const initial = (name || "?").charAt(0).toUpperCase();
-  const code = initial.charCodeAt(0);
-  const hue = (code * 37) % 360;
-  return `linear-gradient(135deg, hsl(${hue}, 60%, 30%), hsl(${(hue + 60) % 360}, 50%, 20%))`;
-}
 
 export function MaquetteCard({
   id,
@@ -40,24 +36,24 @@ export function MaquetteCard({
   statut,
   type,
   demoUrl,
+  htmlPath,
   createdAt,
 }: MaquetteCardProps) {
   const colorClass =
     MAQUETTE_STATUT_COLORS[statut] ?? "bg-zinc-500/15 text-zinc-400 border-zinc-500/20";
   const label = MAQUETTE_STATUT_LABELS[statut] ?? statut;
+  const hasPreview = !!(demoUrl || htmlPath);
 
   return (
     <Link
       href={`/maquettes/${id}`}
       className="group block rounded-lg border border-border bg-card overflow-hidden hover:border-foreground/20 transition-colors"
     >
-      {/* Colored placeholder area */}
-      <div
-        className="h-40 flex items-center justify-center text-4xl font-bold text-white/60"
-        style={{ background: getGradient(prospect?.nom ?? "") }}
-      >
-        {(prospect?.nom ?? "?").charAt(0).toUpperCase()}
-      </div>
+      <MaquettePreview
+        id={id}
+        nom={prospect?.nom ?? ""}
+        hasPreview={hasPreview}
+      />
 
       {/* Card body */}
       <div className="p-4 space-y-2">
