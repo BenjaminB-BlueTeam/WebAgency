@@ -20,6 +20,7 @@ export interface ProspectResult {
   siteUrl: string | null;
   adresse: string | null;
   noteGoogle: number | null;
+  nbAvisGoogle: number | null;
   statut: string;
   priorite: string;
   argumentCommercial: string | null;
@@ -95,6 +96,11 @@ export function failJob(id: string, error: string): void {
   if (!job) return;
   job.status = "error";
   job.error = error;
+  // Mark any still-running steps as error
+  for (const k of Object.keys(job.steps) as (keyof JobSteps)[]) {
+    if (job.steps[k] === "running") job.steps[k] = "error";
+  }
+  emit(id, "progress", { steps: job.steps, status: "error" });
   emit(id, "error", { error });
 }
 
