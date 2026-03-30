@@ -240,6 +240,52 @@ web-agency-tool/
 | `traiterProspect(prospect, mode, concurrents)` | Orchestre analyse + génération + déploiement |
 | `genererRapport(prospectsData, resultats)` | Rapport MD avec section concurrentielle |
 
-### Délais API automatiques
-- **60s** après `rechercherProspects()` pour laisser les limites API se réinitialiser
-- **30s** entre chaque prospect en mode `--tous`
+### Helpers Google Places + Firecrawl (ajoutés 2026-03-30)
+
+| Fonction | Rôle |
+|---|---|
+| `placesTextSearch(query)` | Google Places Text Search → liste d'entreprises |
+| `placesDetails(placeId)` | Google Places Details → tél, site, horaires |
+| `scrapeUrl(url)` | Firecrawl (primaire) + fetch() fallback → markdown propre |
+
+> Les 3 fonctions Claude avec `web_search` ont été remplacées par ces helpers.
+> Résultat : ~33k tokens → ~9k tokens/exécution. Rate limit 429 éliminé.
+
+---
+
+## État actuel & Todo
+
+> **Mettre à jour cette section à chaque session importante.**
+
+### Dernière mise à jour : 2026-03-30
+
+**Repo GitHub :** https://github.com/BenjaminB-BlueTeam/WebAgency
+
+**Pipeline :** Opérationnel. Refactoring Google Places + Firecrawl terminé et reviewé.
+
+**Test d'intégration :** Pas encore lancé avec les vraies clés API — à faire en priorité :
+```bash
+node prospect.js "Cassel"
+```
+
+### CRM — Prospects actifs (tous au stade PROSPECT, aucun contacté)
+
+| Nom | Ville | Statut | Priorité | Tél |
+|---|---|---|---|---|
+| Boulangerie Caron | Steenvoorde | SITE_OBSOLETE | HAUTE | 03 28 43 31 61 |
+| Pharmacie des Géants | Steenvoorde | SANS_SITE | HAUTE | — |
+| So Choux | Bailleul | SANS_SITE | HAUTE | — |
+| QAD Services | Hazebrouck | SANS_SITE | HAUTE | — |
+| Carrosserie JLMB | Steenvoorde | SANS_SITE | MOYENNE | — |
+| Aux Fleurs du N°4 | Steenvoorde | SANS_SITE | MOYENNE | — |
+| Boucherie Terrier et Fils | Bailleul | SANS_SITE | MOYENNE | — |
+| Expert PVC | Bailleul | SANS_SITE | MOYENNE | — |
+
+**Premier contact recommandé :** Boulangerie Caron — tél + email disponibles, site obsolète = argument fort.
+
+### Todo technique
+
+- [ ] Lancer le test d'intégration `node prospect.js "Cassel"`
+- [ ] Exploiter `opening_hours` récupéré par Places Details (non transmis à Claude actuellement)
+- [ ] Corriger `var demoUrl` → `let` dans `traiterProspect` (bug legacy non bloquant)
+- [ ] Évaluer si `crm.json` doit être ajouté au `.gitignore` (données prospects privées)
