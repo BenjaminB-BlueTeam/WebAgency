@@ -1,0 +1,19 @@
+{
+  "name": "web-agency-tool",
+  "version": "1.0.0",
+  "description": "Workflow automatisé : recherche prospects + maquette + déploiement Netlify",
+  "type": "module",
+  "scripts": {
+    "prospect": "node prospect.js",
+    "search": "node prospect.js",
+    "help": "node prospect.js --help"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.39.0",
+    "@mendable/firecrawl-js": "^4.18.0",
+    "dotenv": "^16.4.5"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
