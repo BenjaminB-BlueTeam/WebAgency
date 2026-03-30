@@ -11,11 +11,11 @@ const PIPELINE_COLORS: Record<string, string> = {
 
 const PIPELINE_LABELS: Record<string, string> = {
   PROSPECT: "Prospect",
-  CONTACTE: "Contact\u00e9",
+  CONTACTE: "Contacté",
   RDV: "RDV",
   DEVIS: "Devis",
-  SIGNE: "Sign\u00e9",
-  LIVRE: "Livr\u00e9",
+  SIGNE: "Signé",
+  LIVRE: "Livré",
 };
 
 interface PipelineBarProps {
@@ -35,10 +35,12 @@ export function PipelineBar({ segments }: PipelineBarProps) {
         {total === 0 ? (
           <p className="text-sm text-muted-foreground">Aucun prospect</p>
         ) : (
-          <div className="flex h-10 w-full overflow-hidden rounded-lg">
-            {visible.map((seg) => {
+          <div className="flex h-10 w-full overflow-hidden rounded-lg border border-border">
+            {visible.map((seg, i) => {
               const color = PIPELINE_COLORS[seg.status] ?? "#94a3b8";
               const pct = (seg.count / total) * 100;
+              const isFirst = i === 0;
+              const isLast = i === visible.length - 1;
               return (
                 <div
                   key={seg.status}
@@ -46,8 +48,10 @@ export function PipelineBar({ segments }: PipelineBarProps) {
                   style={{
                     width: `${pct}%`,
                     minWidth: "3rem",
-                    backgroundColor: `${color}26`,
+                    backgroundColor: `${color}40`,
                     color,
+                    borderRight: !isLast ? `1px solid ${color}60` : "none",
+                    borderRadius: isFirst && isLast ? "0.5rem" : isFirst ? "0.5rem 0 0 0.5rem" : isLast ? "0 0.5rem 0.5rem 0" : "0",
                   }}
                 >
                   {seg.count} {PIPELINE_LABELS[seg.status] ?? seg.status}

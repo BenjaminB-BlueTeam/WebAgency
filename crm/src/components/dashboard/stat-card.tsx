@@ -9,12 +9,12 @@ interface StatCardProps {
 
 export function StatCard({ label, value, subtitle, subtitleColor }: StatCardProps) {
   return (
-    <Card>
+    <Card className="border border-border hover:border-primary/20 transition-colors duration-200">
       <CardContent className="pt-2">
         <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
           {label}
         </p>
-        <p className="mt-1 text-3xl font-bold">{value}</p>
+        <p className="mt-1 text-3xl font-bold text-foreground">{value}</p>
         {subtitle && (
           <p className={`mt-1 text-sm ${subtitleColor ?? "text-muted-foreground"}`}>
             {subtitle}

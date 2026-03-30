@@ -64,20 +64,18 @@ export default async function DashboardPage() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold tracking-tight">Tableau de bord</h1>
-
       {/* Stat cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard
           label="Prospects"
           value={totalProspects}
-          subtitle={`${hauteCount} haute priorit\u00e9`}
+          subtitle={`${hauteCount} haute priorité`}
           subtitleColor="text-primary"
         />
         <StatCard
           label="Maquettes"
           value={maquettesCount}
-          subtitle="envoy\u00e9es ou valid\u00e9es"
+          subtitle="envoyées ou validées"
           subtitleColor="text-primary"
         />
         <StatCard
@@ -87,9 +85,9 @@ export default async function DashboardPage() {
           subtitleColor="text-green-600"
         />
         <StatCard
-          label="\u00c0 relancer"
+          label="À relancer"
           value={relances.length}
-          subtitle={relances.length > 0 ? "en attente de contact" : "tout est \u00e0 jour"}
+          subtitle={relances.length > 0 ? "en attente de contact" : "tout est à jour"}
           subtitleColor={relances.length > 0 ? "text-destructive" : "text-green-600"}
         />
       </div>

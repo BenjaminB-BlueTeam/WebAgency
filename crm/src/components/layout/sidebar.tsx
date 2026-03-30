@@ -45,26 +45,26 @@ export function Sidebar() {
 
       {/* Sidebar */}
       <aside
-        className={`fixed inset-y-0 left-0 z-50 flex flex-col border-r border-[hsl(var(--sidebar-border))] bg-[hsl(var(--sidebar))] transition-[transform,width] duration-300 ease-in-out
+        className={`fixed inset-y-0 left-0 z-50 flex flex-col border-r border-sidebar-border bg-sidebar transition-[transform,width] duration-300 ease-in-out
           md:z-30 md:translate-x-0
           ${mobileOpen ? "translate-x-0" : "-translate-x-full"}
         `}
         style={{ width: collapsed && !mobileOpen ? 64 : 240 }}
       >
         {/* Logo */}
-        <div className="flex h-14 items-center gap-3 border-b border-[hsl(var(--sidebar-border))] px-4">
-          <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-[hsl(var(--sidebar-primary))] font-bold text-[hsl(var(--sidebar-primary-foreground))]">
+        <div className="flex h-14 items-center gap-3 border-b border-sidebar-border px-4">
+          <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-sidebar-primary font-bold text-sidebar-primary-foreground">
             W
           </div>
           {(!collapsed || mobileOpen) && (
-            <span className="text-lg font-semibold text-[hsl(var(--sidebar-primary))]">
+            <span className="text-lg font-semibold text-sidebar-primary">
               WebAgency
             </span>
           )}
           {/* Close button (mobile only) */}
           <button
             onClick={closeMobile}
-            className="ml-auto flex size-8 items-center justify-center rounded-lg text-[hsl(var(--sidebar-foreground))]/60 transition-colors hover:bg-[hsl(var(--sidebar-accent))] hover:text-[hsl(var(--sidebar-foreground))] md:hidden"
+            className="ml-auto flex size-8 items-center justify-center rounded-lg text-sidebar-foreground/60 transition-colors hover:bg-sidebar-accent hover:text-sidebar-foreground md:hidden"
             aria-label="Fermer le menu"
           >
             <X className="size-5" />
@@ -79,20 +79,20 @@ export function Sidebar() {
         </nav>
 
         {/* Footer */}
-        <div className="border-t border-[hsl(var(--sidebar-border))] px-3 py-3">
+        <div className="border-t border-sidebar-border px-3 py-3">
           {(!collapsed || mobileOpen) && (
             <div className="mb-3 px-3">
-              <p className="text-xs font-medium text-[hsl(var(--sidebar-foreground))]/80">
+              <p className="text-xs font-medium text-sidebar-foreground/80">
                 Benjamin Bourger
               </p>
-              <p className="text-xs text-[hsl(var(--sidebar-foreground))]/40">
+              <p className="text-xs text-sidebar-foreground/40">
                 Steenvoorde
               </p>
             </div>
           )}
           <button
             onClick={toggle}
-            className="hidden w-full items-center justify-center rounded-lg p-2 text-[hsl(var(--sidebar-foreground))]/60 transition-colors duration-200 hover:bg-[hsl(var(--sidebar-accent))] hover:text-[hsl(var(--sidebar-foreground))] md:flex"
+            className="hidden w-full items-center justify-center rounded-lg p-2 text-sidebar-foreground/60 transition-colors duration-200 hover:bg-sidebar-accent hover:text-sidebar-foreground md:flex"
             aria-label={collapsed ? "Ouvrir le menu" : "Réduire le menu"}
           >
             {collapsed ? (

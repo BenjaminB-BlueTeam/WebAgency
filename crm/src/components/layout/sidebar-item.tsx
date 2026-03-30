@@ -27,8 +27,8 @@ export function SidebarItem({ href, icon: Icon, label }: SidebarItemProps) {
 
   const classes = `flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors duration-200 ${
     isActive
-      ? "bg-[hsl(var(--sidebar-primary))]/15 text-[hsl(var(--sidebar-primary))]"
-      : "text-[hsl(var(--sidebar-foreground))]/60 hover:text-[hsl(var(--sidebar-foreground))] hover:bg-[hsl(var(--sidebar-accent))]"
+      ? "bg-sidebar-primary/20 text-sidebar-primary border-l-2 border-sidebar-primary"
+      : "text-sidebar-foreground/60 hover:text-sidebar-foreground hover:bg-sidebar-accent/80"
   } ${isCollapsed ? "justify-center px-0" : ""}`;
 
   if (isCollapsed) {
