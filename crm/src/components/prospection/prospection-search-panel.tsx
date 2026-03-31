@@ -12,8 +12,6 @@ interface SearchHistory {
 interface ProspectionSearchPanelProps {
   query: string;
   onQueryChange: (v: string) => void;
-  mode: "html" | "astro";
-  onModeChange: (v: "html" | "astro") => void;
   onSubmit: () => void;
   isRunning: boolean;
   history: SearchHistory[];
@@ -23,8 +21,6 @@ interface ProspectionSearchPanelProps {
 export function ProspectionSearchPanel({
   query,
   onQueryChange,
-  mode,
-  onModeChange,
   onSubmit,
   isRunning,
   history,
@@ -33,7 +29,7 @@ export function ProspectionSearchPanel({
   return (
     <div className="glass-violet rounded-xl p-4 flex flex-col gap-4 h-full">
       <p className="text-[0.65rem] text-violet-300 uppercase tracking-widest font-semibold">
-        Nouvelle recherche
+        Recherche de prospects
       </p>
 
       <input
@@ -46,33 +42,6 @@ export function ProspectionSearchPanel({
         disabled={isRunning}
       />
 
-      <div className="flex gap-2">
-        <button
-          onClick={() => onModeChange("html")}
-          className={cn(
-            "flex-1 rounded-lg py-2 text-xs font-semibold transition-colors",
-            mode === "html"
-              ? "bg-violet-500/30 border border-violet-400/50 text-violet-200"
-              : "bg-white/4 border border-white/8 text-white/40 hover:text-white/60"
-          )}
-          disabled={isRunning}
-        >
-          HTML
-        </button>
-        <button
-          onClick={() => onModeChange("astro")}
-          className={cn(
-            "flex-1 rounded-lg py-2 text-xs font-semibold transition-colors",
-            mode === "astro"
-              ? "bg-violet-500/30 border border-violet-400/50 text-violet-200"
-              : "bg-white/4 border border-white/8 text-white/40 hover:text-white/60"
-          )}
-          disabled={isRunning}
-        >
-          Astro
-        </button>
-      </div>
-
       <button
         onClick={onSubmit}
         disabled={isRunning || !query.trim()}
@@ -83,7 +52,7 @@ export function ProspectionSearchPanel({
             : "bg-gradient-to-r from-violet-600 to-indigo-500 hover:from-violet-500 hover:to-indigo-400 shadow-lg shadow-violet-500/20"
         )}
       >
-        {isRunning ? "⟳ En cours…" : "▶ Lancer la prospection"}
+        {isRunning ? "⟳ Recherche en cours…" : "▶ Lancer la recherche"}
       </button>
 
       {history.length > 0 && (
