@@ -276,7 +276,8 @@ async function placesDetails(placeId) {
     const data = await res.json();
     if (data.status !== "OK") return null;
     return data.result || null;
-  } catch {
+  } catch (err) {
+    console.warn("   ⚠️  Places Details échoué :", err?.message?.slice(0, 80));
     return null;
   }
 }
@@ -289,7 +290,7 @@ async function scrapeUrl(url) {
       if (result.success && result.markdown) {
         return { content: result.markdown, source: "firecrawl" };
       }
-    } catch { /* quota épuisé ou erreur réseau → fallback */ }
+    } catch (err) { console.warn("   ⚠️  Firecrawl fallback :", err?.message?.slice(0, 80)); }
   }
 
   // Fallback : fetch() natif (HTML brut tronqué à 30kb)
@@ -307,7 +308,8 @@ async function scrapeUrl(url) {
       ? html.slice(0, MAX_SCRAPE_BYTES).replace(/<[^>]*$/, "")
       : html;
     return { content: truncated, source: "fetch" };
-  } catch {
+  } catch (err) {
+    console.warn("   ⚠️  Fetch fallback échoué :", err?.message?.slice(0, 80));
     return { content: null, source: null };
   }
 }
@@ -852,22 +854,21 @@ Commence par <!DOCTYPE html>. AUCUNE explication. AUCUN markdown. AUCUN backtick
   // Détection case-insensitive pour couvrir <Script>, <SCRIPT>, etc.
   if (!/<script/i.test(html)) {
     console.warn("   ⚠️   JS manquant dans la maquette — injection du fallback animations");
-    // NB: var intentionnel dans le script injecté — compatibilité navigateurs max
     const fallbackScript = `<script>
 document.addEventListener('DOMContentLoaded', function() {
   ['heroBadge','heroTitle','heroSubtitle','heroPhone','heroCtas'].forEach(function(id) {
-    var el = document.getElementById(id);
+    let el = document.getElementById(id);
     if (el) el.classList.add('animate');
   });
-  var observer = new IntersectionObserver(function(entries) {
+  let observer = new IntersectionObserver(function(entries) {
     entries.forEach(function(e) { if (e.isIntersecting) { e.target.style.opacity='1'; e.target.style.transform='translateY(0)'; } });
   }, { threshold: 0.1 });
   document.querySelectorAll('section:not(.hero)').forEach(function(s) { observer.observe(s); });
-  var nav = document.getElementById('navbar');
+  let nav = document.getElementById('navbar');
   if (nav) window.addEventListener('scroll', function() { nav.classList.toggle('scrolled', window.scrollY > 50); });
-  var toggle = document.querySelector('.hamburger');
-  var menu = document.querySelector('.nav-links');
-  var overlay = document.querySelector('.nav-overlay');
+  let toggle = document.querySelector('.hamburger');
+  let menu = document.querySelector('.nav-links');
+  let overlay = document.querySelector('.nav-overlay');
   if (toggle && menu) {
     toggle.addEventListener('click', function() { toggle.classList.toggle('active'); menu.classList.toggle('open'); if(overlay) overlay.classList.toggle('active'); });
     if(overlay) overlay.addEventListener('click', function() { toggle.classList.remove('active'); menu.classList.remove('open'); overlay.classList.remove('active'); });
