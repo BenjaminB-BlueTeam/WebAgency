@@ -4,10 +4,17 @@ import { requireAuth } from "@/lib/auth";
 
 // A05 — Allowlist: only these keys can be written via the API
 const ALLOWED_PARAM_KEYS = new Set([
-  "ANTHROPIC_API_KEY",
-  "NETLIFY_TOKEN",
-  "GOOGLE_PLACES_KEY",
-  "FIRECRAWL_KEY",
+  // Profil prestataire
+  "profil_nom",
+  "profil_adresse",
+  "profil_telephone",
+  "profil_email",
+  "profil_siret",
+  // Tarification
+  "tarif_base",
+  "tarif_maintenance",
+  "tarif_tva",
+  // CRM
   "crm_titre",
   "crm_contact_email",
   "crm_contact_telephone",

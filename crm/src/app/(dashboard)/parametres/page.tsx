@@ -29,11 +29,9 @@ const PROFIL_FIELDS: ParamField[] = [
 ];
 
 const TARIF_FIELDS: ParamField[] = [
-  { cle: "tarif_essentielle", label: "Prix Essentielle", type: "number", suffix: "\u20ac" },
-  { cle: "tarif_professionnelle", label: "Prix Professionnelle", type: "number", suffix: "\u20ac" },
-  { cle: "tarif_premium", label: "Prix Premium", type: "number", suffix: "\u20ac" },
-  { cle: "tarif_maintenance", label: "Maintenance mensuelle", type: "number", suffix: "\u20ac/mois" },
-  { cle: "tarif_modification", label: "Modification ponctuelle", type: "number", suffix: "\u20ac" },
+  { cle: "tarif_base", label: "Offre de base", type: "number", suffix: "\u20ac", placeholder: "690" },
+  { cle: "tarif_maintenance", label: "Maintenance mensuelle", type: "number", suffix: "\u20ac/mois", placeholder: "49" },
+  { cle: "tarif_tva", label: "Taux TVA", type: "number", suffix: "%", placeholder: "0 si franchise de base" },
 ];
 
 export default function ParametresPage() {
