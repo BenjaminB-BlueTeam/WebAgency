@@ -40,7 +40,9 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "montantHT invalide" }, { status: 400 });
   }
 
-  const ttc = Math.round(ht * 1.2 * 100) / 100;
+  const tauxParam = await db.parametre.findUnique({ where: { cle: "tarif_tva" } });
+  const tauxTva = parseFloat(tauxParam?.valeur ?? "0") / 100;
+  const ttc = Math.round(ht * (1 + tauxTva) * 100) / 100;
   const expiration = new Date();
   expiration.setDate(expiration.getDate() + validiteJours);
 

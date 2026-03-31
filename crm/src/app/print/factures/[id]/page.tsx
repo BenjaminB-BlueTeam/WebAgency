@@ -53,6 +53,9 @@ export default async function FacturePrintPage({
   const siret = param("profil_siret", "");
 
   const tva = Math.round((facture.montantTTC - facture.montantHT) * 100) / 100;
+  const tauxTvaParam = param("tarif_tva", "0");
+  const tauxTva = parseFloat(tauxTvaParam);
+  const isFranchiseTva = tauxTva === 0;
   const resteAPayer =
     facture.montantAcompte != null
       ? Math.round((facture.montantTTC - facture.montantAcompte) * 100) / 100
@@ -207,12 +210,21 @@ export default async function FacturePrintPage({
           <span>Montant HT</span>
           <span>{fmt(facture.montantHT)} €</span>
         </div>
-        <div className="total-row">
-          <span>TVA (20 %)</span>
-          <span>{fmt(tva)} €</span>
-        </div>
+        {isFranchiseTva ? (
+          <div className="total-row">
+            <span style={{ fontStyle: "italic", color: "#888" }}>
+              TVA non applicable — art. 293 B du CGI
+            </span>
+            <span>—</span>
+          </div>
+        ) : (
+          <div className="total-row">
+            <span>TVA ({tauxTva} %)</span>
+            <span>{fmt(tva)} €</span>
+          </div>
+        )}
         <div className="total-row ttc">
-          <span>Total TTC</span>
+          <span>Total {isFranchiseTva ? "HT" : "TTC"}</span>
           <span>{fmt(facture.montantTTC)} €</span>
         </div>
         {facture.montantAcompte != null && (

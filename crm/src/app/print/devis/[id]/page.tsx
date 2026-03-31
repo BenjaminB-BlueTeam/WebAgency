@@ -50,6 +50,9 @@ export default async function DevisPrintPage({
   const siret = param("profil_siret", "");
 
   const tva = Math.round((devis.montantTTC - devis.montantHT) * 100) / 100;
+  const tauxTvaParam = param("tarif_tva", "0");
+  const tauxTva = parseFloat(tauxTvaParam);
+  const isFranchiseTva = tauxTva === 0;
   const statuts: Record<string, string> = {
     BROUILLON: "Brouillon",
     ENVOYE: "Envoyé",
@@ -190,12 +193,21 @@ export default async function DevisPrintPage({
           <span>Montant HT</span>
           <span>{fmt(devis.montantHT)} €</span>
         </div>
-        <div className="total-row">
-          <span>TVA (20 %)</span>
-          <span>{fmt(tva)} €</span>
-        </div>
+        {isFranchiseTva ? (
+          <div className="total-row">
+            <span style={{ fontStyle: "italic", color: "#888" }}>
+              TVA non applicable — art. 293 B du CGI
+            </span>
+            <span>—</span>
+          </div>
+        ) : (
+          <div className="total-row">
+            <span>TVA ({tauxTva} %)</span>
+            <span>{fmt(tva)} €</span>
+          </div>
+        )}
         <div className="total-row ttc">
-          <span>Total TTC</span>
+          <span>Total {isFranchiseTva ? "HT" : "TTC"}</span>
           <span>{fmt(devis.montantTTC)} €</span>
         </div>
       </div>
