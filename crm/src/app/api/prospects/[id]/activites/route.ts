@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
+import { requireAuth } from "@/lib/auth";
 
 const VALID_TYPES = [
   "APPEL",
@@ -17,6 +18,9 @@ export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const authError = await requireAuth(request);
+  if (authError) return authError;
+
   const { id } = await params;
   const body = await request.json();
 

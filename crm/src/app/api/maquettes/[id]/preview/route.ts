@@ -2,11 +2,15 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import fs from "fs/promises";
 import path from "path";
+import { requireAuth } from "@/lib/auth";
 
 export async function GET(
-  _request: NextRequest,
+  request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const authError = await requireAuth(request);
+  if (authError) return authError;
+
   const { id } = await params;
 
   const maquette = await db.maquette.findUnique({
