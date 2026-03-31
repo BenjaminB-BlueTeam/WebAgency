@@ -3,11 +3,13 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
+    "postinstall": "prisma generate",
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "sync-crm": "tsx scripts/sync-crm.ts"
+    "sync-crm": "tsx scripts/sync-crm.ts",
+    "migrate-turso": "tsx scripts/migrate-turso.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.3.0",
