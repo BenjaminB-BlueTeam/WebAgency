@@ -100,6 +100,7 @@ async function main() {
     { cle: "prix_professionnelle", valeur: "499" },
     { cle: "prix_premium", valeur: "799" },
     { cle: "prix_maintenance", valeur: "29" },
+    { cle: "tarif_tva", valeur: "0" },
     { cle: "prix_modification", valeur: "30" },
   ];
   for (const d of defaults) {
