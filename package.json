@@ -7,7 +7,8 @@
     "setup": "bash setup.sh",
     "prospect": "node prospect.js",
     "search": "node prospect.js",
-    "help": "node prospect.js --help"
+    "help": "node prospect.js --help",
+    "sync-crm": "cd crm && npm run sync-crm"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.39.0",

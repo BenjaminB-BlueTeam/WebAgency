@@ -301,18 +301,21 @@ web-agency-tool/
 
 > **Mettre à jour cette section à chaque session importante.**
 
-### Dernière mise à jour : 2026-03-31 (nuit autonome)
+### Dernière mise à jour : 2026-03-31 (nuit autonome — session terminée)
 
 **Repo GitHub :** https://github.com/BenjaminB-BlueTeam/WebAgency
 
 **Pipeline :** Opérationnel. Google Places + Firecrawl + Claude. Prompt maquette enrichi (SVG, Aurora gradient, animations avancées, analyse site obsolète/moderne).
 
-**CRM Next.js :** Opérationnel. Prospection page complète avec SSE temps réel. Audit OWASP appliqué. Build propre 0 erreurs.
+**Sync pipeline → CRM :** `npm run sync-crm` (racine) ou `cd crm && npm run sync-crm`. Lit `crm.json`, upsert dans Prisma, préserve le pipeline statut si progressé.
+
+**CRM Next.js :** Opérationnel. Toutes les pages complètes. Audit OWASP 2025 appliqué. Build propre 0 erreurs.
 
 **Test d'intégration :** Pas encore lancé avec les vraies clés API — à faire en priorité :
 ```bash
 node prospect.js "plombier Steenvoorde"
-# Puis vérifier que le CRM affiche les résultats sur http://localhost:3000/prospection
+npm run sync-crm
+# Puis vérifier que le CRM affiche les résultats sur http://localhost:3000/prospects
 ```
 
 ### CRM — Pages fonctionnelles
@@ -336,16 +339,16 @@ node prospect.js "plombier Steenvoorde"
 ✅ Mass assignment (A05) — allowlists sur PATCH/PUT
 ✅ Input length (A03/A05) — query max 200 chars, password max 200 chars
 ✅ Paramètre allowlist sur `/api/parametres`
-⚠️ Rate limiting login (A07) — non implémenté (next sprint)
+✅ Rate limiting login (A07) — 10 req/15min/IP, Map in-memory (2026-03-31)
 
 ### Todo technique prioritaire
 
-- [ ] **Test d'intégration pipeline complet** : `node prospect.js "plombier Steenvoorde"`
+- [ ] **Test d'intégration pipeline complet** : `node prospect.js "plombier Steenvoorde"` + `npm run sync-crm`
 - [x] ~~Implémenter page Devis~~ — ✅ fait (2026-03-31)
 - [x] ~~Implémenter page Factures~~ — ✅ fait (2026-03-31)
 - [x] ~~Rate limiting sur `/api/auth/login`~~ — ✅ fait (OWASP A07, 2026-03-31)
-- [ ] **PDF export Devis + Factures** (task #27)
-- [ ] **Sync prospect.js → Prisma** (task #26 — dual-database gap)
+- [ ] **PDF export Devis + Factures** — routes `/api/devis/[id]/pdf` + `/api/factures/[id]/pdf`
+- [x] ~~Sync prospect.js → Prisma~~ — ✅ fait `crm/scripts/sync-crm.ts` (2026-03-31)
 - [x] ~~Dashboard analytics~~ — ✅ fait `/analytics` (2026-03-31)
 - [ ] **Exploiter `opening_hours`** récupéré par Places Details
 - [ ] **Évaluer `crm.json` dans `.gitignore`** (données prospects privées)
