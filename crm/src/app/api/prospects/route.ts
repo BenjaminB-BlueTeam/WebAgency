@@ -85,7 +85,7 @@ export async function POST(request: NextRequest) {
       argumentCommercial,
       source,
       adresse: adresse ? String(adresse).slice(0, 300) : null,
-      noteGoogle: noteGoogle != null ? parseFloat(noteGoogle) || null : null,
+      noteGoogle: noteGoogle != null ? (isNaN(parseFloat(noteGoogle)) ? null : parseFloat(noteGoogle)) : null,
     },
   });
 
