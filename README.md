@@ -183,6 +183,8 @@ NODE_ENV=development
 | `/devis` | ✅ Complet | CRUD, stats pipeline (montant en attente / accepté / taux conversion), transitions statut |
 | `/factures` | ✅ Complet | CRUD, lien vers devis, CA encaissé, alertes retard |
 | `/analytics` | ✅ Complet | KPIs, funnel pipeline, répartition statut web, maquettes, tableaux devis/factures, historique prospection |
+| `/print/devis/[id]` | ✅ Complet | Page A4 dédiée : profil, client, prestation, totaux HT/TVA/TTC, signature — s'imprime automatiquement |
+| `/print/factures/[id]` | ✅ Complet | Page A4 dédiée : idem + gestion acompte, reste à payer, statut coloré |
 
 ### Statuts pipeline
 

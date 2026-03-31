@@ -301,7 +301,7 @@ web-agency-tool/
 
 > **Mettre à jour cette section à chaque session importante.**
 
-### Dernière mise à jour : 2026-03-31 (nuit autonome — cycle #2)
+### Dernière mise à jour : 2026-03-31 (nuit autonome — cycle #3)
 
 **Repo GitHub :** https://github.com/BenjaminB-BlueTeam/WebAgency
 
@@ -328,8 +328,10 @@ npm run sync-crm
 | Fiche prospect | `/prospects/[id]` | ✅ Complet |
 | Clients | `/clients` | ✅ Complet |
 | Maquettes | `/maquettes` | ✅ Complet |
-| Devis | `/devis` | ✅ Complet (CRUD, stats pipeline, transitions statut) |
-| Factures | `/factures` | ✅ Complet (CRUD, lien devis, CA encaissé, retard) |
+| Devis | `/devis` | ✅ Complet (CRUD, stats pipeline, transitions statut, PDF export) |
+| Factures | `/factures` | ✅ Complet (CRUD, lien devis, CA encaissé, retard, PDF export) |
+| Print Devis | `/print/devis/[id]` | ✅ Page A4 auto-print (profil, client, prestation, totaux, signature) |
+| Print Factures | `/print/factures/[id]` | ✅ Page A4 auto-print (acompte, reste à payer, statut coloré) |
 | Analytics | `/analytics` | ✅ Complet (KPIs, funnel pipeline, statut web, devis/factures, historique) |
 | Paramètres | `/parametres` | ✅ Complet |
 
@@ -347,7 +349,7 @@ npm run sync-crm
 - [x] ~~Implémenter page Devis~~ — ✅ fait (2026-03-31)
 - [x] ~~Implémenter page Factures~~ — ✅ fait (2026-03-31)
 - [x] ~~Rate limiting sur `/api/auth/login`~~ — ✅ fait (OWASP A07, 2026-03-31)
-- [ ] **PDF export Devis + Factures** — routes `/api/devis/[id]/pdf` + `/api/factures/[id]/pdf`
+- [x] ~~**PDF export Devis + Factures**~~ — ✅ fait `/print/devis/[id]` + `/print/factures/[id]` (2026-03-31)
 - [x] ~~Sync prospect.js → Prisma~~ — ✅ fait `crm/scripts/sync-crm.ts` (2026-03-31)
 - [x] ~~Dashboard analytics~~ — ✅ fait `/analytics` (2026-03-31)
 - [ ] **Exploiter `opening_hours`** récupéré par Places Details

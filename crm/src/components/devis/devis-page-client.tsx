@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Plus, FileText, CheckCircle, Clock, XCircle, Send } from "lucide-react";
+import { Plus, FileText, CheckCircle, Clock, XCircle, Send, Printer } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface DevisProspect {
@@ -295,6 +295,15 @@ export function DevisPageClient({ initialDevis, prospects }: DevisPageClientProp
                   </button>
                 </>
               )}
+              <a
+                href={`/print/devis/${d.id}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1 text-xs rounded px-2.5 py-1 text-white/50 bg-white/5 border border-white/8 hover:text-white hover:border-white/20 transition-colors"
+              >
+                <Printer className="w-3 h-3" />
+                PDF
+              </a>
               <button
                 onClick={() => handleDelete(d.id)}
                 className="ml-auto text-xs rounded px-2.5 py-1 text-white/30 bg-white/5 border border-white/8 hover:text-red-400 hover:border-red-500/20 transition-colors"
