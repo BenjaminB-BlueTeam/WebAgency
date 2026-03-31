@@ -8,6 +8,7 @@ import {
   Search,
   FileText,
   Receipt,
+  TrendingUp,
   Settings,
   ChevronsLeft,
   ChevronsRight,
@@ -24,6 +25,7 @@ const navItems = [
   { href: "/prospection", icon: Search, label: "Prospection" },
   { href: "/devis", icon: FileText, label: "Devis" },
   { href: "/factures", icon: Receipt, label: "Factures" },
+  { href: "/analytics", icon: TrendingUp, label: "Analytics" },
   { href: "/parametres", icon: Settings, label: "Paramètres" },
 ] as const;
 
