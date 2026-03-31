@@ -13,14 +13,6 @@ interface ProspectionResultsPanelProps {
   error?: string;
 }
 
-const IDLE_STEPS: JobSteps = {
-  recherche: "idle",
-  concurrents: "idle",
-  maquettes: "idle",
-  deploiement: "idle",
-  crm: "idle",
-};
-
 export function ProspectionResultsPanel({
   jobStatus,
   steps,
