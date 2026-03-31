@@ -27,8 +27,9 @@ Produit utilisable et MVP+ solide. 3-4 features manquent pour être "production-
 | Fiche prospect `/prospects/[id]` | ✅ Détail complet, timeline |
 | Clients `/clients` | ✅ Vue filtrée SIGNÉ/LIVRÉ |
 | Maquettes `/maquettes` | ✅ Galerie, preview iFrame |
-| **Devis** `/devis` | ✅ **NOUVEAU** CRUD complet, stats, transitions statut |
-| **Factures** `/factures` | ✅ **NOUVEAU** CRUD complet, lien devis, CA encaissé |
+| **Devis** `/devis` | ✅ CRUD complet, stats pipeline, transitions statut |
+| **Factures** `/factures` | ✅ CRUD complet, lien devis, CA encaissé, alertes retard |
+| **Analytics** `/analytics` | ✅ KPIs, funnel pipeline, statut web, historique prospection |
 | Paramètres `/parametres` | ✅ Profil + tarifs |
 
 ### API Routes ��� 13 routes, toutes auth ✅

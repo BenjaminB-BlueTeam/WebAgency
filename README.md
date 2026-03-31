@@ -171,6 +171,7 @@ NODE_ENV=development
 | `/parametres` | ✅ Complet | Profil Benjamin + tarifs |
 | `/devis` | ✅ Complet | CRUD, stats pipeline (montant en attente / accepté / taux conversion), transitions statut |
 | `/factures` | ✅ Complet | CRUD, lien vers devis, CA encaissé, alertes retard |
+| `/analytics` | ✅ Complet | KPIs, funnel pipeline, répartition statut web, tableaux devis/factures, historique prospection |
 
 ### Statuts pipeline
 

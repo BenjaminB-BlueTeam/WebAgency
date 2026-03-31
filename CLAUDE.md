@@ -327,6 +327,7 @@ node prospect.js "plombier Steenvoorde"
 | Maquettes | `/maquettes` | ✅ Complet |
 | Devis | `/devis` | ✅ Complet (CRUD, stats pipeline, transitions statut) |
 | Factures | `/factures` | ✅ Complet (CRUD, lien devis, CA encaissé, retard) |
+| Analytics | `/analytics` | ✅ Complet (KPIs, funnel pipeline, statut web, devis/factures, historique) |
 | Paramètres | `/parametres` | ✅ Complet |
 
 ### CRM — Sécurité (OWASP 2025)
@@ -345,7 +346,7 @@ node prospect.js "plombier Steenvoorde"
 - [x] ~~Rate limiting sur `/api/auth/login`~~ — ✅ fait (OWASP A07, 2026-03-31)
 - [ ] **PDF export Devis + Factures** (task #27)
 - [ ] **Sync prospect.js → Prisma** (task #26 — dual-database gap)
-- [ ] **Dashboard analytics** (task #29 — KPI, funnel, CA)
+- [x] ~~Dashboard analytics~~ — ✅ fait `/analytics` (2026-03-31)
 - [ ] **Exploiter `opening_hours`** récupéré par Places Details
 - [ ] **Évaluer `crm.json` dans `.gitignore`** (données prospects privées)
 - [ ] **Fix `var demoUrl`** → `let` dans prospect.js:~1464 (legacy non-bloquant)
