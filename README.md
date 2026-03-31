@@ -136,9 +136,41 @@ Contient pour chaque prospect :
 
 ---
 
-## CRM intégré
+## CRM Web — Dashboard Next.js
 
-Le fichier `crm.json` est mis à jour automatiquement à chaque exécution.
+En plus du pipeline CLI, le projet inclut un **CRM complet** accessible via navigateur à `http://localhost:3000`.
+
+### Lancer le CRM
+
+```bash
+cd crm
+npm install
+npx prisma migrate deploy   # initialise la base SQLite
+npm run dev                  # démarre sur http://localhost:3000
+```
+
+### Configuration CRM (crm/.env.local)
+
+```env
+DATABASE_URL="file:./prisma/dev.db"
+CRM_SESSION_SECRET="une-chaine-aleatoire-de-32-chars"
+CRM_PASSWORD_HASH=""   # vide = mot de passe "admin" en dev. En prod, générer avec bcryptjs
+NODE_ENV=development
+```
+
+### Pages disponibles
+
+| Page | Statut | Description |
+|---|---|---|
+| `/` | ✅ Complet | Dashboard : stats, pipeline, activités récentes, alertes relances |
+| `/prospection` | ✅ Complet | Lancement pipeline en temps réel (SSE), résultats, historique |
+| `/prospects` | ✅ Complet | Liste avec recherche, filtres, vue Kanban par pipeline |
+| `/prospects/[id]` | ✅ Complet | Fiche détail : maquettes liées, timeline activités, actions |
+| `/clients` | ✅ Complet | Prospects SIGNÉ/LIVRÉ uniquement |
+| `/maquettes` | ✅ Complet | Galerie toutes maquettes, avec URLs démo |
+| `/parametres` | ✅ Complet | Profil Benjamin + tarifs |
+| `/devis` | 🚧 Stub | En construction |
+| `/factures` | 🚧 Stub | En construction |
 
 ### Statuts pipeline
 
@@ -221,16 +253,26 @@ Le pipeline sélectionne automatiquement une direction artistique adaptée au se
 ```
 web-agency-tool/
 ├── prospect.js          ← Pipeline complet (ESModules, Node 18+)
-├── package.json
-├── .env                 ← Clés API (non versionné)
-├── .gitignore
-├── crm.json             ← Base prospects (généré automatiquement)
+├── package.json         ← Root (npm run prospect)
+├── .env                 ← Clés API pipeline (non versionné)
+├── .env.example         ← Template des variables requises
+├── setup.sh             ← Script d'onboarding automatique
+├── crm.json             ← Base prospects legacy (généré par pipeline)
 ├── docs/
 │   └── superpowers/
-│       ├── specs/       ← Specs de design des fonctionnalités
+│       ├── specs/       ← Specs de design
 │       └── plans/       ← Plans d'implémentation
-├── output/              ← Sorties générées (non versionné)
-└── references/          ← Documents de référence
+├── output/              ← Maquettes générées (non versionné)
+└── crm/                 ← Dashboard CRM Next.js 16
+    ├── src/
+    │   ├── app/
+    │   │   ├── (dashboard)/    ← 9 pages dashboard
+    │   │   ├── api/            ← 10 routes API (auth, prospects, maquettes, prospection)
+    │   │   └── login/
+    │   ├── lib/                ← db, auth, prospection-jobs, utils
+    │   └── components/         ← 35+ composants (layout, prospects, maquettes, prospection)
+    └── prisma/
+        └── schema.prisma       ← 7 modèles : Prospect, Maquette, Devis, Facture, Activite, Recherche, Parametre
 ```
 
 ### Fonctions principales de `prospect.js`

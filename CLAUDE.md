@@ -301,18 +301,54 @@ web-agency-tool/
 
 > **Mettre à jour cette section à chaque session importante.**
 
-### Dernière mise à jour : 2026-03-30
+### Dernière mise à jour : 2026-03-31 (nuit autonome)
 
 **Repo GitHub :** https://github.com/BenjaminB-BlueTeam/WebAgency
 
-**Pipeline :** Opérationnel. Refactoring Google Places + Firecrawl terminé et reviewé.
+**Pipeline :** Opérationnel. Google Places + Firecrawl + Claude. Prompt maquette enrichi (SVG, Aurora gradient, animations avancées, analyse site obsolète/moderne).
+
+**CRM Next.js :** Opérationnel. Prospection page complète avec SSE temps réel. Audit OWASP appliqué. Build propre 0 erreurs.
 
 **Test d'intégration :** Pas encore lancé avec les vraies clés API — à faire en priorité :
 ```bash
-node prospect.js "Cassel"
+node prospect.js "plombier Steenvoorde"
+# Puis vérifier que le CRM affiche les résultats sur http://localhost:3000/prospection
 ```
 
-### CRM — Prospects actifs (tous au stade PROSPECT, aucun contacté)
+### CRM — Pages fonctionnelles
+
+| Page | URL | Statut |
+|---|---|---|
+| Dashboard | `/` | ✅ Complet |
+| Prospection | `/prospection` | ✅ Complet (SSE, pipeline temps réel) |
+| Prospects | `/prospects` | ✅ Complet (CRUD, pipeline, recherche) |
+| Fiche prospect | `/prospects/[id]` | ✅ Complet |
+| Clients | `/clients` | ✅ Complet |
+| Maquettes | `/maquettes` | ✅ Complet |
+| Devis | `/devis` | 🚧 Stub — à implémenter |
+| Factures | `/factures` | 🚧 Stub — à implémenter |
+| Paramètres | `/parametres` | ✅ Complet |
+
+### CRM — Sécurité (OWASP 2025)
+
+✅ Auth (A01) sur toutes les routes API
+✅ Mass assignment (A05) — allowlists sur PATCH/PUT
+✅ Input length (A03/A05) — query max 200 chars, password max 200 chars
+✅ Paramètre allowlist sur `/api/parametres`
+⚠️ Rate limiting login (A07) — non implémenté (next sprint)
+
+### Todo technique prioritaire
+
+- [ ] **Test d'intégration pipeline complet** : `node prospect.js "plombier Steenvoorde"`
+- [ ] **Implémenter page Devis** (schéma Prisma prêt, API manquante)
+- [ ] **Implémenter page Factures** (schéma Prisma prêt, API manquante)
+- [ ] **Rate limiting sur `/api/auth/login`** (OWASP A07)
+- [ ] **PDF export Devis + Factures**
+- [ ] **Sync prospect.js → Prisma** (actuellement dual-database : crm.json + Prisma)
+- [ ] **Exploiter `opening_hours`** récupéré par Places Details
+- [ ] **Évaluer `crm.json` dans `.gitignore`** (données prospects privées)
+
+### Prospects actifs (stade PROSPECT, aucun contacté)
 
 | Nom | Ville | Statut | Priorité | Tél |
 |---|---|---|---|---|
@@ -326,10 +362,3 @@ node prospect.js "Cassel"
 | Expert PVC | Bailleul | SANS_SITE | MOYENNE | — |
 
 **Premier contact recommandé :** Boulangerie Caron — tél + email disponibles, site obsolète = argument fort.
-
-### Todo technique
-
-- [ ] Lancer le test d'intégration `node prospect.js "Cassel"`
-- [ ] Exploiter `opening_hours` récupéré par Places Details (non transmis à Claude actuellement)
-- [ ] Corriger `var demoUrl` → `let` dans `traiterProspect` (bug legacy non bloquant)
-- [ ] Évaluer si `crm.json` doit être ajouté au `.gitignore` (données prospects privées)
