@@ -169,8 +169,8 @@ NODE_ENV=development
 | `/clients` | ✅ Complet | Prospects SIGNÉ/LIVRÉ uniquement |
 | `/maquettes` | ✅ Complet | Galerie toutes maquettes, avec URLs démo |
 | `/parametres` | ✅ Complet | Profil Benjamin + tarifs |
-| `/devis` | 🚧 Stub | En construction |
-| `/factures` | 🚧 Stub | En construction |
+| `/devis` | ✅ Complet | CRUD, stats pipeline (montant en attente / accepté / taux conversion), transitions statut |
+| `/factures` | ✅ Complet | CRUD, lien vers devis, CA encaissé, alertes retard |
 
 ### Statuts pipeline
 

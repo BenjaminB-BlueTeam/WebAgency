@@ -1,4 +1,46 @@
-# Rapport de nuit — 2026-03-31
+# Rapport de nuit — 2026-03-31 (mis à jour en continu)
+
+> Session autonome. Mis à jour toutes les heures. Dernière mise à jour : audit complet 2026-03-31.
+
+---
+
+## 📊 Score global du projet : **8.2 / 10**
+
+Produit utilisable et MVP+ solide. 3-4 features manquent pour être "production-ready" à 100%. Sécurité OWASP excellente. Code quality haute.
+
+---
+
+## 🗺 Audit complet — état de chaque fichier
+
+### Pipeline prospect.js — OPÉRATIONNEL ✅
+- Google Places + Firecrawl + Claude → HTML/Astro → Netlify → crm.json
+- Prompt enrichi : SVG, Aurora, animations avancées, analyse site RECENT/DATÉ/SANS_SITE
+- `var demoUrl` ligne ~1464 → legacy non-bloquant
+- **Manque :** sync automatique vers Prisma DB (crm.json reste séparé)
+
+### CRM Pages — toutes opérationnelles ✅
+| Page | État |
+|------|------|
+| Dashboard `/` | ✅ Stats, pipeline, activités, alertes |
+| Prospection `/prospection` | ✅ SSE temps réel, historique |
+| Prospects `/prospects` | ✅ CRUD, Kanban, filtres, recherche |
+| Fiche prospect `/prospects/[id]` | ✅ Détail complet, timeline |
+| Clients `/clients` | ✅ Vue filtrée SIGNÉ/LIVRÉ |
+| Maquettes `/maquettes` | ✅ Galerie, preview iFrame |
+| **Devis** `/devis` | ✅ **NOUVEAU** CRUD complet, stats, transitions statut |
+| **Factures** `/factures` | ✅ **NOUVEAU** CRUD complet, lien devis, CA encaissé |
+| Paramètres `/parametres` | ✅ Profil + tarifs |
+
+### API Routes ��� 13 routes, toutes auth ✅
+Toutes les routes sont protégées par `requireAuth()`. Allowlists sur PATCH/PUT. Rate limiting login.
+
+### Sécurité
+- ✅ OWASP A01, A02, A03, A05, A07 couverts
+- ⚠️ Pas de CSRF token explicite (mitigé SameSite=lax)
+- ⚠️ Pas de 2FA
+- ⚠️ Données non chiffrées au repos
+
+---
 
 > Session autonome pendant ton sommeil. Voici tout ce qui a été fait, ce qui fonctionne, ce qui reste, et les commandes pour reprendre.
 

@@ -325,8 +325,8 @@ node prospect.js "plombier Steenvoorde"
 | Fiche prospect | `/prospects/[id]` | ✅ Complet |
 | Clients | `/clients` | ✅ Complet |
 | Maquettes | `/maquettes` | ✅ Complet |
-| Devis | `/devis` | 🚧 Stub — à implémenter |
-| Factures | `/factures` | 🚧 Stub — à implémenter |
+| Devis | `/devis` | ✅ Complet (CRUD, stats pipeline, transitions statut) |
+| Factures | `/factures` | ✅ Complet (CRUD, lien devis, CA encaissé, retard) |
 | Paramètres | `/parametres` | ✅ Complet |
 
 ### CRM — Sécurité (OWASP 2025)
@@ -340,13 +340,15 @@ node prospect.js "plombier Steenvoorde"
 ### Todo technique prioritaire
 
 - [ ] **Test d'intégration pipeline complet** : `node prospect.js "plombier Steenvoorde"`
-- [ ] **Implémenter page Devis** (schéma Prisma prêt, API manquante)
-- [ ] **Implémenter page Factures** (schéma Prisma prêt, API manquante)
-- [ ] **Rate limiting sur `/api/auth/login`** (OWASP A07)
-- [ ] **PDF export Devis + Factures**
-- [ ] **Sync prospect.js → Prisma** (actuellement dual-database : crm.json + Prisma)
+- [x] ~~Implémenter page Devis~~ — ✅ fait (2026-03-31)
+- [x] ~~Implémenter page Factures~~ — ✅ fait (2026-03-31)
+- [x] ~~Rate limiting sur `/api/auth/login`~~ — ✅ fait (OWASP A07, 2026-03-31)
+- [ ] **PDF export Devis + Factures** (task #27)
+- [ ] **Sync prospect.js → Prisma** (task #26 — dual-database gap)
+- [ ] **Dashboard analytics** (task #29 — KPI, funnel, CA)
 - [ ] **Exploiter `opening_hours`** récupéré par Places Details
 - [ ] **Évaluer `crm.json` dans `.gitignore`** (données prospects privées)
+- [ ] **Fix `var demoUrl`** → `let` dans prospect.js:~1464 (legacy non-bloquant)
 
 ### Prospects actifs (stade PROSPECT, aucun contacté)
 
