@@ -1,5 +1,6 @@
 import { SignJWT, jwtVerify } from "jose";
 import bcrypt from "bcryptjs";
+import { NextRequest, NextResponse } from "next/server";
 
 const secret = new TextEncoder().encode(
   process.env.CRM_SESSION_SECRET || "fallback-dev-secret-change-in-prod"
@@ -25,4 +26,19 @@ export async function verifySession(token: string): Promise<boolean> {
   } catch {
     return false;
   }
+}
+
+/**
+ * Call at the top of any protected route handler.
+ * Returns null when the request is authenticated,
+ * or a 401 NextResponse to return immediately when it is not.
+ */
+export async function requireAuth(
+  request: NextRequest
+): Promise<NextResponse | null> {
+  const token = request.cookies.get("session")?.value;
+  if (!token || !(await verifySession(token))) {
+    return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
+  }
+  return null;
 }

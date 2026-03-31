@@ -4,6 +4,14 @@ import { verifyPassword, createSession } from "@/lib/auth";
 export async function POST(request: NextRequest) {
   const { password } = await request.json();
 
+  // A07 — brute-force / DoS: reject absurdly long passwords before hashing
+  if (typeof password !== "string" || password.length > 200) {
+    return NextResponse.json(
+      { error: "Mot de passe incorrect" },
+      { status: 401 }
+    );
+  }
+
   if (!password || !(await verifyPassword(password))) {
     return NextResponse.json(
       { error: "Mot de passe incorrect" },

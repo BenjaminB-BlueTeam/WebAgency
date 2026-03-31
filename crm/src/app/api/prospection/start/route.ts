@@ -5,6 +5,7 @@ import { randomUUID } from "crypto";
 import path from "path";
 import fs from "fs";
 import { db } from "@/lib/db";
+import { requireAuth } from "@/lib/auth";
 import {
   createJob,
   getJob,
@@ -19,9 +20,20 @@ import {
 const PIPELINE_DIR = path.resolve(process.cwd(), "..");
 
 export async function POST(req: NextRequest) {
+  const authError = await requireAuth(req);
+  if (authError) return authError;
+
   const { query, mode = "html" } = await req.json();
   if (!query?.trim()) {
     return NextResponse.json({ error: "query is required" }, { status: 400 });
+  }
+
+  // A03 / A05 — Input length limit to prevent abuse
+  if (typeof query !== "string" || query.length > 200) {
+    return NextResponse.json(
+      { error: "query trop longue (max 200 caractères)" },
+      { status: 400 }
+    );
   }
 
   const safeMode: "html" | "astro" = mode === "astro" ? "astro" : "html";

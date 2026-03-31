@@ -1,11 +1,15 @@
 // crm/src/app/api/prospection/[jobId]/stream/route.ts
-import { NextRequest } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { getJob, subscribeToJob } from "@/lib/prospection-jobs";
+import { requireAuth } from "@/lib/auth";
 
 export async function GET(
   req: NextRequest,
   { params }: { params: Promise<{ jobId: string }> }
 ) {
+  const authError = await requireAuth(req);
+  if (authError) return authError;
+
   const { jobId } = await params;
   const encoder = new TextEncoder();
 
