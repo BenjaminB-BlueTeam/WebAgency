@@ -27,6 +27,7 @@ export function EmailSection({ prospectId }: EmailSectionProps) {
       const data = await res.json() as { sujet: string; corps: string };
       setSujet(data.sujet);
       setCorps(data.corps);
+      toast.success("Email généré");
     } catch {
       toast.error("Erreur réseau — réessayez");
     } finally {
