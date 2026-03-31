@@ -14,7 +14,7 @@ export interface EmailContext {
 }
 
 export function getEmailPrompt(ctx: EmailContext): string {
-  const { nom, activite, ville, statut, argumentCommercial, telephone, siteUrl, demoUrl, benjaminTel, benjaminEmail } = ctx;
+  const { nom, activite, ville, statut, argumentCommercial, siteUrl, demoUrl, benjaminTel, benjaminEmail } = ctx;
 
   const statutDesc = statut === "SANS_SITE"
     ? "Ce prospect n'a pas de site web."

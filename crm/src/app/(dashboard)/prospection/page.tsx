@@ -74,8 +74,8 @@ export default function ProspectionPage() {
         if (data.type === "status" && data.message) {
           setStatusMessage(data.message);
         } else if (data.type === "prospect") {
-          const { type: _type, ...prospect } = data;
-          setResults((prev) => [...prev, prospect as SearchProspect]);
+          const prospect = data as unknown as SearchProspect;
+          setResults((prev) => [...prev, prospect]);
         } else if (data.type === "error" && data.message) {
           setStatus("error");
           setError(data.message);

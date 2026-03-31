@@ -54,7 +54,7 @@ export async function deployToNetlify(
         Authorization: `Bearer ${token}`,
         "Content-Type": "application/zip",
       },
-      body: buffer as any,
+      body: buffer as unknown as BodyInit,
     }
   );
   if (!deployRes.ok) {
