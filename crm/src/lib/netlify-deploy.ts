@@ -38,14 +38,16 @@ export async function deployToNetlify(
     const err = await siteRes.text();
     throw new Error(`Netlify create site failed (${siteRes.status}): ${err.slice(0, 200)}`);
   }
-  const site = (await siteRes.json()) as { id: string; url: string };
+  const site = (await siteRes.json()) as { id: string; url: string; ssl_url?: string };
 
-  // 2. Create ZIP with index.html
+  // 2. Create ZIP with index.html + _headers to force text/html content-type
   const zip = new JSZip();
   zip.file("index.html", html);
+  zip.file("_headers", "/index.html\n  Content-Type: text/html; charset=utf-8\n");
   const buffer = await zip.generateAsync({ type: "nodebuffer" });
 
-  // 3. Deploy ZIP
+  // 3. Deploy ZIP — use Blob to ensure binary body in serverless environments
+  const blob = new Blob([new Uint8Array(buffer)], { type: "application/zip" });
   const deployRes = await fetch(
     `https://api.netlify.com/api/v1/sites/${site.id}/deploys`,
     {
@@ -54,7 +56,7 @@ export async function deployToNetlify(
         Authorization: `Bearer ${token}`,
         "Content-Type": "application/zip",
       },
-      body: buffer as unknown as BodyInit,
+      body: blob,
     }
   );
   if (!deployRes.ok) {
@@ -62,5 +64,7 @@ export async function deployToNetlify(
     throw new Error(`Netlify deploy failed (${deployRes.status}): ${err.slice(0, 200)}`);
   }
 
-  return { siteId: site.id, url: site.url };
+  // Prefer ssl_url (HTTPS) from site response, fall back to url with https://
+  const url = site.ssl_url ?? site.url.replace(/^http:\/\//, "https://");
+  return { siteId: site.id, url };
 }

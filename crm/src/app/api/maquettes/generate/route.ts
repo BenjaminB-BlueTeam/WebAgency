@@ -58,11 +58,13 @@ export async function POST(request: NextRequest) {
     });
 
     let html = (response.content.find(b => b.type === "text")?.text ?? "").trim();
+    // Strip leading markdown code fences / preamble
     if (!html.startsWith("<!")) {
-      // Claude may have added a preamble — strip it
       const idx = html.indexOf("<!DOCTYPE");
       if (idx > 0) html = html.slice(idx);
     }
+    // Strip trailing markdown code fences (``` or ```html)
+    html = html.replace(/\n?```\s*$/, "").trim();
 
     if (!html) {
       return NextResponse.json({ error: "Génération HTML échouée" }, { status: 500 });
