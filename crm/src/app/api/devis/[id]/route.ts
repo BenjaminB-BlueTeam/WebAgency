@@ -55,6 +55,10 @@ export async function DELETE(
   if (authError) return authError;
 
   const { id } = await params;
-  await db.devis.delete({ where: { id } });
-  return NextResponse.json({ ok: true });
+  try {
+    await db.devis.delete({ where: { id } });
+    return NextResponse.json({ success: true });
+  } catch {
+    return NextResponse.json({ error: "Devis non trouvé" }, { status: 404 });
+  }
 }

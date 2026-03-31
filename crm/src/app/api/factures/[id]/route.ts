@@ -68,6 +68,10 @@ export async function DELETE(
   if (authError) return authError;
 
   const { id } = await params;
-  await db.facture.delete({ where: { id } });
-  return NextResponse.json({ ok: true });
+  try {
+    await db.facture.delete({ where: { id } });
+    return NextResponse.json({ success: true });
+  } catch {
+    return NextResponse.json({ error: "Facture non trouvée" }, { status: 404 });
+  }
 }
