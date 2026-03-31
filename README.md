@@ -278,8 +278,10 @@ Le pipeline sélectionne automatiquement une direction artistique adaptée au se
 | Maintenance | **49 €/mois** | Mises à jour, surveillance 24/7, renouvellements, rapport mensuel |
 | Page supplémentaire | +80 € | |
 | Galerie | +120 € | |
-| Formulaire devis | +180 € | |
+| WhatsApp | +80 € | |
 | RDV Calendly | +150 € | |
+| Formulaire devis | +180 € | |
+| Blog statique | +200 € | |
 | Blog CMS client | +400 € | |
 | Multilingue FR/NL | +400 € | |
 
