@@ -1096,11 +1096,11 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 
     <div class="card">
       <div class="card-label">Votre investissement</div>
-      <div class="price-big"><sup>à partir de </sup>299<small> €</small></div>
+      <div class="price-big"><sup>à partir de </sup>690<small> €</small></div>
       <div class="card-sub" style="margin-top:.4rem">Paiement en 2 fois · 50% au démarrage · 50% à la livraison</div>
       <div class="card-sub" style="margin-top:.9rem;padding-top:.9rem;border-top:1px solid #f3f4f6">
         Si un seul client vous appelle grâce au site, il est déjà rentabilisé.<br><br>
-        <strong>Maintenance optionnelle : 29€/mois</strong><br>
+        <strong>Maintenance optionnelle : 49€/mois</strong><br>
         Mises à jour · Surveillance · Domaine & hébergement inclus
       </div>
     </div>
