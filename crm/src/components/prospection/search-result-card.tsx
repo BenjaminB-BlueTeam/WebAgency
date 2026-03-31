@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { MapPin, Phone, Globe, Star } from "lucide-react";
+import { toast } from "sonner";
 import { StatusBadge } from "@/components/shared/status-badge";
 import { cn } from "@/lib/utils";
 import type { SearchProspect } from "@/app/api/prospection/search/route";
@@ -38,7 +39,11 @@ export function SearchResultCard({ prospect, isTop = false }: SearchResultCardPr
           source: "PROSPECTION",
         }),
       });
-      if (res.ok) setAdded(true);
+      if (res.ok) {
+        setAdded(true);
+      } else {
+        toast.error("Impossible d'ajouter ce prospect");
+      }
     } finally {
       setAdding(false);
     }

@@ -86,7 +86,7 @@ export default function ProspectionPage() {
     };
 
     es.onerror = () => {
-      if (status !== "done") {
+      if (esRef.current !== null) {
         setStatus("error");
         setError("Connexion SSE perdue");
       }
