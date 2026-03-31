@@ -371,17 +371,6 @@ npm run sync-crm
 - [ ] **Évaluer `crm.json` dans `.gitignore`** (données prospects privées)
 - [ ] **Fix `var demoUrl`** → `let` dans prospect.js:~1464 (legacy non-bloquant)
 
-### Prospects actifs (stade PROSPECT, aucun contacté)
+### Prospects actifs
 
-| Nom | Ville | Statut | Priorité | Tél |
-|---|---|---|---|---|
-| Boulangerie Caron | Steenvoorde | SITE_OBSOLETE | HAUTE | 03 28 43 31 61 |
-| Pharmacie des Géants | Steenvoorde | SANS_SITE | HAUTE | — |
-| So Choux | Bailleul | SANS_SITE | HAUTE | — |
-| QAD Services | Hazebrouck | SANS_SITE | HAUTE | — |
-| Carrosserie JLMB | Steenvoorde | SANS_SITE | MOYENNE | — |
-| Aux Fleurs du N°4 | Steenvoorde | SANS_SITE | MOYENNE | — |
-| Boucherie Terrier et Fils | Bailleul | SANS_SITE | MOYENNE | — |
-| Expert PVC | Bailleul | SANS_SITE | MOYENNE | — |
-
-**Premier contact recommandé :** Boulangerie Caron — tél + email disponibles, site obsolète = argument fort.
+Voir le CRM pour la liste à jour (`crm.json` ou http://localhost:3000/prospects).
