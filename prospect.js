@@ -484,6 +484,7 @@ async function rechercherProspects(query) {
       batch.map(async (place) => {
         const details = await placesDetails(place.place_id);
         const website = details?.website || null;
+        const horaires = details?.opening_hours?.weekday_text || [];
         let siteContent = null;
         if (website) {
           process.stdout.write(`   🔗  Scrape : ${website.slice(0, 60)}...
@@ -498,6 +499,7 @@ async function rechercherProspects(query) {
           types: place.types || [],
           telephone: details?.formatted_phone_number || null,
           website,
+          horaires,
           siteContent,
         };
       })
@@ -671,6 +673,10 @@ ${concurrents.concurrents.map(c =>
 ).join("\n")}
 ` : "";
 
+  const horairesSection = prospect.horaires?.length
+    ? `\nHORAIRES RÉELS (à utiliser dans la section Contact, remplacer les horaires fictifs) :\n${prospect.horaires.join("\n")}`
+    : "";
+
   return `CLIENT : ${prospect.nom} · ${prospect.activite} · ${prospect.ville}
 TÉL : ${prospect.telephone || "03 XX XX XX XX"}
 EMAIL : ${prospect.email || "contact@" + prospect.nom.toLowerCase().replace(/[^a-z]/g, "") + ".fr"}
@@ -698,7 +704,7 @@ STATS : ${d.stats.map(s => `"${s.val}${s.unit}" ${s.label}`).join(" · ")}
 SERVICES : ${d.services.join(" · ")}
 
 TÉMOIGNAGES : 3 avis fictifs nordistes avec étoiles, guillemets «», prénom + ville
-${analyseSection}${concurrentsSection}
+${analyseSection}${concurrentsSection}${horairesSection}
 Commence par <!DOCTYPE html>.`;
 }
 
