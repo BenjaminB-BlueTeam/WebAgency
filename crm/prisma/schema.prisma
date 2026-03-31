@@ -41,6 +41,9 @@ model Prospect {
   updatedAt          DateTime   @updatedAt
 
   @@unique([nom, ville])
+  @@index([statutPipeline])
+  @@index([statut])
+  @@index([priorite])
 }
 
 model Maquette {

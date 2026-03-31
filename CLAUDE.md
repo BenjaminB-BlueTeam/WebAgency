@@ -301,7 +301,7 @@ web-agency-tool/
 
 > **Mettre à jour cette section à chaque session importante.**
 
-### Dernière mise à jour : 2026-03-31 (nuit autonome — cycle #5)
+### Dernière mise à jour : 2026-03-31 (nuit autonome — cycle #6)
 
 **Repo GitHub :** https://github.com/BenjaminB-BlueTeam/WebAgency
 
@@ -348,7 +348,9 @@ npm run sync-crm
 ✅ Devis/factures montantHT > 0 strictement (2026-03-31)
 ✅ proxy.ts (Next.js 16 middleware) — protège ALL routes y compris /print/* (2026-03-31)
 ✅ proxy.ts retourne 401 JSON sur API routes (au lieu de redirect /login) (2026-03-31)
-✅ Lint 0 warnings, build 0 erreurs (cycle #5)
+✅ Indexes Prisma ajoutés sur Prospect (statutPipeline, statut, priorite) (2026-03-31)
+✅ Gestion d'erreur UX dans devis-page-client + factures-page-client (2026-03-31)
+✅ Lint 0 warnings, build 0 erreurs (cycle #6)
 
 ### Todo technique prioritaire
 

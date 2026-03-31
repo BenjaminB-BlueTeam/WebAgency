@@ -284,14 +284,17 @@ web-agency-tool/
     ├── scripts/
     │   └── sync-crm.ts  ← Sync crm.json → Prisma SQLite (npm run sync-crm)
     ├── src/
+    │   ├── proxy.ts            ← Middleware Next.js 16 : auth toutes routes + 401 JSON sur API
     │   ├── app/
     │   │   ├── (dashboard)/    ← 10 pages dashboard
+    │   │   ├── print/          ← Pages A4 impression PDF (devis + factures)
     │   │   ├── api/            ← 13 routes API (auth, prospects, devis, factures, maquettes, prospection)
     │   │   └── login/
     │   ├── lib/                ← db, auth, prospection-jobs, utils
     │   └── components/         ← 35+ composants (layout, prospects, maquettes, prospection)
     └── prisma/
-        └── schema.prisma       ← 7 modèles : Prospect, Maquette, Devis, Facture, Activite, Recherche, Parametre
+        ├── schema.prisma       ← 7 modèles : Prospect, Maquette, Devis, Facture, Activite, Recherche, Parametre
+        └── migrations/         ← Migrations SQLite (dont indexes statutPipeline/statut/priorite)
 ```
 
 ### Fonctions principales de `prospect.js`

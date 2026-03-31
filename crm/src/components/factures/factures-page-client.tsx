@@ -123,16 +123,18 @@ export function FacturesPageClient({ initialFactures, prospects, devisSansFactur
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ statut }),
     });
-    if (res.ok) {
-      const updated = await res.json();
-      setFactures(factures.map((f) => f.id === id ? { ...f, ...updated } : f));
-    }
+    if (!res.ok) { setError((await res.json().catch(() => ({}))).error ?? "Erreur lors de la mise à jour"); return; }
+    const updated = await res.json();
+    setFactures(factures.map((f) => f.id === id ? { ...f, ...updated } : f));
+    setError("");
   }
 
   async function handleDelete(id: string) {
     if (!confirm("Supprimer cette facture ?")) return;
     const res = await fetch(`/api/factures/${id}`, { method: "DELETE" });
-    if (res.ok) setFactures(factures.filter((f) => f.id !== id));
+    if (!res.ok) { setError("Erreur lors de la suppression"); return; }
+    setFactures(factures.filter((f) => f.id !== id));
+    setError("");
   }
 
   return (
@@ -268,6 +270,8 @@ export function FacturesPageClient({ initialFactures, prospects, devisSansFactur
           </form>
         </div>
       )}
+
+      {error && !showForm && <p className="text-xs text-red-400 px-1">{error}</p>}
 
       {/* Factures list */}
       <div className="flex flex-col gap-3">

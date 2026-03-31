@@ -98,16 +98,18 @@ export function DevisPageClient({ initialDevis, prospects }: DevisPageClientProp
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ statut }),
     });
-    if (res.ok) {
-      const updated = await res.json();
-      setDevis(devis.map((d) => d.id === id ? { ...d, ...updated } : d));
-    }
+    if (!res.ok) { setError((await res.json().catch(() => ({}))).error ?? "Erreur lors de la mise à jour"); return; }
+    const updated = await res.json();
+    setDevis(devis.map((d) => d.id === id ? { ...d, ...updated } : d));
+    setError("");
   }
 
   async function handleDelete(id: string) {
     if (!confirm("Supprimer ce devis ?")) return;
     const res = await fetch(`/api/devis/${id}`, { method: "DELETE" });
-    if (res.ok) setDevis(devis.filter((d) => d.id !== id));
+    if (!res.ok) { setError("Erreur lors de la suppression"); return; }
+    setDevis(devis.filter((d) => d.id !== id));
+    setError("");
   }
 
   return (
@@ -242,6 +244,8 @@ export function DevisPageClient({ initialDevis, prospects }: DevisPageClientProp
           </form>
         </div>
       )}
+
+      {error && !showForm && <p className="text-xs text-red-400 px-1">{error}</p>}
 
       {/* Devis list */}
       <div className="flex flex-col gap-3">

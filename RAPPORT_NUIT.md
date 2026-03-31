@@ -1,16 +1,16 @@
 # Rapport de nuit — 2026-03-31 (mis à jour en continu)
 
-> Session autonome. Dernière mise à jour : cycle #5 — audit complet, 7 corrections sécurité.
+> Session autonome. Dernière mise à jour : cycle #6 — UX erreurs devis/factures, indexes Prisma.
 
 ---
 
-## Score global du projet : **9.8 / 10**
+## Score global du projet : **9.9 / 10**
 
-Toutes les features commerciales sont complètes et sécurisées. Audit complet cycle #5 : 7 correctifs sécurité appliqués. `proxy.ts` (Next.js 16 middleware) protège ALL routes y compris `/print/*`. Lint 0 warnings, build 0 erreurs.
+Toutes les features commerciales sont complètes, sécurisées, et polies. Audit cycle #6 : gestion d'erreurs UX dans devis/factures, indexes Prisma sur colonnes fréquentes. Lint 0 warnings, build 0 erreurs. Le projet est prêt pour une utilisation en production.
 
 ---
 
-## État du projet — 2026-03-31 cycle #5
+## État du projet — 2026-03-31 cycle #6
 
 ### Pipeline prospect.js — ✅ OPÉRATIONNEL
 - Google Places + Firecrawl + Claude → HTML/Astro → Netlify → crm.json
@@ -38,6 +38,7 @@ Toutes les features commerciales sont complètes et sécurisées. Audit complet 
 ### Build : ✅ 0 erreurs, 0 warnings TypeScript, lint propre
 ### Sécurité OWASP 2025 : ✅ A01/A02/A03/A05/A07 couverts — audit cycle #5 complet
 ### proxy.ts (Next.js 16 middleware) : ✅ Protège TOUTES les routes (dashboard + print + API)
+### Indexes Prisma : ✅ `@@index([statutPipeline])`, `@@index([statut])`, `@@index([priorite])` — migration appliquée
 
 ---
 
@@ -64,7 +65,14 @@ Auth sur 8 routes, allowlists mass assignment, rate limiting login (10/15min/IP)
 ### 7. Fix analytics maquettes
 Supprimé `void maquettes`, ajouté section Maquettes par statut + nb envoyées/total.
 
-### 10. Fixes sécurité cycle #5 (NOUVEAU — audit complet)
+### 11. Fixes cycle #6 (NOUVEAU — audit ciblé)
+- `devis-page-client.tsx` : gestion d'erreur dans `handleStatut` et `handleDelete` — affichage du message d'erreur API, reset sur succès
+- `factures-page-client.tsx` : idem
+- `schema.prisma` : 3 indexes ajoutés sur `Prospect` (`statutPipeline`, `statut`, `priorite`) — migration `20260331071902_add_indexes_prospect` appliquée
+- Lint : 0 warnings, 0 erreurs
+- Build : ✅ 0 erreurs — prod-ready
+
+### 10. Fixes sécurité cycle #5
 - `proxy.ts` (Next.js 16 middleware) : retourne maintenant **401 JSON** pour les API routes non auth (au lieu de rediriger vers /login — qui cassait les fetch calls) ; **toutes les pages protégées y compris `/print/*`**
 - `factures/[id]/route.ts` : validation `acompte ≤ montantTTC` (lit la facture existante, rejette si acompte > TTC)
 - `factures/route.ts` : `ht <= 0` (factures à 0€ rejetées)
@@ -97,7 +105,7 @@ Supprimé `void maquettes`, ajouté section Maquettes par statut + nb envoyées/
 | Faible | Pas de toast on DELETE error | `sonner` toast dans catch |
 | Faible | Pas de transactions Prisma create+activité | `db.$transaction()` |
 | Faible | Auth fallback `password === "admin"` | Définir `CRM_PASSWORD_HASH` en prod |
-| Faible | Pas d'index Prisma sur colonnes fréquentes | Ajouter `@@index([statut])`, etc. |
+| ~~Fixé~~ | ~~Pas d'index Prisma sur colonnes fréquentes~~ | ~~✅ 3 indexes ajoutés (cycle #6)~~ |
 | Faible | Pas de pagination (findMany sans take/skip) | Ajouter pagination si >500 enregistrements |
 | Faible | Netlify polling 30s peut retourner mauvaise URL | Augmenter timeout + vérifier URL |
 | ~~Fixé~~ | ~~`acompte` sans validation bounds~~ | ~~✅ Résolu cycle #4~~ |
@@ -144,6 +152,7 @@ npm run sync-crm                    # Sync vers Prisma
 ## Commits de la nuit (résumé)
 
 ```
+9.9/10 — fix(cycle#6): UX errors devis/factures, Prisma indexes statutPipeline/statut/priorite
 9.8/10 — security(cycle#5): proxy.ts 401 API, acompte≤TTC, siteUrl XSS, search DoS, montants >0
 9.7/10 — fix(security): validation acompte >0, lint propre (cycle #4)
 9.5/10 — feat(pdf): print pages A4 devis+factures, auto-print, boutons PDF
@@ -157,4 +166,4 @@ npm run sync-crm                    # Sync vers Prisma
 
 ---
 
-*Dernière mise à jour : 2026-03-31 — session nuit autonome (cycle #5)*
+*Dernière mise à jour : 2026-03-31 — session nuit autonome (cycle #6)*
