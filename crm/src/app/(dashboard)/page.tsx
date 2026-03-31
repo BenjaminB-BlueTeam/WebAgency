@@ -31,6 +31,7 @@ export default async function DashboardPage() {
   const caPotentiel = hauteCount * 400;
 
   // Relances: prospects not contacted in 7+ days, not SIGNE/LIVRE
+  // eslint-disable-next-line react-hooks/purity -- server component, Date.now() is stable within a single request
   const now = Date.now();
   const relances = prospects
     .filter((p) => {

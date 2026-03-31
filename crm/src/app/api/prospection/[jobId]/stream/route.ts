@@ -1,5 +1,5 @@
 // crm/src/app/api/prospection/[jobId]/stream/route.ts
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { getJob, subscribeToJob } from "@/lib/prospection-jobs";
 import { requireAuth } from "@/lib/auth";
 

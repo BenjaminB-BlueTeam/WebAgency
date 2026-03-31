@@ -24,7 +24,7 @@ export async function PATCH(
     });
 
     return NextResponse.json(maquette);
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       { error: "Maquette non trouv\u00e9e ou erreur de mise \u00e0 jour" },
       { status: 404 }

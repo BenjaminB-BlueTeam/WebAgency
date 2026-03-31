@@ -2,7 +2,6 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft, ExternalLink } from "lucide-react";
 import { db } from "@/lib/db";
-import { Button } from "@/components/ui/button";
 import {
   Card,
   CardHeader,

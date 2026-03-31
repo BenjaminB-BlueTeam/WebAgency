@@ -37,7 +37,6 @@ export function MaquetteActions({
   retourClient: initialRetour,
   demoUrl,
   propositionUrl,
-  prospectNom,
 }: MaquetteActionsProps) {
   const router = useRouter();
   const [statut, setStatut] = useState(initialStatut);

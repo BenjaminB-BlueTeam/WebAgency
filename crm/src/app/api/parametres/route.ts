@@ -53,7 +53,7 @@ export async function PUT(request: NextRequest) {
     }
 
     return NextResponse.json({ success: true });
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       { error: "Erreur lors de la sauvegarde des paramètres" },
       { status: 500 }
