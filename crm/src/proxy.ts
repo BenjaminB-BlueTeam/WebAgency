@@ -18,7 +18,13 @@ export async function proxy(request: NextRequest) {
   // Check session cookie
   const session = request.cookies.get("session")?.value;
   if (!session || !(await verifySession(session))) {
-    return NextResponse.redirect(new URL("/login", request.url));
+    // Return 401 JSON for API calls, redirect to login for pages
+    if (pathname.startsWith("/api/")) {
+      return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
+    }
+    const loginUrl = new URL("/login", request.url);
+    loginUrl.searchParams.set("from", pathname);
+    return NextResponse.redirect(loginUrl);
   }
 
   return NextResponse.next();

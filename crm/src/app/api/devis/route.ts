@@ -33,7 +33,7 @@ export async function POST(request: NextRequest) {
   }
 
   const ht = parseFloat(montantHT);
-  if (isNaN(ht) || ht < 0) {
+  if (isNaN(ht) || ht <= 0) {
     return NextResponse.json({ error: "montantHT invalide" }, { status: 400 });
   }
 

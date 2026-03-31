@@ -183,8 +183,8 @@ NODE_ENV=development
 | `/devis` | ✅ Complet | CRUD, stats pipeline (montant en attente / accepté / taux conversion), transitions statut |
 | `/factures` | ✅ Complet | CRUD, lien vers devis, CA encaissé, alertes retard |
 | `/analytics` | ✅ Complet | KPIs, funnel pipeline, répartition statut web, maquettes, tableaux devis/factures, historique prospection |
-| `/print/devis/[id]` | ✅ Complet | Page A4 dédiée : profil, client, prestation, totaux HT/TVA/TTC, signature — s'imprime automatiquement |
-| `/print/factures/[id]` | ✅ Complet | Page A4 dédiée : idem + gestion acompte, reste à payer, statut coloré |
+| `/print/devis/[id]` | ✅ Complet | Page A4 dédiée : profil, client, prestation, totaux HT/TVA/TTC, signature — s'imprime automatiquement (auth requise) |
+| `/print/factures/[id]` | ✅ Complet | Page A4 dédiée : idem + gestion acompte, reste à payer, statut coloré (auth requise) |
 
 ### Statuts pipeline
 
@@ -252,13 +252,16 @@ Le pipeline sélectionne automatiquement une direction artistique adaptée au se
 
 | Offre | Prix | Contenu |
 |---|---|---|
-| Essentielle | **299 €** | 1 page, formulaire, hébergement 1 an |
-| Professionnelle | **499 €** | 3-5 pages, galerie, SEO, domaine inclus |
-| Premium | **799 €** | 5-10 pages, blog, RDV en ligne, 3 mois maintenance |
-| Maintenance | **29 €/mois** | Mises à jour, surveillance, renouvellements |
-| Modification ponctuelle | **30 €/unité** | Texte, photo, ajout section simple |
+| Offre de base | **690 €** | Jusqu'à 5 pages, design premium, SEO local, domaine .fr + hébergement 1 an, livraison 7j |
+| Maintenance | **49 €/mois** | Mises à jour, surveillance 24/7, renouvellements, rapport mensuel |
+| Page supplémentaire | +80 € | |
+| Galerie | +120 € | |
+| Formulaire devis | +180 € | |
+| RDV Calendly | +150 € | |
+| Blog CMS client | +400 € | |
+| Multilingue FR/NL | +400 € | |
 
-> **Règle de négociation :** -10% max sur l'Essentielle uniquement. En dessous de 270€, non rentable.
+> **Règle de négociation :** prix plancher 620 € (-10% max). Toujours offrir le 1er mois de maintenance.
 
 ---
 

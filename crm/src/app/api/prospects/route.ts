@@ -10,7 +10,7 @@ export async function GET(request: NextRequest) {
   const statut = searchParams.get("statut");
   const priorite = searchParams.get("priorite");
   const pipeline = searchParams.get("pipeline");
-  const q = searchParams.get("q");
+  const q = searchParams.get("q")?.slice(0, 200) ?? null;
 
   const where: Record<string, unknown> = {};
 
@@ -63,6 +63,10 @@ export async function POST(request: NextRequest) {
       { error: "nom, activite et ville sont requis" },
       { status: 400 }
     );
+  }
+
+  if (siteUrl && !/^https?:\/\//.test(String(siteUrl))) {
+    return NextResponse.json({ error: "siteUrl invalide" }, { status: 400 });
   }
 
   const prospect = await db.prospect.create({

@@ -31,6 +31,9 @@ export async function PATCH(
   const { id } = await params;
   const body = await request.json();
 
+  const existing = await db.facture.findUnique({ where: { id }, select: { montantTTC: true } });
+  if (!existing) return NextResponse.json({ error: "Introuvable" }, { status: 404 });
+
   const data: Record<string, unknown> = {};
   if (body.statut !== undefined) {
     if (!ALLOWED_STATUTS.includes(body.statut)) {
@@ -42,9 +45,14 @@ export async function PATCH(
   if (body.notes !== undefined) data.notes = String(body.notes).slice(0, 1000);
   if (body.montantAcompte !== undefined) {
     const acompte = parseFloat(body.montantAcompte);
-    if (!isNaN(acompte) && acompte > 0) {
+    if (!isNaN(acompte) && acompte > 0 && acompte <= existing.montantTTC) {
       data.montantAcompte = acompte;
       data.dateAcompte = new Date();
+    } else if (!isNaN(acompte)) {
+      return NextResponse.json(
+        { error: "L'acompte doit être supérieur à 0 et inférieur ou égal au montant TTC" },
+        { status: 400 }
+      );
     }
   }
 
