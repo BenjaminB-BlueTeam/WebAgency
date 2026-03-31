@@ -15,6 +15,7 @@ import {
   X,
   LogOut,
 } from "lucide-react";
+import { toast } from "sonner";
 import { useLayout } from "./layout-provider";
 import { SidebarItem } from "./sidebar-item";
 
@@ -34,7 +35,16 @@ export function Sidebar() {
   const { collapsed, toggle, mobileOpen, closeMobile } = useLayout();
 
   async function handleLogout() {
-    await fetch("/api/auth/logout", { method: "POST" });
+    try {
+      const res = await fetch("/api/auth/logout", { method: "POST" });
+      if (!res.ok) {
+        toast.error("Erreur lors de la déconnexion");
+        return;
+      }
+    } catch {
+      toast.error("Erreur réseau — réessayez");
+      return;
+    }
     window.location.href = "/login";
   }
 
