@@ -12,6 +12,8 @@ import { StatusBadge } from "@/components/shared/status-badge";
 import { ProspectHeader } from "@/components/prospects/prospect-header";
 import { ProspectTimeline } from "@/components/prospects/prospect-timeline";
 import { AddNoteDialog } from "@/components/prospects/add-note-dialog";
+import { MaquetteSection } from "@/components/prospects/maquette-section";
+import { EmailSection } from "@/components/prospects/email-section";
 
 export const dynamic = "force-dynamic";
 
@@ -25,14 +27,13 @@ export default async function ProspectDetailPage({
   const prospect = await db.prospect.findUnique({
     where: { id },
     include: {
-      maquettes: true,
+      maquettes: { orderBy: { createdAt: "desc" } },
       activites: { orderBy: { date: "desc" }, take: 20 },
     },
   });
 
   if (!prospect) notFound();
 
-  // Serialize dates for client components
   const headerProps = {
     id: prospect.id,
     nom: prospect.nom,
@@ -53,9 +54,13 @@ export default async function ProspectDetailPage({
     date: a.date.toISOString(),
   }));
 
+  const latestMaquette = prospect.maquettes[0] ?? null;
+  const maquetteData = latestMaquette
+    ? { id: latestMaquette.id, demoUrl: latestMaquette.demoUrl, statut: latestMaquette.statut }
+    : null;
+
   return (
     <div className="space-y-6">
-      {/* Back button */}
       <Link
         href="/prospects"
         className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
@@ -64,7 +69,6 @@ export default async function ProspectDetailPage({
         Retour aux prospects
       </Link>
 
-      {/* Header with pipeline selector */}
       <ProspectHeader {...headerProps} />
 
       {/* Argument commercial */}
@@ -85,70 +89,10 @@ export default async function ProspectDetailPage({
         </CardContent>
       </Card>
 
-      {/* Two-column grid: maquettes + add note */}
-      <div className="grid gap-6 md:grid-cols-2">
-        {/* Maquettes */}
-        <Card>
-          <CardHeader>
-            <CardTitle>
-              Maquettes ({prospect.maquettes.length})
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {prospect.maquettes.length === 0 ? (
-              <p className="text-sm text-muted-foreground/60">
-                Aucune maquette
-              </p>
-            ) : (
-              <div className="space-y-3">
-                {prospect.maquettes.map((maquette) => (
-                  <div
-                    key={maquette.id}
-                    className="flex items-start justify-between gap-3 rounded-lg border border-border p-3"
-                  >
-                    <div className="space-y-1 min-w-0">
-                      <div className="flex items-center gap-2">
-                        <span className="text-sm font-medium uppercase">
-                          {maquette.type}
-                        </span>
-                        <StatusBadge
-                          type="pipeline"
-                          value={maquette.statut}
-                        />
-                      </div>
-                      <div className="flex flex-wrap gap-3 text-xs">
-                        {maquette.demoUrl && (
-                          <a
-                            href={maquette.demoUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="inline-flex items-center gap-1 text-muted-foreground hover:text-foreground transition-colors"
-                          >
-                            Démo
-                            <ExternalLink className="size-3" />
-                          </a>
-                        )}
-                        {maquette.propositionUrl && (
-                          <a
-                            href={maquette.propositionUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="inline-flex items-center gap-1 text-muted-foreground hover:text-foreground transition-colors"
-                          >
-                            Proposition
-                            <ExternalLink className="size-3" />
-                          </a>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Add note card */}
+      {/* Maquette + Email + Actions (3 colonnes) */}
+      <div className="grid gap-6 md:grid-cols-3">
+        <MaquetteSection prospectId={prospect.id} initialMaquette={maquetteData} />
+        <EmailSection prospectId={prospect.id} />
         <Card>
           <CardHeader>
             <CardTitle>Actions rapides</CardTitle>
@@ -159,7 +103,44 @@ export default async function ProspectDetailPage({
         </Card>
       </div>
 
-      {/* Activity timeline */}
+      {/* Legacy maquettes list (other maquettes) */}
+      {prospect.maquettes.length > 1 && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Autres maquettes ({prospect.maquettes.length - 1})</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              {prospect.maquettes.slice(1).map((maquette) => (
+                <div
+                  key={maquette.id}
+                  className="flex items-start justify-between gap-3 rounded-lg border border-border p-3"
+                >
+                  <div className="space-y-1 min-w-0">
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-medium uppercase">{maquette.type}</span>
+                      <StatusBadge type="pipeline" value={maquette.statut} />
+                    </div>
+                    <div className="flex flex-wrap gap-3 text-xs">
+                      {maquette.demoUrl && (
+                        <a
+                          href={maquette.demoUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1 text-muted-foreground hover:text-foreground transition-colors"
+                        >
+                          Démo <ExternalLink className="size-3" />
+                        </a>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       <Card>
         <CardHeader>
           <CardTitle>Historique d&apos;activité</CardTitle>
