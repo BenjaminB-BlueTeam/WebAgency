@@ -313,9 +313,9 @@ web-agency-tool/
     │   ├── app/
     │   │   ├── (dashboard)/    ← 10 pages dashboard
     │   │   ├── print/          ← Pages A4 impression PDF (devis + factures)
-    │   │   ├── api/            ← 13 routes API (auth, prospects, devis, factures, maquettes, prospection)
+    │   │   ├── api/            ← 16 routes API (auth, prospects, devis, factures, maquettes, prospection)
     │   │   └── login/
-    │   ├── lib/                ← db, auth, prospection-jobs, utils
+    │   ├── lib/                ← db, auth, anthropic, places, design-direction, netlify-deploy, prompts/
     │   └── components/         ← 35+ composants (layout, prospects, maquettes, prospection)
     └── prisma/
         ├── schema.prisma       ← 7 modèles : Prospect, Maquette, Devis, Facture, Activite, Recherche, Parametre
@@ -363,7 +363,7 @@ Google Places API
                       └─ Génération maquette HTML/Astro complète
                               │
                               ▼
-                         Netlify CLI
+                         Netlify REST API (jszip)
                               │
                               └─ URL de démo + URL de proposition
 ```

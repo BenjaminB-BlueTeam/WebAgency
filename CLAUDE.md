@@ -301,15 +301,28 @@ web-agency-tool/
 
 > **Mettre à jour cette section à chaque session importante.**
 
-### Dernière mise à jour : 2026-03-31 (Phase 0 terminée — CRM déployé sur Vercel + Turso)
+### Dernière mise à jour : 2026-03-31 (Prospection Cloud Pipeline terminée — 16 routes API)
 
 **Repo GitHub :** https://github.com/BenjaminB-BlueTeam/WebAgency
 
-**Pipeline :** Opérationnel. Google Places + Firecrawl + Claude. Prompt maquette enrichi (SVG, Aurora gradient, animations avancées, analyse site obsolète/moderne).
+**Pipeline CLI :** Opérationnel. Google Places + Firecrawl + Claude. Prompt maquette enrichi (SVG, Aurora gradient, animations avancées, analyse site obsolète/moderne).
+
+**Prospection Cloud :** ✅ Terminée. La page `/prospection` fonctionne entièrement en cloud via 3 nouvelles API routes serverless (Vercel-compatible) :
+- `POST /api/prospection/search` — SSE streaming `ReadableStream`, Google Places → Claude
+- `POST /api/maquettes/generate` — génération HTML Claude + déploiement Netlify REST API (jszip, pas CLI), `maxDuration = 300`
+- `GET /api/prospects/[id]/email` — génération email de prospection (sujet + corps JSON)
+
+**Nouveaux fichiers lib (crm/src/lib/) :**
+- `anthropic.ts` — singleton Anthropic client
+- `places.ts` — `placesTextSearch()` + `placesDetails()`
+- `design-direction.ts` — `getDesignDirection()` 7 secteurs + fallback
+- `netlify-deploy.ts` — déploiement Netlify via REST API + jszip
+- `prompts/maquette.ts` — prompts système + user pour génération HTML
+- `prompts/email.ts` — prompt email de prospection
 
 **Sync pipeline → CRM :** `npm run sync-crm` (racine) ou `cd crm && npm run sync-crm`. Lit `crm.json`, upsert dans Prisma, préserve le pipeline statut si progressé. Fonctionne avec SQLite local ET Turso.
 
-**CRM Next.js :** Opérationnel. Toutes les pages complètes. Audit OWASP 2025 appliqué. Build propre 0 erreurs.
+**CRM Next.js :** Opérationnel. Toutes les pages complètes. 16 routes API. Audit OWASP 2025 appliqué. Build propre 0 erreurs.
 
 **Base de données :** Migration `@prisma/adapter-libsql` complète. Compatible SQLite local (dev) et Turso (prod). Voir `DEPLOY.md` pour le guide complet.
 
