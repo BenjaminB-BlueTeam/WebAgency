@@ -19,6 +19,40 @@ import FirecrawlApp from "@mendable/firecrawl-js";
 
 const __dirname = path.dirname(new URL(import.meta.url).pathname).replace(/^\/([A-Z]:)/, "$1");
 
+// ─── Cache Places API (TTL 24h) ──────────────────────────────────────────────
+
+const PLACES_CACHE_DIR = new URL("./cache/places/", import.meta.url).pathname
+  .replace(/^\/([A-Z]:)/, "$1") // Windows: /C:/... → C:/...
+  .replace(/\//g, "\\"); // normalise les séparateurs Windows
+
+const CACHE_TTL_MS = 24 * 60 * 60 * 1000;
+
+try { fs.mkdirSync(PLACES_CACHE_DIR, { recursive: true }); } catch { /* exists */ }
+
+async function getCachedPlaces(query) {
+  const key = crypto.createHash("md5").update(query).digest("hex");
+  const file = `${PLACES_CACHE_DIR}\\${key}.json`;
+  try {
+    const raw = await fs.promises.readFile(file, "utf8");
+    const { ts, data } = JSON.parse(raw);
+    if (Date.now() - ts < CACHE_TTL_MS) {
+      console.log(`   💾  Cache Places utilisé pour "${query}"`);
+      return data;
+    }
+  } catch { /* cache miss */ }
+  return null;
+}
+
+async function setCachedPlaces(query, data) {
+  const key = crypto.createHash("md5").update(query).digest("hex");
+  const file = `${PLACES_CACHE_DIR}\\${key}.json`;
+  try {
+    await fs.promises.writeFile(file, JSON.stringify({ ts: Date.now(), data }), "utf8");
+  } catch { /* ignore write errors */ }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+
 const wait = (ms) => new Promise(r => setTimeout(r, ms));
 
 async function apiCall(params, attempt = 0) {
@@ -235,6 +269,9 @@ function getDesignDirection(activite) {
 // ─── Google Places helpers ────────────────────────────────────────────────────
 
 async function placesTextSearch(query) {
+  const cached = await getCachedPlaces(query);
+  if (cached) return cached;
+
   // Si la requête est un seul mot (probablement un nom de ville), ajouter "commerces" pour cibler des entreprises
   const words = query.trim().split(/\s+/);
   let effectiveQuery = query;
@@ -261,6 +298,7 @@ async function placesTextSearch(query) {
     if (filtered.length < (data.results || []).length) {
       console.log(`   🔎  ${data.results.length - filtered.length} résultat(s) géographique(s) filtré(s)`);
     }
+    await setCachedPlaces(query, filtered);
     return filtered;
   } catch (err) {
     console.error("❌  Places Text Search échoué :", err.message);
