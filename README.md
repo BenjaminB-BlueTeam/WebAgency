@@ -149,6 +149,17 @@ npx prisma migrate deploy   # initialise la base SQLite
 npm run dev                  # démarre sur http://localhost:3000
 ```
 
+### Synchroniser le pipeline CLI → CRM
+
+Après avoir lancé `node prospect.js "..."`, importer les résultats dans le CRM :
+
+```bash
+npm run sync-crm   # depuis la racine
+# ou : cd crm && npm run sync-crm
+```
+
+Le script lit `crm.json`, crée ou met à jour chaque prospect dans Prisma, et préserve le statut pipeline s'il a déjà progressé.
+
 ### Configuration CRM (crm/.env.local)
 
 ```env
@@ -171,7 +182,7 @@ NODE_ENV=development
 | `/parametres` | ✅ Complet | Profil Benjamin + tarifs |
 | `/devis` | ✅ Complet | CRUD, stats pipeline (montant en attente / accepté / taux conversion), transitions statut |
 | `/factures` | ✅ Complet | CRUD, lien vers devis, CA encaissé, alertes retard |
-| `/analytics` | ✅ Complet | KPIs, funnel pipeline, répartition statut web, tableaux devis/factures, historique prospection |
+| `/analytics` | ✅ Complet | KPIs, funnel pipeline, répartition statut web, maquettes, tableaux devis/factures, historique prospection |
 
 ### Statuts pipeline
 
@@ -254,21 +265,23 @@ Le pipeline sélectionne automatiquement une direction artistique adaptée au se
 ```
 web-agency-tool/
 ├── prospect.js          ← Pipeline complet (ESModules, Node 18+)
-├── package.json         ← Root (npm run prospect)
+├── package.json         ← Root (npm run prospect / npm run sync-crm)
 ├── .env                 ← Clés API pipeline (non versionné)
 ├── .env.example         ← Template des variables requises
 ├── setup.sh             ← Script d'onboarding automatique
-├── crm.json             ← Base prospects legacy (généré par pipeline)
+├── crm.json             ← Base prospects legacy (généré par pipeline, non versionné)
 ├── docs/
 │   └── superpowers/
 │       ├── specs/       ← Specs de design
 │       └── plans/       ← Plans d'implémentation
 ├── output/              ← Maquettes générées (non versionné)
 └── crm/                 ← Dashboard CRM Next.js 16
+    ├── scripts/
+    │   └── sync-crm.ts  ← Sync crm.json → Prisma SQLite (npm run sync-crm)
     ├── src/
     │   ├── app/
-    │   │   ├── (dashboard)/    ← 9 pages dashboard
-    │   │   ├── api/            ← 10 routes API (auth, prospects, maquettes, prospection)
+    │   │   ├── (dashboard)/    ← 10 pages dashboard
+    │   │   ├── api/            ← 13 routes API (auth, prospects, devis, factures, maquettes, prospection)
     │   │   └── login/
     │   ├── lib/                ← db, auth, prospection-jobs, utils
     │   └── components/         ← 35+ composants (layout, prospects, maquettes, prospection)

@@ -97,8 +97,17 @@ export function AnalyticsPageClient({ prospects, devis, factures, maquettes, rec
     montant: factures.filter(f => f.statut === s).reduce((sum, f) => sum + f.montantTTC, 0),
   }));
 
-  // suppress unused var warning for maquettes
-  void maquettes;
+  // Maquettes by statut
+  const MAQUETTE_STATUTS = ["BROUILLON", "DEPLOYE", "ENVOYE", "VALIDE", "REFUSE"] as const;
+  const MAQUETTE_LABELS: Record<string, string> = {
+    BROUILLON: "Brouillon", DEPLOYE: "Déployé", ENVOYE: "Envoyé", VALIDE: "Validé", REFUSE: "Refusé",
+  };
+  const maquettesByStatut = MAQUETTE_STATUTS.map(s => ({
+    statut: s,
+    label: MAQUETTE_LABELS[s],
+    count: maquettes.filter(m => m.statut === s).length,
+  }));
+  const maquettesEnvoyees = maquettes.filter(m => ["ENVOYE", "VALIDE"].includes(m.statut)).length;
 
   return (
     <div className="flex flex-col gap-6">
@@ -208,6 +217,24 @@ export function AnalyticsPageClient({ prospects, devis, factures, maquettes, rec
             </table>
           )}
         </div>
+      </div>
+
+      {/* Maquettes */}
+      <div className="glass rounded-xl p-5">
+        <div className="flex items-baseline justify-between mb-3">
+          <p className="text-xs text-white/40 uppercase tracking-wide">Maquettes</p>
+          <span className="text-xs text-white/40">{maquettesEnvoyees} envoyées / {maquettes.length} total</span>
+        </div>
+        {maquettes.length === 0 ? <p className="text-xs text-white/30">Aucune maquette générée</p> : (
+          <div className="flex flex-wrap gap-3">
+            {maquettesByStatut.filter(m => m.count > 0).map(m => (
+              <div key={m.statut} className="flex items-center gap-1.5">
+                <span className="text-xs text-white/50">{m.label}</span>
+                <span className="text-xs font-bold text-white/80">{m.count}</span>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Recherches */}
