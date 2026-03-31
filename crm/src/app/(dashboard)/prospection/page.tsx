@@ -6,6 +6,8 @@ import { ProspectionSearchPanel } from "@/components/prospection/prospection-sea
 import { ProspectionResultsPanel } from "@/components/prospection/prospection-results-panel";
 import type { JobSteps, ProspectResult } from "@/lib/prospection-jobs";
 
+const IS_VERCEL = process.env.NEXT_PUBLIC_VERCEL === "1";
+
 const IDLE_STEPS: JobSteps = {
   recherche: "idle",
   concurrents: "idle",
@@ -118,9 +120,24 @@ export default function ProspectionPage() {
   }, []);
 
   return (
-    <div className="flex gap-5 h-full min-h-[calc(100vh-120px)]">
-      {/* Left panel — fixed width */}
-      <div className="w-72 shrink-0">
+    <div className="flex gap-5 h-full min-h-[calc(100vh-120px)] flex-col">
+      {IS_VERCEL && (
+        <div className="mb-4 rounded-lg border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-300">
+          <strong>Mode production Vercel :</strong> la prospection automatique n&apos;est pas disponible en ligne.
+          Lancez{" "}
+          <code className="rounded bg-amber-500/20 px-1 py-0.5 font-mono text-xs">
+            node prospect.js &quot;votre recherche&quot;
+          </code>{" "}
+          en local, puis synchronisez avec{" "}
+          <code className="rounded bg-amber-500/20 px-1 py-0.5 font-mono text-xs">
+            npm run sync-crm
+          </code>
+          .
+        </div>
+      )}
+      <div className="flex gap-5 h-full">
+        {/* Left panel — fixed width */}
+        <div className="w-72 shrink-0">
         <ProspectionSearchPanel
           query={query}
           onQueryChange={setQuery}
@@ -142,6 +159,7 @@ export default function ProspectionPage() {
           query={activeQuery}
           error={jobError}
         />
+      </div>
       </div>
     </div>
   );
