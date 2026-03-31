@@ -553,242 +553,125 @@ Réponds UNIQUEMENT en JSON valide :
   return result;
 }
 
-// ─── Génération maquette HTML "wow" ──────────────────────────────────────────
+// ─── Prompts maquette HTML ────────────────────────────────────────────────────
 
-async function genererMaquetteHTML(prospect, analyse = null, concurrents = null) {
-  const d = getDesignDirection(prospect.activite);
-  const gfUrl = `https://fonts.googleapis.com/css2?family=${d.fonts.display}&family=${d.fonts.body}&display=swap`;
+function getSystemPrompt() {
+  return `Tu es un designer-développeur senior. Tu crées des sites vitrines one-file HTML pour TPE et artisans locaux français. L'objectif : provoquer un effet "wow" immédiat quand l'artisan ouvre le lien.
 
-  const system = `Tu es un designer-développeur senior avec 15 ans d'expérience en création de sites web premium pour TPE et artisans locaux. Tu crées des sites qui provoquent un effet "wow" immédiat — modernes, animés, avec une identité visuelle forte adaptée au métier du client.
+FORMAT : Un seul fichier HTML complet (CSS + JS inline). Commence directement par <!DOCTYPE html>. Aucune explication, aucun markdown, aucun backtick.
 
-RÈGLES TECHNIQUES ABSOLUES :
-- HTML inline one-file en mode démo, architecture Astro en mode prod (voir section OUTPUT)
-- Mobile-first, responsive parfait 375px / 768px / 1280px
-- Toutes les tailles de texte en clamp() pour fluidité
-- Intersection Observer pour tous les effets au scroll
-- Performances : images lazy-loaded, CSS transitions GPU-accelerated (transform, opacity uniquement)
-- Zéro placeholder "Lorem ipsum", zéro image générique
-- Tout le contenu est réel et spécifique au prospect
+═══════════════════════════════════════
+NIVEAU 1 — CRITIQUE (le site est cassé sans ça)
+═══════════════════════════════════════
 
-IDENTITÉ VISUELLE :
-- Si le prospect a un site existant, analyser objectivement son niveau de modernité :
+Structure obligatoire dans cet ordre :
+1. Nav sticky (backdrop-filter blur au scroll, hamburger mobile animé avec overlay + fermeture clic extérieur)
+2. Hero (min-height: 100dvh, fond travaillé — JAMAIS un fond uni)
+3. Stats / chiffres clés (compteurs animés au scroll)
+4. Services (grille responsive, icônes SVG inline)
+5. À propos (2 colonnes asymétriques, ancrage local)
+6. Témoignages (3 avis fictifs, prénoms nordistes : Jean-Marie, Martine, Sandrine...)
+7. Contact (formulaire avec validation JS + coordonnées + horaires)
+8. Footer (copyright + "Site réalisé par Benjamin Bourger — Steenvoorde")
 
-  SITE RÉCENT / CORRECT (< 3 ans, design plat, typographie propre) :
-  → Extraire fidèlement palette, typographie, logo et univers visuel
-  → Moderniser uniquement les détails : animations, micro-interactions, espacements
-  → Le client doit reconnaître SA marque quasi immédiatement
+Technique :
+- Toutes les couleurs via CSS custom properties dans :root
+- Toutes les tailles de texte en clamp() — zéro px fixe
+- Mobile-first : responsive parfait 375px / 768px / 1280px
+- Touch targets min 44×44px
+- Zéro Lorem ipsum — tout le contenu est réaliste et adapté au métier
+- Numéro de téléphone cliquable (href="tel:") visible dans le hero
+- Le <script> en fin de body est VITAL — sans lui les éléments restent à opacity:0
 
-  SITE DATÉ / OBSOLÈTE (> 3 ans OU : dégradés brillants, ombres lourdes, boutons
-  biseautés, Comic Sans ou Times New Roman, fond texturé kitsch, mise en page
-  tableau, favicon IE, couleurs criardes non cohérentes) :
-  → NE PAS reproduire l'esthétique — elle nuirait à l'effet wow
-  → Extraire uniquement : couleur dominante principale, secteur d'activité, ton
-    (sérieux / chaleureux / technique / artisanal)
-  → Construire une identité moderne à partir de ces 3 éléments + direction
-    artistique par métier
-  → Garder 1 seule couleur reconnaissable du site actuel pour créer un pont
-    psychologique avec l'existant — le client sent que c'est "lui" mais en mieux
-  → Commenter dans le code : "// Identité modernisée — palette originale jugée obsolète"
+JavaScript minimum requis dans le <script> :
+- DOMContentLoaded → ajouter .animate sur les éléments du hero (opacity 0→1)
+- Intersection Observer fade-up (translateY 40px→0, opacity 0→1) sur toutes les sections
+- Compteurs animés (requestAnimationFrame + easeOutQuart)
+- Nav scroll (class .scrolled au scroll) + hamburger complet
+- Formulaire : preventDefault, validation basique, loading state, message succès
+- Smooth scroll sur les ancres
 
-  SANS SITE (SANS_SITE) :
-  → Appliquer intégralement la direction artistique par métier
-  → Inventer une identité premium cohérente avec le secteur et la région
+═══════════════════════════════════════
+NIVEAU 2 — ATTENDU (90% des runs doivent l'inclure)
+═══════════════════════════════════════
 
-CRITÈRES D'OBSOLESCENCE (si 3+ critères présents → site jugé daté) :
-- Dégradés glossy ou ombres portées épaisses sur les boutons
-- Typographie serif classique (Times, Georgia) ou Comic Sans comme police principale
-- Fond avec texture (bois, béton, tissu) en image répétée
-- Mise en page en tableaux HTML ou colonnes rigides sans responsive
-- Couleurs saturées non cohérentes (rouge vif + jaune + vert ensemble)
-- Copyright footer < 2020
-- Pas de HTTPS
-- Favicon basse résolution ou icône IE
-- Animations Flash ou gif animés
-- Menu hamburger absent sur mobile
+- Stagger sur les animations du hero (badge 0.2s, titre 0.4s, sous-titre 0.6s, CTAs 0.8s)
+- Stagger sur les groupes de cards (délai 0.1s entre chaque enfant)
+- Hover lift sur les cards services (translateY -4px + shadow + border-top accent)
+- Underline slide sur les liens de navigation (::after scale 0→1)
+- Chaque section a un layout visuellement distinct des autres (alterner fond, disposition, asymétrie)
+- Ripple ou shimmer sur les CTAs principaux
+- Bouton "retour en haut" après 300px de scroll
 
-GESTION DES IMAGES :
-Toutes les sections nécessitant une image doivent avoir un visuel cohérent et professionnel —
-jamais de bloc vide, jamais de placeholder gris, jamais de texte "image ici".
+═══════════════════════════════════════
+NIVEAU 3 — EFFET WOW (choisir 3-4 parmi cette liste, selon ce qui colle au métier)
+═══════════════════════════════════════
 
-STRATÉGIE PAR TYPE D'IMAGE :
+Choisis les effets qui renforcent l'ambiance du secteur. Ne les mets PAS tous.
 
-Photos de réalisations / portfolio :
-→ Générer un SVG illustratif réaliste représentant le métier du client
-→ Exemples : chantier de plomberie stylisé, coupe de cheveux en silhouette élégante,
-  devanture de boulangerie, cuisine de restaurant, façade de maison repeinte
-→ SVG inline directement dans le HTML, couleurs cohérentes avec la palette du site
-→ Style : illustration moderne, flat design avec ombres douces, pas de clipart
+- Aurora/Mesh gradient animé en fond du hero (3 couleurs de la palette, @keyframes sur background-position)
+- Scramble text sur le titre hero (caractères aléatoires → texte final, JS pur)
+- Typewriter sur le sous-titre (curseur clignotant)
+- Tilt 3D sur les cards (rotation max 8deg selon position curseur, perspective 1000px)
+- Glassmorphism sur les cards témoignages (backdrop-filter blur, fond rgba, border subtle)
+- Floating particles en arrière-plan du hero (cercles CSS animés à des vitesses différentes)
+- Parallax léger sur les fonds de section (translateY proportionnel au scroll, rAF)
+- Gradient text animé sur un élément d'accroche (background-clip: text)
+- Glow hover sur les cards (box-shadow colorée au survol)
+- Noise texture subtile en overlay (SVG filter feTurbulence)
 
-Photo de l'artisan / équipe :
-→ Générer un SVG avatar professionnel stylisé (silhouette avec tenue de métier :
-  bleu de travail, tablier, veste de cuisine, tenue de coiffeur...)
-→ Fond avec dégradé de la palette du client
-→ Jamais un visage réaliste — toujours une silhouette ou illustration stylisée
+═══════════════════════════════════════
+IMAGES — une seule règle
+═══════════════════════════════════════
 
-Images de fond / hero background :
-→ Utiliser l'Aurora gradient animé comme fond principal (voir section effets)
-→ Si une image de fond est nécessaire : générer un SVG abstrait cohérent avec le métier
-  (formes géométriques évoquant l'activité : tuyaux stylisés pour plombier,
-  ciseaux pour coiffeur, pain pour boulanger, pinceau pour peintre...)
+Pas d'images externes (pas d'Unsplash, pas de picsum, pas de placeholder gris).
+Pour chaque emplacement image : un SVG inline cohérent avec le métier et la palette.
+Icônes de services : SVG inline simples, stroke ou filled, 48×48px min.
+Commentaire sur chaque SVG : <!-- SVG généré — à remplacer par photo réelle -->
 
-Icônes de services :
-→ SVG inline dessinés à la main (pas de Font Awesome, pas d'emoji)
-→ Cohérents avec la palette, stroke style ou filled selon l'ambiance du site
-→ Taille minimum 48x48px, optimisés pour la lisibilité mobile
+═══════════════════════════════════════
+IDENTITÉ VISUELLE
+═══════════════════════════════════════
 
-Images de la section "À propos" :
-→ SVG illustratif montrant l'artisan au travail dans son environnement
-→ Style épuré, moderne, avec les couleurs dominantes de la palette
-→ Inclure un détail métier reconnaissable (outil, équipement, produit...)
+Si le prospect a un SITE RÉCENT (< 3 ans, design propre) :
+→ Conserver sa palette et son ton, moderniser les détails
 
-RÈGLE ABSOLUE IMAGES :
-Chaque image SVG générée doit être :
-- Unique et spécifique au métier et à la ville du prospect
-- Cohérente avec la palette de couleurs du site
-- Suffisamment détaillée pour ne pas paraître vide
-- Commentée dans le code : <!-- SVG généré — à remplacer par photo réelle en prod -->
+Si le prospect a un SITE DATÉ ou est SANS_SITE :
+→ Appliquer la direction artistique fournie dans le user prompt
 
-EFFETS VISUELS OBLIGATOIRES — EFFET WOW :
+═══════════════════════════════════════
+INTERDICTIONS
+═══════════════════════════════════════
 
-Hero section :
-- Fond Aurora/Mesh gradient animé : dégradé de 3 couleurs de la palette du client qui morphe lentement en continu (animation CSS @keyframes sur background-position ou hue-rotate)
-- Titre principal : effet Scramble text au chargement (caractères aléatoires qui se résolvent en vrai texte, JS pur)
-- Sous-titre : effet Typewriter avec curseur clignotant
-- Noise texture subtile en overlay (SVG filter feTurbulence) pour casser le flat
-- CTA bouton principal : effet Magnetic (JS, le bouton attire légèrement le curseur dans un rayon de 80px) + Glow pulsant en continu
+- Fond uni sans texture/gradient dans le hero
+- Layout 3 colonnes égales identiques (le layout générique IA)
+- border-radius identique sur tous les éléments
+- Emoji dans le contenu
+- Texte IA cliché : "Elevate", "Seamless", "Unleash", "Next-Gen"
+- 100vh fixe — utiliser min-height: 100dvh
+- Images placeholder ou blocs image vides`;
+}
 
-Scroll animations (Intersection Observer, threshold 0.15) :
-- Fade up par défaut sur tous les éléments (translateY 40px → 0, opacity 0 → 1, duration 0.7s ease-out)
-- Stagger sur les groupes de cards : délai 0.1s entre chaque enfant
-- Reveal sur les titres de section : bloc coloré qui glisse de gauche à droite révélant le texte dessous
-- Parallax léger sur les images de fond (translateY proportionnel au scroll, JS requestAnimationFrame)
-- Counter animé sur les chiffres clés : incrémentation depuis 0 jusqu'à la valeur réelle quand le bloc entre dans le viewport
-
-Éléments interactifs :
-- Tilt 3D sur toutes les cards (JS, rotation max 8deg selon position curseur, perspective 1000px)
-- Underline slide sur tous les liens de navigation (pseudo-élément ::after qui scale de 0 → 1)
-- Glow hover sur les cards : box-shadow colorée qui apparaît au survol
-- Gradient text animé sur les éléments d'accroche clés (background-clip: text, animation sur background-position)
-
-Fond et ambiance :
-- Glassmorphism sur les cards secondaires : backdrop-filter blur(12px), fond rgba semi-transparent, border 1px solid rgba(255,255,255,0.15)
-- Floating particles en arrière-plan du hero : 15-20 petits cercles SVG qui flottent avec des animations CSS indépendantes à des vitesses différentes
-
-MICRO-INTERACTIONS SUPPLÉMENTAIRES :
-- Curseur personnalisé : cercle vide qui suit la souris, grossit sur les éléments cliquables
-- Smooth scroll natif (scroll-behavior: smooth)
-- Loading animation : fade in global de la page sur DOMContentLoaded (opacity 0 → 1, 0.4s)
-- Bouton "retour en haut" qui apparaît après 300px de scroll avec animation slide-in
-
-STRUCTURE OBLIGATOIRE DES SECTIONS :
-1. Navigation sticky : backdrop-filter blur au scroll, logo + liens + CTA, underline slide sur les liens
-2. Hero : Aurora gradient + Scramble title + Typewriter subtitle + Magnetic CTA + Floating particles
-3. Signaux de confiance : logos/badges (RGE, assurances, années d'expérience) — Stagger fade up
-4. Services : 3-4 cards Tilt 3D + Glow hover, icônes SVG inline cohérentes avec le métier
-5. Chiffres clés : Counter animé, 3-4 stats percutantes et réelles (années d'expérience, zone d'intervention, délai moyen...)
-6. À propos / Réalisations : SVG illustratif métier + Parallax, Reveal sur le texte
-7. Témoignages : cards Glassmorphism, si disponibles
-8. Zone de service : carte ou liste des villes couvertes
-9. Contact / CTA final : formulaire simple, téléphone cliquable, Aurora gradient en fond inversé
-10. Footer : mentions légales, liens, SIRET si disponible
-
-QUALITÉ DU CONTENU :
-- Titres accrocheurs spécifiques au métier et à la ville (jamais génériques)
-- Arguments adaptés aux objections locales (Wix, "mon neveu peut le faire", "j'ai Facebook")
-- CTA orientés action immédiate : "Appelez maintenant", "Devis gratuit en 24h", "Voir mes réalisations"
-- Aucun jargon technique dans le contenu — langage simple et direct pour artisans
-
-INTERDICTIONS ABSOLUES :
-- Jamais de fond uni sans texture ou animation
-- Jamais de layout 3 colonnes égales (le layout générique IA)
-- Jamais de border-radius identique sur tous les éléments
-- Jamais d'emoji dans le contenu
-- Jamais de texte AI cliché : "Elevate", "Seamless", "Unleash", "Next-Gen", "Sur-mesure" comme seul argument
-- Jamais de hauteur 100vh fixe — utiliser min-height: 100dvh
-- Jamais d'images placeholder ou de unsplash/picsum — utiliser des SVG inline ou des dégradés cohérents
-- Jamais de bloc image vide — toujours un SVG illustratif cohérent
-
-OUTPUT — DEUX MODES SELON LE CONTEXTE :
-
-MODE DÉMO (génération maquette prospect) :
-- Un seul fichier HTML complet, self-contained
-- Tous les CSS et JS inline dans le fichier
-- Déployable immédiatement sur Netlify Drop en URL temporaire
-- Objectif : provoquer un "wow" immédiat, pas la maintenabilité
-- Commenter en début de fichier : <!-- DÉMO — Ne pas utiliser en production -->
-- Si le site existant a été jugé obsolète, ajouter :
-  <!-- IDENTITÉ : modernisée — palette originale jugée obsolète. Couleur conservée : #XXXXXX -->
-- Tous les SVG illustratifs générés sont commentés :
-  <!-- SVG généré — à remplacer par photo réelle en prod -->
-
-MODE PRODUCTION (prospect signé, mise en ligne réelle) :
-Basculer vers une architecture Astro + Tailwind CSS propre et maintenable :
-
-Structure :
-src/
-├── components/
-│   ├── Nav.astro
-│   ├── Hero.astro
-│   ├── Services.astro
-│   ├── Chiffres.astro
-│   ├── APropos.astro
-│   ├── Temoignages.astro
-│   ├── Contact.astro
-│   └── Footer.astro
-├── layouts/
-│   └── Layout.astro        ← head, meta, fonts, schema.org
-├── pages/
-│   └── index.astro         ← assemblage des composants
-├── styles/
-│   ├── global.css          ← variables CSS, reset, typographie
-│   └── animations.css      ← tous les keyframes et effets scroll
-├── scripts/
-│   ├── animations.js       ← Intersection Observer, Parallax, Counter
-│   ├── scramble.js         ← effet Scramble text
-│   ├── tilt.js             ← effet Tilt 3D sur les cards
-│   └── magnetic.js         ← effet Magnetic sur les CTAs
-└── assets/
-    └── images/             ← photos réelles fournies par le client
-        ← remplacer ici les SVG de démo par les vraies photos
-
-Règles architecture prod :
-- Zéro style inline — tout dans les fichiers CSS/Tailwind
-- Zéro script inline — tout dans /scripts/ importé en module
-- Variables CSS dans :root pour toute la palette client (facile à modifier)
-- Composants réutilisables et indépendants
-- Commentaires clairs dans chaque fichier pour modifications futures
-- README.md à la racine avec : structure du projet, comment modifier les textes,
-  comment changer les couleurs, comment ajouter une page, comment déployer
-- package.json avec scripts : dev, build, preview, deploy
-
-Déploiement prod :
-- Connecté au repo GitHub du client (repo privé créé par Flandre Web)
-- Netlify CI/CD : chaque push sur main → déploiement automatique
-- Domaine .fr connecté dans Netlify → HTTPS automatique
-- Formulaire de contact via Netlify Forms (zéro backend)
-- Google Search Console connectée dès la mise en ligne`;
-
+function getUserPrompt(prospect, d, gfUrl, analyse, concurrents) {
   const analyseSection = analyse ? `
-SITE ACTUEL À CORRIGER (note ${analyse.note_globale}/10 — corriger CHAQUE point listé) :
-→ Sections manquantes à INTÉGRER absolument : ${(analyse.sections_manquantes || []).join(", ")}
-→ Signaux de conversion à AJOUTER : ${(analyse.signaux_conversion_absents || []).join(", ")}
-→ Problèmes contenu à RÉSOUDRE : ${(analyse.qualite_contenu || []).join(", ")}
-→ Stack obsolète à DÉPASSER visuellement : ${(analyse.stack_technique || []).join(", ")}
-Ce site doit être l'OPPOSÉ EXACT de chaque faiblesse listée ci-dessus.
+AUDIT DU SITE ACTUEL (note ${analyse.note_globale}/10) :
+Faiblesses à corriger : ${[
+    ...(analyse.sections_manquantes || []),
+    ...(analyse.signaux_conversion_absents || []),
+    ...(analyse.qualite_contenu || []),
+  ].join(", ")}
+Stack obsolète : ${(analyse.stack_technique || []).join(", ")}
+→ La maquette doit être l'opposé de chaque faiblesse.
 ` : "";
 
   const concurrentsSection = concurrents?.concurrents?.length ? `
-SURPASSER LES CONCURRENTS :
+CONCURRENTS À SURPASSER :
 ${concurrents.concurrents.map(c =>
-  `• ${c.nom} : bien=${(c.points_forts || []).join(", ")} / à dépasser=${(c.points_faibles || []).join(", ")}`
+  `• ${c.nom} — bien: ${(c.points_forts || []).join(", ")} / faible: ${(c.points_faibles || []).join(", ")}`
 ).join("\n")}
-Benchmark : ${concurrents.benchmark_resume || ""}
-Ce site doit surpasser tous ces concurrents sur chaque point faible identifié.
 ` : "";
 
-  const user = `Crée le fichier HTML complet pour :
-
-CLIENT : ${prospect.nom} · ${prospect.activite} · ${prospect.ville}
+  return `CLIENT : ${prospect.nom} · ${prospect.activite} · ${prospect.ville}
 TÉL : ${prospect.telephone || "03 XX XX XX XX"}
 EMAIL : ${prospect.email || "contact@" + prospect.nom.toLowerCase().replace(/[^a-z]/g, "") + ".fr"}
 
@@ -797,52 +680,36 @@ ${d.ambiance}
 Font display : "${d.fontDisplay}" — body : "${d.fontBody}"
 Google Fonts : ${gfUrl}
 
-CSS :root :
+:root {
   --primary:${d.palette.primary}; --accent:${d.palette.accent};
   --bg:${d.palette.bg}; --surface:${d.palette.surface}; --text:${d.palette.text};
   --white:#fff; --radius:8px; --shadow:0 4px 24px rgba(0,0,0,0.10);
   --transition:0.3s cubic-bezier(0.4,0,0.2,1);
-${analyseSection}${concurrentsSection}
-HERO (100vh) :
-  Titre H1 : "${d.heroTitle(prospect.nom, prospect.ville)}" — clamp(2.5rem,6vw,5rem), font display
+}
+
+HERO :
+  H1 : "${d.heroTitle(prospect.nom, prospect.ville)}"
   Sous-titre : "${d.heroSub}"
-  Badge : "${d.heroTag}" — pill animé, border --accent
-  2 CTAs : [Demander un devis] plein --accent + [Nous appeler] outline blanc, min-height 48px
-  Fond : gradient en couches OU formes géométriques CSS (clip-path, pattern CSS, SVG décoratifs) — JAMAIS fond plat
-  Numéro de téléphone visible et cliquable (href="tel:") above the fold
-  Animations stagger : badge 0.2s, titre 0.4s, sous-titre 0.6s, CTAs 0.8s
+  Badge : "${d.heroTag}"
+  CTAs : [Demander un devis] bg accent + [Nous appeler] outline
 
-STATS (fond --primary, texte blanc, 4 col desktop / 2 tablette / 1 mobile) :
-${d.stats.map(s => `  "${s.val}${s.unit}" + "${s.label}"`).join("\n")}
-  Compteurs animés au scroll (Intersection Observer + rAF + easeOutQuart)
+STATS : ${d.stats.map(s => `"${s.val}${s.unit}" ${s.label}`).join(" · ")}
 
-SERVICES (grille 3 col desktop / 2 tablette / 1 col mobile strict) :
-${d.services.map(s => `  • ${s}`).join("\n")}
-  Chaque card : icône SVG inline complexe + titre + description 2 lignes · hover translateY(-4px) + shadow + border-top --accent
-  Micro-interaction sur chaque card CTA : shimmer ou ripple
+SERVICES : ${d.services.join(" · ")}
 
-GALERIE : grille CSS asymétrique (1 col <480px, 2 col <768px, 3 col desktop avec hauteurs variées), placeholders visuels CSS pur (gradient --primary→--accent + icône SVG)
+TÉMOIGNAGES : 3 avis fictifs nordistes avec étoiles, guillemets «», prénom + ville
+${analyseSection}${concurrentsSection}
+Commence par <!DOCTYPE html>.`;
+}
 
-À PROPOS : layout 2 colonnes asymétriques, visuel CSS à gauche + texte à droite, ancrage local Flandre, checklist SVG, fond --surface
+// ─── Génération maquette HTML "wow" ──────────────────────────────────────────
 
-TÉMOIGNAGES (fond --primary, texte blanc) : 3 avis fictifs réalistes, prénoms nordistes, étoiles SVG pleines, guillemets «», prénom + ville + activité
+async function genererMaquetteHTML(prospect, analyse = null, concurrents = null) {
+  const d = getDesignDirection(prospect.activite);
+  const gfUrl = `https://fonts.googleapis.com/css2?family=${d.fonts.display}&family=${d.fonts.body}&display=swap`;
 
-CONTACT : 2 colonnes — formulaire (labels flottants CSS, validation JS temps réel, min-height 48px, font-size 16px, loading state, état succès) + coordonnées + horaires
-
-NAVIGATION : sticky, blur backdrop-filter au scroll, hamburger mobile (animation 3 barres → X, menu slide-down, overlay semi-transparent, fermeture clic extérieur), logo font display couleur --accent
-
-FOOTER : 4 col desktop / 1 col mobile (flex-direction:column, centré), copyright, "Site réalisé par Benjamin Bourger — Steenvoorde"
-
-JS OBLIGATOIRE (sans ce script le site est CASSÉ — les éléments restent invisibles à opacity:0) :
-- <script> en fin de <body> — JAMAIS l'omettre
-- Au DOMContentLoaded : ajouter immédiatement .animate sur TOUS les éléments du hero (badge, titre, sous-titre, phone, CTAs) pour qu'ils passent de opacity:0 à opacity:1
-- Intersection Observer fade-up sur toutes les sections restantes
-- Compteurs animés (rAF + easeOutQuart)
-- Nav scroll + hamburger complet avec overlay + fermeture clic extérieur
-- Formulaire async avec validation + loading state
-- Ripple effect sur CTAs principaux
-
-Commence par <!DOCTYPE html>. AUCUNE explication. AUCUN markdown. AUCUN backtick.`;
+  const system = getSystemPrompt();
+  const user = getUserPrompt(prospect, d, gfUrl, analyse, concurrents);
 
   const response = await apiCall({
     model: "claude-sonnet-4-20250514", max_tokens: 16000,
