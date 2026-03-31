@@ -380,6 +380,7 @@ npm run sync-crm
 - [x] ~~**PDF export Devis + Factures**~~ — ✅ fait `/print/devis/[id]` + `/print/factures/[id]` (2026-03-31)
 - [x] ~~Sync prospect.js → Prisma~~ — ✅ fait `crm/scripts/sync-crm.ts` (2026-03-31)
 - [x] ~~Dashboard analytics~~ — ✅ fait `/analytics` (2026-03-31)
+- [ ] **Prospect Row Expand** — spec prête `docs/superpowers/specs/2026-03-31-prospect-row-expand-design.md` — expand inline par chevron sur la liste prospects, panel démo/email/regen, modale avec prompt éditable
 - [ ] **Exploiter `opening_hours`** récupéré par Places Details
 - [ ] **Évaluer `crm.json` dans `.gitignore`** (données prospects privées)
 - [ ] **Fix `var demoUrl`** → `let` dans prospect.js:~1464 (legacy non-bloquant)

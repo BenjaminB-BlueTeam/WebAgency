@@ -208,6 +208,20 @@ node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 | `/print/devis/[id]` | ✅ Complet | Page A4 dédiée : profil, client, prestation, totaux HT/TVA/TTC, signature — s'imprime automatiquement (auth requise) |
 | `/print/factures/[id]` | ✅ Complet | Page A4 dédiée : idem + gestion acompte, reste à payer, statut coloré (auth requise) |
 
+### Prochaine feature — Prospect Row Expand
+
+> Spec : `docs/superpowers/specs/2026-03-31-prospect-row-expand-design.md`
+
+Chaque ligne de la liste prospects gagnera un **expand inline** (chevron ▶/▼) donnant accès directement dans le tableau à :
+- Lien démo Netlify (ou bouton "Générer maquette" si absente)
+- Bouton "Générer email" avec résultat inline + copie sujet/corps
+- Bouton "Regénérer maquette…" avec modale et **prompt éditable à la volée**
+- Lien "Voir la fiche complète →"
+
+Nouveaux endpoints requis :
+- `GET /api/prospects/[id]/prompt` → retourne le prompt par défaut calculé
+- `POST /api/maquettes/generate` modifié → accepte `customPrompt?: string`
+
 ### Statuts pipeline
 
 ```
