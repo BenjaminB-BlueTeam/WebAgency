@@ -56,6 +56,8 @@ export async function POST(request: NextRequest) {
     raison,
     argumentCommercial,
     source = "MANUEL",
+    adresse,
+    noteGoogle,
   } = body;
 
   if (!nom || !activite || !ville) {
@@ -82,6 +84,8 @@ export async function POST(request: NextRequest) {
       raison,
       argumentCommercial,
       source,
+      adresse: adresse ? String(adresse).slice(0, 300) : null,
+      noteGoogle: noteGoogle != null ? parseFloat(noteGoogle) || null : null,
     },
   });
 

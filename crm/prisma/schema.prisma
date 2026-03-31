@@ -52,6 +52,7 @@ model Maquette {
   prospect          Prospect @relation(fields: [prospectId], references: [id], onDelete: Cascade)
   type              String   @default("html")
   htmlPath          String?
+  html              String?
   demoUrl           String?
   propositionUrl    String?
   netlifySiteId     String?
