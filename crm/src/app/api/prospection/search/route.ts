@@ -6,7 +6,6 @@ import { placesTextSearch, placesDetails } from "@/lib/places";
 import { db } from "@/lib/db";
 
 const MAX_PLACES = 10;
-const MAX_CONTENT_SLICE = 3000;
 
 export interface SearchProspect {
   nom: string;
@@ -91,6 +90,10 @@ export async function GET(request: NextRequest) {
         // Step 3: Claude classification
         send({ type: "status", step: "analyse", message: "Analyse IA en cours..." });
 
+        if (!process.env.ANTHROPIC_API_KEY) {
+          send({ type: "error", message: "Configuration serveur manquante." });
+          return;
+        }
         const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
         const response = await client.messages.create({
@@ -106,7 +109,7 @@ Pour chaque entreprise, détermine son statut web, sa priorité commerciale et g
 Ignore SITE_CORRECT (aucune valeur commerciale pour nous).
 
 DONNÉES BRUTES :
-${JSON.stringify(enriched.slice(0, MAX_CONTENT_SLICE), null, 2).slice(0, 8000)}
+${JSON.stringify(enriched, null, 2).slice(0, 8000)}
 
 Réponds UNIQUEMENT en JSON valide :
 {
@@ -180,17 +183,22 @@ Réponds UNIQUEMENT en JSON valide :
         }
 
         // Save to Recherche history
-        await db.recherche.create({
-          data: {
-            query: q,
-            resultatsCount: emitCount,
-            prospectsAjoutes: 0,
-            date: new Date(),
-          },
-        });
+        try {
+          await db.recherche.create({
+            data: {
+              query: q,
+              resultatsCount: emitCount,
+              prospectsAjoutes: 0,
+              date: new Date(),
+            },
+          });
+        } catch (dbErr) {
+          console.error("[prospection/search] recherche.create failed:", dbErr);
+        }
 
       } catch (err) {
-        send({ type: "error", message: String(err) });
+        console.error("[prospection/search]", err);
+        send({ type: "error", message: "Erreur lors de la recherche. Réessayez." });
       } finally {
         controller.enqueue(encoder.encode("data: [DONE]\n\n"));
         controller.close();
