@@ -138,15 +138,21 @@ Contient pour chaque prospect :
 
 ## CRM Web — Dashboard Next.js
 
-En plus du pipeline CLI, le projet inclut un **CRM complet** accessible via navigateur à `http://localhost:3000`.
+En plus du pipeline CLI, le projet inclut un **CRM complet** déployé sur **Vercel** et accessible depuis n'importe quel appareil (PC, mobile).
 
-### Lancer le CRM
+### Accès en production
+
+Le CRM est déployé sur Vercel avec base de données **Turso** (SQLite cloud). Voir `DEPLOY.md` pour le guide complet.
+
+### Lancer le CRM en local
 
 ```bash
 cd crm
-npm install
-npx prisma migrate deploy   # initialise la base SQLite
-npm run dev                  # démarre sur http://localhost:3000
+cp .env.local.example .env.local   # remplir les vars
+npm install                         # génère aussi le client Prisma (postinstall)
+npx tsx scripts/migrate-turso.ts   # appliquer migrations sur Turso
+# OU pour SQLite local : DATABASE_URL="file:./prisma/dev.db" npx prisma migrate deploy
+npm run dev                         # démarre sur http://localhost:3000
 ```
 
 ### Synchroniser le pipeline CLI → CRM
@@ -158,15 +164,31 @@ npm run sync-crm   # depuis la racine
 # ou : cd crm && npm run sync-crm
 ```
 
-Le script lit `crm.json`, crée ou met à jour chaque prospect dans Prisma, et préserve le statut pipeline s'il a déjà progressé.
+Le script lit `crm.json`, crée ou met à jour chaque prospect dans Prisma/Turso, et préserve le statut pipeline s'il a déjà progressé.
 
 ### Configuration CRM (crm/.env.local)
 
 ```env
+# Développement local
 DATABASE_URL="file:./prisma/dev.db"
+
+# Production Turso
+# DATABASE_URL="libsql://your-db.turso.io"
+# DATABASE_AUTH_TOKEN="eyJhbGci..."
+
 CRM_SESSION_SECRET="une-chaine-aleatoire-de-32-chars"
-CRM_PASSWORD_HASH=""   # vide = mot de passe "admin" en dev. En prod, générer avec bcryptjs
+CRM_PASSWORD_HASH=""   # vide = mot de passe "admin" en dev
 NODE_ENV=development
+```
+
+### Générer un mot de passe (prod)
+
+```bash
+# Hash bcrypt du mot de passe
+node -e "require('bcryptjs').hash('MonMotDePasse', 12).then(console.log)"
+
+# Secret de session
+node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 ```
 
 ### Pages disponibles
@@ -282,7 +304,8 @@ web-agency-tool/
 ├── output/              ← Maquettes générées (non versionné)
 └── crm/                 ← Dashboard CRM Next.js 16
     ├── scripts/
-    │   └── sync-crm.ts  ← Sync crm.json → Prisma SQLite (npm run sync-crm)
+    │   ├── sync-crm.ts       ← Sync crm.json → Prisma/Turso (npm run sync-crm)
+    │   └── migrate-turso.ts  ← Apply Prisma migrations on Turso (npm run migrate-turso)
     ├── src/
     │   ├── proxy.ts            ← Middleware Next.js 16 : auth toutes routes + 401 JSON sur API
     │   ├── app/
@@ -294,7 +317,8 @@ web-agency-tool/
     │   └── components/         ← 35+ composants (layout, prospects, maquettes, prospection)
     └── prisma/
         ├── schema.prisma       ← 7 modèles : Prospect, Maquette, Devis, Facture, Activite, Recherche, Parametre
-        └── migrations/         ← Migrations SQLite (dont indexes statutPipeline/statut/priorite)
+        ├── migrations/         ← Migrations (dont indexes statutPipeline/statut/priorite)
+        └── schema.prisma       ← 7 modèles, provider sqlite + @prisma/adapter-libsql
 ```
 
 ### Fonctions principales de `prospect.js`

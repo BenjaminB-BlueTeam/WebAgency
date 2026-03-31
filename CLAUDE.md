@@ -301,7 +301,7 @@ web-agency-tool/
 
 > **Mettre à jour cette section à chaque session importante.**
 
-### Dernière mise à jour : 2026-03-31 (Phase 0 — migration Turso/libsql)
+### Dernière mise à jour : 2026-03-31 (Phase 0 terminée — CRM déployé sur Vercel + Turso)
 
 **Repo GitHub :** https://github.com/BenjaminB-BlueTeam/WebAgency
 
@@ -320,14 +320,7 @@ npm run sync-crm
 # Puis vérifier que le CRM affiche les résultats sur http://localhost:3000/prospects
 ```
 
-**Prochaine étape — Déploiement Vercel + Turso :**
-```bash
-# 1. Créer DB Turso (voir DEPLOY.md)
-turso db create webagency-crm --location cdg
-# 2. Pousser les migrations
-npx prisma migrate deploy
-# 3. Déployer sur Vercel via GitHub
-```
+**Déploiement :** ✅ CRM en production sur Vercel. DB Turso `webagency-crm-benjaminb` (AWS EU West Ireland). Migrations appliquées via `npm run migrate-turso`.
 
 ### CRM — Pages fonctionnelles
 
@@ -365,7 +358,7 @@ npx prisma migrate deploy
 
 ### Todo technique prioritaire
 
-- [ ] **Déployer Vercel + Turso** — voir `DEPLOY.md` pour le guide complet
+- [x] ~~**Déployer Vercel + Turso**~~ — ✅ fait (2026-03-31) — voir `DEPLOY.md`
 - [ ] **Test d'intégration pipeline complet** : `node prospect.js "plombier Steenvoorde"` + `npm run sync-crm`
 - [x] ~~**Migration libsql** : `@prisma/adapter-libsql` — db.ts, sync-crm.ts, seed.ts, seed-demo.ts~~ — ✅ 2026-03-31
 - [x] ~~Implémenter page Devis~~ — ✅ fait (2026-03-31)
