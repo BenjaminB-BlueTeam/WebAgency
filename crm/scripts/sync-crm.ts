@@ -1,5 +1,5 @@
 /**
- * sync-crm.ts — Synchronise crm.json (pipeline CLI) → Prisma SQLite (CRM web)
+ * sync-crm.ts — Synchronise crm.json (pipeline CLI) → Prisma (CRM web)
  *
  * Usage : npm run sync-crm          (depuis le dossier crm/)
  *         npm run sync-crm          (depuis la racine, via alias)
@@ -30,14 +30,13 @@ async function main() {
     process.exit(1);
   }
 
-  const { PrismaBetterSqlite3 } = await import("@prisma/adapter-better-sqlite3");
+  const { PrismaLibSql } = await import("@prisma/adapter-libsql");
   const { PrismaClient } = await import("../src/generated/prisma/client");
 
-  // Résoudre le chemin absolu de la DB
-  const dbPath = DB_URL.replace(/^file:/, "");
-  const resolvedDbPath = path.resolve(__dirname, "..", dbPath);
-
-  const adapter = new PrismaBetterSqlite3({ url: `file:${resolvedDbPath}` });
+  const adapter = new PrismaLibSql({
+    url: DB_URL,
+    authToken: process.env.DATABASE_AUTH_TOKEN,
+  });
   const db = new PrismaClient({ adapter });
 
   // crm.json est à la racine du projet (un niveau au-dessus de crm/)
@@ -63,8 +62,8 @@ async function main() {
     return;
   }
 
-  console.log(`\n🔄  Sync crm.json → Prisma SQLite`);
-  console.log(`    DB      : ${resolvedDbPath}`);
+  console.log(`\n🔄  Sync crm.json → Prisma`);
+  console.log(`    DB      : ${DB_URL}`);
   console.log(`    CRM     : ${CRM_FILE}`);
   console.log(`    Entries : ${prospects.length} prospects\n`);
 

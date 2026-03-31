@@ -301,21 +301,32 @@ web-agency-tool/
 
 > **Mettre à jour cette section à chaque session importante.**
 
-### Dernière mise à jour : 2026-03-31 (nuit autonome — cycle #6)
+### Dernière mise à jour : 2026-03-31 (Phase 0 — migration Turso/libsql)
 
 **Repo GitHub :** https://github.com/BenjaminB-BlueTeam/WebAgency
 
 **Pipeline :** Opérationnel. Google Places + Firecrawl + Claude. Prompt maquette enrichi (SVG, Aurora gradient, animations avancées, analyse site obsolète/moderne).
 
-**Sync pipeline → CRM :** `npm run sync-crm` (racine) ou `cd crm && npm run sync-crm`. Lit `crm.json`, upsert dans Prisma, préserve le pipeline statut si progressé.
+**Sync pipeline → CRM :** `npm run sync-crm` (racine) ou `cd crm && npm run sync-crm`. Lit `crm.json`, upsert dans Prisma, préserve le pipeline statut si progressé. Fonctionne avec SQLite local ET Turso.
 
 **CRM Next.js :** Opérationnel. Toutes les pages complètes. Audit OWASP 2025 appliqué. Build propre 0 erreurs.
+
+**Base de données :** Migration `@prisma/adapter-libsql` complète. Compatible SQLite local (dev) et Turso (prod). Voir `DEPLOY.md` pour le guide complet.
 
 **Test d'intégration :** Pas encore lancé avec les vraies clés API — à faire en priorité :
 ```bash
 node prospect.js "plombier Steenvoorde"
 npm run sync-crm
 # Puis vérifier que le CRM affiche les résultats sur http://localhost:3000/prospects
+```
+
+**Prochaine étape — Déploiement Vercel + Turso :**
+```bash
+# 1. Créer DB Turso (voir DEPLOY.md)
+turso db create webagency-crm --location cdg
+# 2. Pousser les migrations
+npx prisma migrate deploy
+# 3. Déployer sur Vercel via GitHub
 ```
 
 ### CRM — Pages fonctionnelles
@@ -354,7 +365,9 @@ npm run sync-crm
 
 ### Todo technique prioritaire
 
+- [ ] **Déployer Vercel + Turso** — voir `DEPLOY.md` pour le guide complet
 - [ ] **Test d'intégration pipeline complet** : `node prospect.js "plombier Steenvoorde"` + `npm run sync-crm`
+- [x] ~~**Migration libsql** : `@prisma/adapter-libsql` — db.ts, sync-crm.ts, seed.ts, seed-demo.ts~~ — ✅ 2026-03-31
 - [x] ~~Implémenter page Devis~~ — ✅ fait (2026-03-31)
 - [x] ~~Implémenter page Factures~~ — ✅ fait (2026-03-31)
 - [x] ~~Rate limiting sur `/api/auth/login`~~ — ✅ fait (OWASP A07, 2026-03-31)

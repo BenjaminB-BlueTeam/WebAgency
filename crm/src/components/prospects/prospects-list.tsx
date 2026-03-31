@@ -58,7 +58,7 @@ interface ProspectsListProps {
 type SortKey = "nom" | "activite" | "ville" | "statut" | "priorite" | "statutPipeline";
 type SortDir = "asc" | "desc";
 
-const ALL = "__all__";
+const ALL = "TOUS";
 
 const STATUT_OPTIONS = ["SANS_SITE", "SITE_OBSOLETE", "SITE_BASIQUE", "SITE_CORRECT"];
 const PRIORITE_OPTIONS = ["HAUTE", "MOYENNE", "FAIBLE"];
@@ -128,7 +128,7 @@ export function ProspectsList({ initialData }: ProspectsListProps) {
         <div className="relative flex-1 min-w-[200px] max-w-sm">
           <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
           <Input
-            placeholder="Rechercher par nom, ville, activit\u00e9..."
+            placeholder="Rechercher par nom, ville, activité..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="pl-9"
@@ -151,7 +151,7 @@ export function ProspectsList({ initialData }: ProspectsListProps) {
 
         <Select value={filterPriorite} onValueChange={(v) => setFilterPriorite(v ?? ALL)}>
           <SelectTrigger className="w-[140px]">
-            <SelectValue placeholder="Priorit\u00e9" />
+            <SelectValue placeholder="Priorité" />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value={ALL}>Toutes</SelectItem>

@@ -1,14 +1,19 @@
 // prisma/seed-demo.ts — données de démonstration réalistes
 import { PrismaClient } from "../src/generated/prisma/client";
-import { PrismaBetterSqlite3 } from "@prisma/adapter-better-sqlite3";
+import { PrismaLibSql } from "@prisma/adapter-libsql";
 import * as path from "path";
 import { fileURLToPath } from "url";
+import { config } from "dotenv";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const dbPath = path.resolve(__dirname, "dev.db");
-const adapter = new PrismaBetterSqlite3({ url: dbPath });
+config({ path: path.resolve(__dirname, "..", ".env.local") });
+
+const adapter = new PrismaLibSql({
+  url: process.env.DATABASE_URL ?? "file:./prisma/dev.db",
+  authToken: process.env.DATABASE_AUTH_TOKEN,
+});
 const prisma = new PrismaClient({ adapter });
 
 function daysAgo(n: number) {
