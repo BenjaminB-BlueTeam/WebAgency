@@ -27,7 +27,7 @@ node prospect.js "plombier Cassel"
 
 ## Prérequis
 
-- **Node.js 18+** (fetch natif requis)
+- **Node.js 22.12+** (requis par Prisma — voir `package.json` engines)
 - Compte **Anthropic** avec clé API → [console.anthropic.com](https://console.anthropic.com)
 - Compte **Netlify** avec Personal Access Token → [app.netlify.com](https://app.netlify.com/user/applications#personal-access-tokens)
 - Compte **Google Cloud** avec Places API activée → [console.cloud.google.com](https://console.cloud.google.com)

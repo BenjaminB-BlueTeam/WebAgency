@@ -28,7 +28,7 @@ export default async function DashboardPage() {
   // Stats
   const totalProspects = prospects.length;
   const hauteCount = prospects.filter((p) => p.priorite === "HAUTE").length;
-  const caPotentiel = hauteCount * 400;
+  const caPotentiel = hauteCount * 690;
 
   // Relances: prospects not contacted in 7+ days, not SIGNE/LIVRE
   // eslint-disable-next-line react-hooks/purity -- server component, Date.now() is stable within a single request
@@ -81,7 +81,7 @@ export default async function DashboardPage() {
         <StatCard
           label="CA potentiel"
           value={`${caPotentiel.toLocaleString("fr-FR")} €`}
-          subtitle={`${hauteCount} prospects × 400 €`}
+          subtitle={`${hauteCount} prospects × 690 €`}
           subtitleColor="text-emerald-400"
           variant="violet"
         />
