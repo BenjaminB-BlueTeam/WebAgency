@@ -1,10 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { requireAuth } from "@/lib/auth";
+import { randomBytes } from "crypto";
 
 function genRef() {
   const now = new Date();
-  return `DEV-${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}${String(now.getDate()).padStart(2, "0")}-${Math.floor(Math.random() * 9000) + 1000}`;
+  const date = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}${String(now.getDate()).padStart(2, "0")}`;
+  const rand = randomBytes(3).toString("hex").toUpperCase();
+  return `DEV-${date}-${rand}`;
 }
 
 export async function GET(request: NextRequest) {
