@@ -50,8 +50,6 @@ export async function GET(request: NextRequest) {
         const places = await placesTextSearch(q);
         if (!places.length) {
           send({ type: "error", message: "Aucun résultat Google Places pour cette requête." });
-          controller.enqueue(encoder.encode("data: [DONE]\n\n"));
-          controller.close();
           return;
         }
 
@@ -151,8 +149,6 @@ Réponds UNIQUEMENT en JSON valide :
 
         if (!parsed?.prospects?.length) {
           send({ type: "error", message: "Impossible de parser la réponse Claude." });
-          controller.enqueue(encoder.encode("data: [DONE]\n\n"));
-          controller.close();
           return;
         }
 
