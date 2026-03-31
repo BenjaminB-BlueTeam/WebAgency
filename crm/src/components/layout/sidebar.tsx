@@ -13,6 +13,7 @@ import {
   ChevronsLeft,
   ChevronsRight,
   X,
+  LogOut,
 } from "lucide-react";
 import { useLayout } from "./layout-provider";
 import { SidebarItem } from "./sidebar-item";
@@ -31,6 +32,11 @@ const navItems = [
 
 export function Sidebar() {
   const { collapsed, toggle, mobileOpen, closeMobile } = useLayout();
+
+  async function handleLogout() {
+    await fetch("/api/auth/logout", { method: "POST" });
+    window.location.href = "/login";
+  }
 
   return (
     <>
@@ -130,17 +136,26 @@ export function Sidebar() {
               </div>
             </div>
           )}
-          <button
-            onClick={toggle}
-            className="hidden w-full items-center justify-center rounded-lg p-2 transition-colors duration-200 text-white/40 hover:text-white/80 md:flex"
-            aria-label={collapsed ? "Ouvrir le menu" : "Réduire le menu"}
-          >
-            {collapsed ? (
-              <ChevronsRight className="size-5" />
-            ) : (
-              <ChevronsLeft className="size-5" />
-            )}
-          </button>
+          <div className="flex items-center gap-1">
+            <button
+              onClick={handleLogout}
+              className="flex items-center justify-center rounded-lg p-2 transition-colors duration-200 text-white/40 hover:text-red-400 hover:bg-red-400/10"
+              aria-label="Se déconnecter"
+            >
+              <LogOut className="size-4" />
+            </button>
+            <button
+              onClick={toggle}
+              className="hidden flex-1 items-center justify-center rounded-lg p-2 transition-colors duration-200 text-white/40 hover:text-white/80 md:flex"
+              aria-label={collapsed ? "Ouvrir le menu" : "Réduire le menu"}
+            >
+              {collapsed ? (
+                <ChevronsRight className="size-5" />
+              ) : (
+                <ChevronsLeft className="size-5" />
+              )}
+            </button>
+          </div>
         </div>
       </aside>
     </>
