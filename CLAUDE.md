@@ -301,7 +301,7 @@ web-agency-tool/
 
 > **Mettre à jour cette section à chaque session importante.**
 
-### Dernière mise à jour : 2026-03-31 (nuit autonome — cycle #3)
+### Dernière mise à jour : 2026-03-31 (nuit autonome — cycle #4)
 
 **Repo GitHub :** https://github.com/BenjaminB-BlueTeam/WebAgency
 
@@ -342,6 +342,8 @@ npm run sync-crm
 ✅ Input length (A03/A05) — query max 200 chars, password max 200 chars
 ✅ Paramètre allowlist sur `/api/parametres`
 ✅ Rate limiting login (A07) — 10 req/15min/IP, Map in-memory (2026-03-31)
+✅ Validation acompte >0 — rejet valeurs négatives/nulles (2026-03-31)
+✅ Lint 0 warnings, build 0 erreurs (cycle #4)
 
 ### Todo technique prioritaire
 

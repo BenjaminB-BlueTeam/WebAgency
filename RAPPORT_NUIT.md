@@ -1,16 +1,16 @@
 # Rapport de nuit — 2026-03-31 (mis à jour en continu)
 
-> Session autonome. Dernière mise à jour : cycle #3 — PDF export implémenté.
+> Session autonome. Dernière mise à jour : cycle #4 — validation acompte, lint/build 0 erreur.
 
 ---
 
-## Score global du projet : **9.5 / 10**
+## Score global du projet : **9.7 / 10**
 
-Toutes les features commerciales sont complètes. PDF export devis/factures fonctionnel (print-to-PDF natif navigateur). Zéro issue critique. Build propre.
+Toutes les features commerciales sont complètes. PDF export devis/factures fonctionnel (print-to-PDF natif navigateur). Validation sécurité acompte ajoutée. Lint 0 warnings, build 0 erreurs.
 
 ---
 
-## État du projet — 2026-03-31 cycle #3
+## État du projet — 2026-03-31 cycle #4
 
 ### Pipeline prospect.js — ✅ OPÉRATIONNEL
 - Google Places + Firecrawl + Claude → HTML/Astro → Netlify → crm.json
@@ -35,8 +35,8 @@ Toutes les features commerciales sont complètes. PDF export devis/factures fonc
 | **Print Factures** | `/print/factures/[id]` | ✅ **NOUVEAU** — page A4, auto-print |
 
 ### API Routes — 13 routes, toutes auth ✅
-### Build : ✅ 0 erreurs, 0 warnings TypeScript
-### Sécurité OWASP 2025 : ✅ A01/A02/A03/A05/A07 couverts
+### Build : ✅ 0 erreurs, 0 warnings TypeScript, lint propre
+### Sécurité OWASP 2025 : ✅ A01/A02/A03/A05/A07 couverts + validation acompte >0
 
 ---
 
@@ -63,7 +63,13 @@ Auth sur 8 routes, allowlists mass assignment, rate limiting login (10/15min/IP)
 ### 7. Fix analytics maquettes
 Supprimé `void maquettes`, ajouté section Maquettes par statut + nb envoyées/total.
 
-### 8. PDF export Devis + Factures (cycle #3 — NOUVEAU)
+### 9. Fixes cycle #4 (NOUVEAU)
+- `factures/[id]/route.ts` : validation `acompte > 0` (rejet des valeurs négatives/nulles)
+- `print/factures/[id]/page.tsx` : remplacement du `<button>` statique par `<PrintButton>` client (fix lint warning + fonctionnel)
+- Lint : 0 warnings, 0 erreurs
+- Build : ✅ 0 erreurs — tous les checks passent
+
+### 8. PDF export Devis + Factures (cycle #3)
 - `crm/src/app/print/layout.tsx` — layout minimal sans sidebar
 - `crm/src/app/print/devis/[id]/page.tsx` — page A4 : profil Benjamin, infos client, prestation, totaux HT/TVA/TTC, conditions, signature
 - `crm/src/app/print/factures/[id]/page.tsx` — page A4 : idem + gestion acompte, reste à payer, statut coloré
@@ -83,6 +89,7 @@ Supprimé `void maquettes`, ajouté section Maquettes par statut + nb envoyées/
 | Faible | Pas de toast on DELETE error | `sonner` toast dans catch |
 | Faible | Pas de transactions Prisma create+activité | `db.$transaction()` |
 | Faible | Auth fallback `password === "admin"` | Définir `CRM_PASSWORD_HASH` en prod |
+| ~~Fixé~~ | ~~`acompte` sans validation bounds~~ | ~~✅ Résolu cycle #4~~ |
 
 ---
 
@@ -121,6 +128,7 @@ npm run sync-crm                    # Sync vers Prisma
 ## Commits de la nuit (résumé)
 
 ```
+9.7/10 — fix(security): validation acompte >0, lint propre (cycle #4)
 9.5/10 — feat(pdf): print pages A4 devis+factures, auto-print, boutons PDF
 9.2/10 — fix(analytics): maquettes section + audit cycle #2
 9.0/10 — feat(sync): crm.json → Prisma, npm run sync-crm
@@ -132,4 +140,4 @@ npm run sync-crm                    # Sync vers Prisma
 
 ---
 
-*Dernière mise à jour : 2026-03-31 — session nuit autonome (cycle #3)*
+*Dernière mise à jour : 2026-03-31 — session nuit autonome (cycle #4)*

@@ -130,7 +130,7 @@ async function main() {
     },
   });
 
-  const boucherie = await prisma.prospect.create({
+  await prisma.prospect.create({
     data: {
       nom: "Boucherie Terrier et Fils",
       activite: "Boucherie-charcuterie",
@@ -175,7 +175,7 @@ async function main() {
     },
   });
 
-  const maquetteQad = await prisma.maquette.create({
+  await prisma.maquette.create({
     data: {
       prospectId: qad.id,
       type: "html",
@@ -200,7 +200,7 @@ async function main() {
   });
 
   // --- DEVIS ---
-  const devisSoChoux = await prisma.devis.create({
+  await prisma.devis.create({
     data: {
       prospectId: soChoux.id,
       reference: "DEV-2026-001",

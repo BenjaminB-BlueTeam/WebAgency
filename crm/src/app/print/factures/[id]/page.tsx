@@ -1,8 +1,10 @@
+import type { Metadata } from "next";
 import { db } from "@/lib/db";
 import { notFound } from "next/navigation";
-import { PrintTrigger } from "@/components/print/print-trigger";
+import { PrintTrigger, PrintButton } from "@/components/print/print-trigger";
 
 export const dynamic = "force-dynamic";
+export const metadata: Metadata = { robots: { index: false, follow: false } };
 
 const fmt = (n: number) =>
   n.toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -142,9 +144,7 @@ export default async function FacturePrintPage({
 
       <PrintTrigger />
 
-      <button className="print-btn">
-        Imprimer / Enregistrer PDF
-      </button>
+      <PrintButton className="print-btn" />
 
       {/* Header */}
       <div className="header">

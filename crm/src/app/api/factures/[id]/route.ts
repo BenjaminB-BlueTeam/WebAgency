@@ -42,7 +42,7 @@ export async function PATCH(
   if (body.notes !== undefined) data.notes = String(body.notes).slice(0, 1000);
   if (body.montantAcompte !== undefined) {
     const acompte = parseFloat(body.montantAcompte);
-    if (!isNaN(acompte)) {
+    if (!isNaN(acompte) && acompte > 0) {
       data.montantAcompte = acompte;
       data.dateAcompte = new Date();
     }
