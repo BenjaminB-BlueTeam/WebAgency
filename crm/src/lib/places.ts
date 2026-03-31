@@ -30,6 +30,10 @@ export async function placesTextSearch(query: string): Promise<GooglePlace[]> {
   const url = `https://maps.googleapis.com/maps/api/place/textsearch/json?query=${encodeURIComponent(effectiveQuery)}&language=fr&region=fr&key=${PLACES_KEY}`;
 
   const res = await fetch(url, { next: { revalidate: 0 } });
+  if (!res.ok) {
+    console.error(`[places] Text search HTTP error: ${res.status}`);
+    return [];
+  }
   const data = await res.json() as { status: string; results?: GooglePlace[] };
 
   if (data.status === "ZERO_RESULTS") return [];
@@ -43,7 +47,10 @@ export async function placesTextSearch(query: string): Promise<GooglePlace[]> {
 }
 
 export async function placesDetails(placeId: string): Promise<PlaceDetails | null> {
-  if (!PLACES_KEY) return null;
+  if (!PLACES_KEY) {
+    console.warn("[places] GOOGLE_PLACES_KEY manquant — placesDetails retourne null");
+    return null;
+  }
 
   const fields = "name,formatted_phone_number,website,opening_hours,rating";
   const url = `https://maps.googleapis.com/maps/api/place/details/json?place_id=${encodeURIComponent(placeId)}&fields=${fields}&language=fr&key=${PLACES_KEY}`;
