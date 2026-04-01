@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { requireAuth } from "@/lib/auth";
+import { calculerScore } from "@/lib/scoring";
 
 export async function GET(request: NextRequest) {
   const authError = await requireAuth(request);
@@ -35,7 +36,18 @@ export async function GET(request: NextRequest) {
     orderBy: { createdAt: "desc" },
   });
 
-  return NextResponse.json(prospects);
+  const prospectsWithScore = prospects.map((p: Record<string, unknown>) => {
+    const { score, priorite: scorePriorite } = calculerScore({
+      statut: p.statut as string,
+      siteUrl: p.siteUrl as string | null,
+      noteGoogle: p.noteGoogle as number | null,
+      nbAvisGoogle: p.nbAvisGoogle as number | null,
+      horaires: p.horaires as string | null,
+    });
+    return { ...p, score, scorePriorite };
+  });
+
+  return NextResponse.json(prospectsWithScore);
 }
 
 export async function POST(request: NextRequest) {
