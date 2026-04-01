@@ -26,6 +26,11 @@ function checkRateLimit(ip: string): boolean {
 }
 
 export async function POST(request: NextRequest) {
+  // C-02: Vérification précoce — CRM_PASSWORD_HASH obligatoire
+  if (!process.env.CRM_PASSWORD_HASH) {
+    return NextResponse.json({ error: 'Configuration requise : CRM_PASSWORD_HASH manquant' }, { status: 503 });
+  }
+
   // Rate limit check (OWASP A07)
   const ip =
     request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ??
@@ -65,7 +70,8 @@ export async function POST(request: NextRequest) {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
     sameSite: "lax",
-    maxAge: 60 * 60 * 24 * 30, // 30 days
+    maxAge: 60 * 60 * 24, // 24h — H-03: réduit de 30j à 24h
+    // TODO: implémenter une blacklist de tokens pour la révocation
     path: "/",
   });
 

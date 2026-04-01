@@ -1,10 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
+import { requireAuth } from '@/lib/auth';
 import Anthropic from '@anthropic-ai/sdk';
 
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
 export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  // C-03: Vérification auth obligatoire
+  const authError = await requireAuth(req);
+  if (authError) return authError;
+
   const { id } = await params;
   const prospect = await db.prospect.findUnique({ where: { id } });
   if (!prospect) return NextResponse.json({ error: 'Not found' }, { status: 404 });
@@ -63,6 +68,10 @@ Réponds en JSON :
 }
 
 export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  // C-03: Vérification auth obligatoire
+  const authError = await requireAuth(req);
+  if (authError) return authError;
+
   const { id } = await params;
   const prospect = await db.prospect.findUnique({ where: { id } });
   if (!prospect || !prospect.notes) return NextResponse.json(null);

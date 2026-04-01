@@ -4,8 +4,7 @@ import { anthropic } from "@/lib/anthropic";
 import { requireAuth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { getEmailPrompt } from "@/lib/prompts/email";
-import { execSync } from "child_process";
-import { writeFileSync, unlinkSync } from "fs";
+import { execFileSync } from "child_process";
 
 export async function POST(
   request: NextRequest,
@@ -16,7 +15,8 @@ export async function POST(
 
   const { id } = await params;
 
-  if (!id || typeof id !== "string" || id.length > 100) {
+  // H-02: Validation stricte de l'id
+  if (!id || typeof id !== "string" || !/^[a-z0-9]+$/i.test(id)) {
     return NextResponse.json({ error: "id invalide" }, { status: 400 });
   }
 
@@ -82,16 +82,21 @@ export async function POST(
 
     // Envoi réel via himalaya si send: true
     if (body.send === true) {
-      const tmpFile = `/tmp/email-${id}-${Date.now()}.txt`;
-      const emailContent = `From: contact@flandre-web.fr\nTo: ${prospect.email}\nSubject: ${parsed.sujet}\n\n${parsed.corps}`;
-      writeFileSync(tmpFile, emailContent);
+      // H-02: Validation email + execFileSync au lieu de execSync
+      const destinataire = prospect.email ?? "";
+      const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+      if (!emailRegex.test(destinataire)) {
+        return NextResponse.json({ error: "Email prospect invalide" }, { status: 400 });
+      }
+
+      const emailContent = `From: contact@flandre-web.fr\nTo: ${destinataire}\nSubject: ${parsed.sujet}\n\n${parsed.corps}`;
 
       try {
-        execSync(`himalaya send < ${tmpFile}`, {
+        execFileSync("himalaya", ["send"], {
+          input: emailContent,
           env: { ...process.env, HOME: "/root" },
           timeout: 15000,
         });
-        unlinkSync(tmpFile);
 
         // Logger dans le CRM
         await db.activite.create({
@@ -112,7 +117,6 @@ export async function POST(
           sent: true,
         });
       } catch (err) {
-        try { unlinkSync(tmpFile); } catch { /* ignore */ }
         return NextResponse.json(
           { error: "Envoi himalaya échoué", details: String(err) },
           { status: 500 }
