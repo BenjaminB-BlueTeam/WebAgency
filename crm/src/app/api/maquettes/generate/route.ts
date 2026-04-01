@@ -42,6 +42,7 @@ export async function POST(request: NextRequest) {
         siteUrl: true,
         statut: true,
         argumentCommercial: true,
+        notes: true,
       },
     });
 
@@ -52,7 +53,17 @@ export async function POST(request: NextRequest) {
     // Generate HTML via Claude
     const d = getDesignDirection(prospect.activite);
     const system = getSystemPrompt();
-    const user = customPrompt?.trim() ? customPrompt.trim() : getUserPrompt(prospect, d);
+    // Enrichissement via analyse concurrentielle si disponible
+    const analyseData = prospect.notes ? (() => {
+      try { return JSON.parse(prospect.notes as string)?.analyse_concurrentielle; }
+      catch { return null; }
+    })() : null;
+
+    const enrichissement = analyseData?.prompt_maquette_enrichi
+      ? `\n\nANALYSE CONCURRENTIELLE :\n${analyseData.prompt_maquette_enrichi}\n\nMANQUES À CORRIGER : ${(analyseData.manques_prospect || []).join(', ')}\nAVANTAGES À METTRE EN AVANT : ${(analyseData.avantages_prospect || []).join(', ')}`
+      : '';
+
+    const user = customPrompt?.trim() ? customPrompt.trim() : getUserPrompt(prospect, d) + enrichissement;
 
     const response = await anthropic.messages.create({
       model: "claude-sonnet-4-6",

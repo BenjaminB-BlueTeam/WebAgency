@@ -14,6 +14,7 @@ import { ProspectTimeline } from "@/components/prospects/prospect-timeline";
 import { AddNoteDialog } from "@/components/prospects/add-note-dialog";
 import { MaquetteSection } from "@/components/prospects/maquette-section";
 import { EmailSection } from "@/components/prospects/email-section";
+import { ResumeEchangesSection } from "@/components/prospects/resume-echanges-section";
 
 export const dynamic = "force-dynamic";
 
@@ -88,6 +89,9 @@ export default async function ProspectDetailPage({
           )}
         </CardContent>
       </Card>
+
+      {/* Résumé des échanges */}
+      <ResumeEchangesSection prospectId={prospect.id} />
 
       {/* Maquette + Email + Actions (3 colonnes) */}
       <div className="grid gap-6 md:grid-cols-3">

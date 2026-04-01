@@ -318,6 +318,19 @@ export function ProspectRowExpand({
           </div>
         </div>
 
+        {/* Prévisualisation inline maquette */}
+        {demoUrl && (
+          <div className='mt-3 border rounded overflow-hidden' style={{ height: '300px' }}>
+            <iframe
+              src={demoUrl}
+              className='w-full h-full'
+              title={`Prévisualisation ${prospect.nom}`}
+              sandbox='allow-scripts allow-same-origin'
+              loading='lazy'
+            />
+          </div>
+        )}
+
         {/* Bloc résultat analyse concurrentielle */}
         {analyse && analyseExpanded && (
           <div className="flex flex-col gap-3 rounded-lg border border-border bg-background/50 p-4">
