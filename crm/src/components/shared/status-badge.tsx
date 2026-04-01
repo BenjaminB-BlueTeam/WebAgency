@@ -56,6 +56,18 @@ const COLOR_MAPS: Record<string, Record<string, string>> = {
   pipeline: PIPELINE_COLORS,
 };
 
+export function ScoreBadge({ score }: { score?: number }) {
+  if (score === undefined || score === null) return null;
+  const color = score >= 60 ? 'bg-red-100 text-red-700 border-red-200' 
+    : score >= 30 ? 'bg-yellow-100 text-yellow-700 border-yellow-200'
+    : 'bg-green-100 text-green-700 border-green-200';
+  return (
+    <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium border ${color}`}>
+      {score}pts
+    </span>
+  );
+}
+
 export function StatusBadge({ type, value }: StatusBadgeProps) {
   const colorMap = COLOR_MAPS[type] ?? {};
   const colorClass = colorMap[value] ?? "bg-zinc-500/15 text-zinc-400 border-zinc-500/20";
