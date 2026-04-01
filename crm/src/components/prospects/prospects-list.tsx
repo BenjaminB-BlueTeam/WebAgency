@@ -9,6 +9,7 @@ import {
   MoreVertical,
   ChevronUp,
   ChevronDown,
+  ChevronRight,
   ArrowUpDown,
   UsersRound,
 } from "lucide-react";
@@ -35,6 +36,8 @@ import {
   DropdownMenuItem,
 } from "@/components/ui/dropdown-menu";
 import { StatusBadge } from "@/components/shared/status-badge";
+import React from "react";
+import { ProspectRowExpand } from "@/components/prospects/prospect-row-expand";
 
 interface ProspectRow {
   id: string;
@@ -83,6 +86,16 @@ export function ProspectsList({ initialData }: ProspectsListProps) {
   const [filterPipeline, setFilterPipeline] = useState<string>(ALL);
   const [sortKey, setSortKey] = useState<SortKey>("nom");
   const [sortDir, setSortDir] = useState<SortDir>("asc");
+  const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [demoUrlOverrides, setDemoUrlOverrides] = useState<Record<string, string>>({});
+
+  function toggleExpand(id: string) {
+    setExpandedId((prev) => (prev === id ? null : id));
+  }
+
+  function handleMaquetteUpdated(prospectId: string, demoUrl: string) {
+    setDemoUrlOverrides((prev) => ({ ...prev, [prospectId]: demoUrl }));
+  }
 
   function toggleSort(key: SortKey) {
     if (sortKey === key) {
@@ -184,6 +197,7 @@ export function ProspectsList({ initialData }: ProspectsListProps) {
         <Table>
           <TableHeader>
             <TableRow className="hover:bg-transparent">
+              <TableHead className="w-8 p-0" />
               <TableHead aria-sort={sortKey === "nom" ? (sortDir === "asc" ? "ascending" : "descending") : "none"}>
                 <button
                   type="button"
@@ -251,7 +265,7 @@ export function ProspectsList({ initialData }: ProspectsListProps) {
           <TableBody>
             {filtered.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={8} className="h-36 text-center">
+                <TableCell colSpan={9} className="h-36 text-center">
                   <div className="flex flex-col items-center justify-center gap-2 text-muted-foreground">
                     <UsersRound className="size-8 opacity-30" />
                     <p className="text-sm">
@@ -263,77 +277,112 @@ export function ProspectsList({ initialData }: ProspectsListProps) {
                 </TableCell>
               </TableRow>
             ) : (
-              filtered.map((prospect) => (
-                <TableRow key={prospect.id}>
-                  <TableCell className="font-medium">
-                    <Link
-                      href={`/prospects/${prospect.id}`}
-                      className="hover:underline underline-offset-4 text-foreground"
-                    >
-                      {prospect.nom}
-                    </Link>
-                  </TableCell>
-                  <TableCell className="text-muted-foreground">
-                    {prospect.activite}
-                  </TableCell>
-                  <TableCell className="text-muted-foreground">
-                    {prospect.ville}
-                  </TableCell>
-                  <TableCell>
-                    <StatusBadge type="statut" value={prospect.statut} />
-                  </TableCell>
-                  <TableCell>
-                    <StatusBadge type="priorite" value={prospect.priorite} />
-                  </TableCell>
-                  <TableCell>
-                    <StatusBadge type="pipeline" value={prospect.statutPipeline} />
-                  </TableCell>
-                  <TableCell>
-                    {prospect.telephone ? (
-                      <a
-                        href={`tel:${prospect.telephone}`}
-                        className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
-                      >
-                        <Phone className="size-3.5" />
-                        {prospect.telephone}
-                      </a>
-                    ) : (
-                      <span className="text-muted-foreground/50">&mdash;</span>
-                    )}
-                  </TableCell>
-                  <TableCell>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger
-                        className="inline-flex items-center justify-center size-9 rounded-md hover:bg-muted transition-colors"
-                        aria-label={`Actions pour ${prospect.nom}`}
-                      >
-                        <MoreVertical className="size-4" />
-                        <span className="sr-only">Actions</span>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem
-                          render={
-                            <Link href={`/prospects/${prospect.id}`} />
-                          }
+              filtered.map((prospect) => {
+                const isExpanded = expandedId === prospect.id;
+                const effectiveDemoUrl =
+                  demoUrlOverrides[prospect.id] ?? (prospect.maquettes[0]?.demoUrl ?? null);
+                return (
+                  <React.Fragment key={prospect.id}>
+                    <TableRow className={isExpanded ? "border-b-0" : ""}>
+                      {/* Chevron */}
+                      <TableCell className="w-8 p-0 pl-2">
+                        <button
+                          type="button"
+                          onClick={() => toggleExpand(prospect.id)}
+                          className="flex size-7 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                          aria-label={isExpanded ? "Réduire" : "Développer"}
+                          aria-expanded={isExpanded}
                         >
-                          <Eye className="size-4" />
-                          Voir la fiche
-                        </DropdownMenuItem>
-                        {prospect.telephone && (
-                          <DropdownMenuItem
-                            render={
-                              <a href={`tel:${prospect.telephone}`} />
-                            }
+                          <ChevronRight
+                            className={`size-4 transition-transform duration-200 ${isExpanded ? "rotate-90" : ""}`}
+                          />
+                        </button>
+                      </TableCell>
+                      <TableCell className="font-medium">
+                        <Link
+                          href={`/prospects/${prospect.id}`}
+                          className="hover:underline underline-offset-4 text-foreground"
+                        >
+                          {prospect.nom}
+                        </Link>
+                      </TableCell>
+                      <TableCell className="text-muted-foreground">
+                        {prospect.activite}
+                      </TableCell>
+                      <TableCell className="text-muted-foreground">
+                        {prospect.ville}
+                      </TableCell>
+                      <TableCell>
+                        <StatusBadge type="statut" value={prospect.statut} />
+                      </TableCell>
+                      <TableCell>
+                        <StatusBadge type="priorite" value={prospect.priorite} />
+                      </TableCell>
+                      <TableCell>
+                        <StatusBadge type="pipeline" value={prospect.statutPipeline} />
+                      </TableCell>
+                      <TableCell>
+                        {prospect.telephone ? (
+                          <a
+                            href={`tel:${prospect.telephone}`}
+                            className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
                           >
-                            <Phone className="size-4" />
-                            Appeler
-                          </DropdownMenuItem>
+                            <Phone className="size-3.5" />
+                            {prospect.telephone}
+                          </a>
+                        ) : (
+                          <span className="text-muted-foreground/50">&mdash;</span>
                         )}
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </TableCell>
-                </TableRow>
-              ))
+                      </TableCell>
+                      <TableCell>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger
+                            className="inline-flex items-center justify-center size-9 rounded-md hover:bg-muted transition-colors"
+                            aria-label={`Actions pour ${prospect.nom}`}
+                          >
+                            <MoreVertical className="size-4" />
+                            <span className="sr-only">Actions</span>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem
+                              render={
+                                <Link href={`/prospects/${prospect.id}`} />
+                              }
+                            >
+                              <Eye className="size-4" />
+                              Voir la fiche
+                            </DropdownMenuItem>
+                            {prospect.telephone && (
+                              <DropdownMenuItem
+                                render={
+                                  <a href={`tel:${prospect.telephone}`} />
+                                }
+                              >
+                                <Phone className="size-4" />
+                                Appeler
+                              </DropdownMenuItem>
+                            )}
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </TableCell>
+                    </TableRow>
+                    {isExpanded && (
+                      <TableRow className="hover:bg-transparent border-b border-border">
+                        <TableCell colSpan={9} className="p-0">
+                          <ProspectRowExpand
+                            prospect={prospect}
+                            initialDemoUrl={effectiveDemoUrl}
+                            onClose={() => setExpandedId(null)}
+                            onMaquetteUpdated={(url) =>
+                              handleMaquetteUpdated(prospect.id, url)
+                            }
+                          />
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </React.Fragment>
+                );
+              })
             )}
           </TableBody>
         </Table>
