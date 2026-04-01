@@ -20,10 +20,14 @@ export async function POST(request: NextRequest) {
 
   try {
     const body = await request.json();
-    const { prospectId } = body;
+    const { prospectId, customPrompt } = body;
 
     if (!prospectId || typeof prospectId !== "string") {
       return NextResponse.json({ error: "prospectId requis" }, { status: 400 });
+    }
+
+    if (customPrompt !== undefined && (typeof customPrompt !== "string" || customPrompt.length > 20000)) {
+      return NextResponse.json({ error: "customPrompt invalide" }, { status: 400 });
     }
 
     const prospect = await db.prospect.findUnique({
@@ -48,7 +52,7 @@ export async function POST(request: NextRequest) {
     // Generate HTML via Claude
     const d = getDesignDirection(prospect.activite);
     const system = getSystemPrompt();
-    const user = getUserPrompt(prospect, d);
+    const user = customPrompt?.trim() ? customPrompt.trim() : getUserPrompt(prospect, d);
 
     const response = await anthropic.messages.create({
       model: "claude-sonnet-4-6",
