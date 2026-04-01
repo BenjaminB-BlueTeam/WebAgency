@@ -10,6 +10,7 @@ import {
   ChevronUp,
   ChevronDown,
   ArrowUpDown,
+  UsersRound,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import {
@@ -47,7 +48,7 @@ interface ProspectRow {
   priorite: string;
   statutPipeline: string;
   dateAjout: string;
-  maquettes: { id: string; statut: string }[];
+  maquettes: { id: string; statut: string; demoUrl: string | null }[];
   _count: { activites: number };
 }
 
@@ -183,7 +184,7 @@ export function ProspectsList({ initialData }: ProspectsListProps) {
         <Table>
           <TableHeader>
             <TableRow className="hover:bg-transparent">
-              <TableHead>
+              <TableHead aria-sort={sortKey === "nom" ? (sortDir === "asc" ? "ascending" : "descending") : "none"}>
                 <button
                   type="button"
                   onClick={() => toggleSort("nom")}
@@ -193,7 +194,7 @@ export function ProspectsList({ initialData }: ProspectsListProps) {
                   <SortIcon column="nom" sortKey={sortKey} sortDir={sortDir} />
                 </button>
               </TableHead>
-              <TableHead>
+              <TableHead aria-sort={sortKey === "activite" ? (sortDir === "asc" ? "ascending" : "descending") : "none"}>
                 <button
                   type="button"
                   onClick={() => toggleSort("activite")}
@@ -203,7 +204,7 @@ export function ProspectsList({ initialData }: ProspectsListProps) {
                   <SortIcon column="activite" sortKey={sortKey} sortDir={sortDir} />
                 </button>
               </TableHead>
-              <TableHead>
+              <TableHead aria-sort={sortKey === "ville" ? (sortDir === "asc" ? "ascending" : "descending") : "none"}>
                 <button
                   type="button"
                   onClick={() => toggleSort("ville")}
@@ -213,7 +214,7 @@ export function ProspectsList({ initialData }: ProspectsListProps) {
                   <SortIcon column="ville" sortKey={sortKey} sortDir={sortDir} />
                 </button>
               </TableHead>
-              <TableHead>
+              <TableHead aria-sort={sortKey === "statut" ? (sortDir === "asc" ? "ascending" : "descending") : "none"}>
                 <button
                   type="button"
                   onClick={() => toggleSort("statut")}
@@ -223,7 +224,7 @@ export function ProspectsList({ initialData }: ProspectsListProps) {
                   <SortIcon column="statut" sortKey={sortKey} sortDir={sortDir} />
                 </button>
               </TableHead>
-              <TableHead>
+              <TableHead aria-sort={sortKey === "priorite" ? (sortDir === "asc" ? "ascending" : "descending") : "none"}>
                 <button
                   type="button"
                   onClick={() => toggleSort("priorite")}
@@ -233,7 +234,7 @@ export function ProspectsList({ initialData }: ProspectsListProps) {
                   <SortIcon column="priorite" sortKey={sortKey} sortDir={sortDir} />
                 </button>
               </TableHead>
-              <TableHead>
+              <TableHead aria-sort={sortKey === "statutPipeline" ? (sortDir === "asc" ? "ascending" : "descending") : "none"}>
                 <button
                   type="button"
                   onClick={() => toggleSort("statutPipeline")}
@@ -250,8 +251,15 @@ export function ProspectsList({ initialData }: ProspectsListProps) {
           <TableBody>
             {filtered.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={8} className="h-24 text-center text-muted-foreground">
-                  Aucun prospect trouv&eacute;
+                <TableCell colSpan={8} className="h-36 text-center">
+                  <div className="flex flex-col items-center justify-center gap-2 text-muted-foreground">
+                    <UsersRound className="size-8 opacity-30" />
+                    <p className="text-sm">
+                      {search || filterStatut !== ALL || filterPriorite !== ALL || filterPipeline !== ALL
+                        ? "Aucun prospect ne correspond aux filtres"
+                        : "Aucun prospect pour l\u2019instant"}
+                    </p>
+                  </div>
                 </TableCell>
               </TableRow>
             ) : (
@@ -296,7 +304,8 @@ export function ProspectsList({ initialData }: ProspectsListProps) {
                   <TableCell>
                     <DropdownMenu>
                       <DropdownMenuTrigger
-                        className="inline-flex items-center justify-center size-8 rounded-md hover:bg-muted transition-colors"
+                        className="inline-flex items-center justify-center size-9 rounded-md hover:bg-muted transition-colors"
+                        aria-label={`Actions pour ${prospect.nom}`}
                       >
                         <MoreVertical className="size-4" />
                         <span className="sr-only">Actions</span>

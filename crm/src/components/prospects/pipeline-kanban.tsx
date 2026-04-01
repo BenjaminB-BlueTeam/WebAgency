@@ -24,7 +24,7 @@ interface ProspectRow {
   priorite: string;
   statutPipeline: string;
   dateAjout: string;
-  maquettes: { id: string; statut: string }[];
+  maquettes: { id: string; statut: string; demoUrl: string | null }[];
   _count: { activites: number };
 }
 

@@ -6,7 +6,7 @@ export const dynamic = "force-dynamic";
 export default async function ProspectsPage() {
   const prospects = await db.prospect.findMany({
     include: {
-      maquettes: { select: { id: true, statut: true } },
+      maquettes: { select: { id: true, statut: true, demoUrl: true } },
       _count: { select: { activites: true } },
     },
     orderBy: { createdAt: "desc" },
