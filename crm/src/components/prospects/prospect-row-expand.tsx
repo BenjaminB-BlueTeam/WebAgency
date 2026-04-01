@@ -25,7 +25,7 @@ interface ProspectRowExpandProps {
   };
   initialDemoUrl: string | null;
   onClose: () => void;
-  onMaquetteUpdated: (demoUrl: string) => void;
+  onMaquetteUpdated: (demoUrl: string | null) => void;
 }
 
 interface EmailResult {
@@ -100,9 +100,9 @@ export function ProspectRowExpand({
     setTimeout(() => setCopiedField(null), 2000);
   }
 
-  function handleRegenSuccess(url: string) {
+  function handleRegenSuccess(url: string | null) {
     setDemoUrl(url);
-    onMaquetteUpdated(url);
+    if (url) onMaquetteUpdated(url);
   }
 
   return (

@@ -93,8 +93,10 @@ export function ProspectsList({ initialData }: ProspectsListProps) {
     setExpandedId((prev) => (prev === id ? null : id));
   }
 
-  function handleMaquetteUpdated(prospectId: string, demoUrl: string) {
-    setDemoUrlOverrides((prev) => ({ ...prev, [prospectId]: demoUrl }));
+  function handleMaquetteUpdated(prospectId: string, demoUrl: string | null) {
+    if (demoUrl) {
+      setDemoUrlOverrides((prev) => ({ ...prev, [prospectId]: demoUrl }));
+    }
   }
 
   function toggleSort(key: SortKey) {

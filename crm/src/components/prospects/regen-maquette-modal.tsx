@@ -19,7 +19,7 @@ interface RegenMaquetteModalProps {
   prospectNom: string;
   open: boolean;
   onClose: () => void;
-  onSuccess: (demoUrl: string) => void;
+  onSuccess: (demoUrl: string | null) => void;
 }
 
 export function RegenMaquetteModal({
@@ -72,7 +72,8 @@ export function RegenMaquetteModal({
         toast.error(data.error ?? "Erreur lors de la génération");
         return;
       }
-      onSuccess(data.demoUrl ?? "");
+      toast.success("Maquette regénérée !");
+      onSuccess(data.demoUrl ?? null);
       onClose();
     } catch {
       toast.error("Erreur réseau — réessayez");

@@ -22,7 +22,7 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { prospectId, customPrompt } = body;
 
-    if (!prospectId || typeof prospectId !== "string") {
+    if (!prospectId || typeof prospectId !== "string" || prospectId.length > 100) {
       return NextResponse.json({ error: "prospectId requis" }, { status: 400 });
     }
 
