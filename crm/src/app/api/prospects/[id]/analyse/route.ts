@@ -4,8 +4,9 @@ import Anthropic from '@anthropic-ai/sdk';
 
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
-export async function POST(req: NextRequest, { params }: { params: { id: string } }) {
-  const prospect = await db.prospect.findUnique({ where: { id: params.id } });
+export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+  const prospect = await db.prospect.findUnique({ where: { id } });
   if (!prospect) return NextResponse.json({ error: 'Not found' }, { status: 404 });
 
   const siteInfo = prospect.siteUrl
@@ -49,21 +50,21 @@ Réponds en JSON :
   try { analyse = JSON.parse(text.replace(/```json\n?|\n?```/g, '')); }
   catch { analyse = { error: 'Parse error', raw: text }; }
 
-  // Sauvegarder dans les notes du prospect
   await db.prospect.update({
-    where: { id: params.id },
+    where: { id },
     data: { notes: JSON.stringify({ analyse_concurrentielle: analyse, date: new Date().toISOString() }) }
   });
 
   await db.activite.create({
-    data: { prospectId: params.id, type: 'ANALYSE', description: 'Analyse concurrentielle effectuée' }
+    data: { prospectId: id, type: 'ANALYSE', description: 'Analyse concurrentielle effectuée' }
   });
 
   return NextResponse.json(analyse);
 }
 
-export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
-  const prospect = await db.prospect.findUnique({ where: { id: params.id } });
+export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+  const prospect = await db.prospect.findUnique({ where: { id } });
   if (!prospect || !prospect.notes) return NextResponse.json(null);
   try {
     const notes = JSON.parse(prospect.notes as string);
