@@ -27,7 +27,23 @@ export async function GET(
     );
   }
 
-  return NextResponse.json(prospect);
+  // Résumé des échanges (5 dernières activités pertinentes)
+  const activitesEchanges = prospect.activites
+    .filter((a) =>
+      ["EMAIL_ENVOYE", "EMAIL_RECU", "NOTE"].includes(a.type)
+    )
+    .slice(0, 5);
+
+  let resumeEchanges = "Aucun échange enregistré.";
+  if (activitesEchanges.length > 0) {
+    const lignes = activitesEchanges.map(
+      (a) =>
+        `${a.date.toLocaleDateString("fr-FR")} — ${a.type.replace("_", " ").toLowerCase()} : ${a.description ?? "—"}`
+    );
+    resumeEchanges = lignes.join(" | ");
+  }
+
+  return NextResponse.json({ ...prospect, resumeEchanges });
 }
 
 const pipelineDateFields: Record<string, string> = {

@@ -4,6 +4,8 @@ import { anthropic } from "@/lib/anthropic";
 import { requireAuth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { getEmailPrompt } from "@/lib/prompts/email";
+import { execSync } from "child_process";
+import { writeFileSync, unlinkSync } from "fs";
 
 export async function POST(
   request: NextRequest,
@@ -74,6 +76,48 @@ export async function POST(
 
     if (!parsed?.sujet || !parsed?.corps) {
       return NextResponse.json({ error: "Génération email échouée" }, { status: 500 });
+    }
+
+    const body = await request.clone().json().catch(() => ({}));
+
+    // Envoi réel via himalaya si send: true
+    if (body.send === true) {
+      const tmpFile = `/tmp/email-${id}-${Date.now()}.txt`;
+      const emailContent = `From: contact@flandre-web.fr\nTo: ${prospect.email}\nSubject: ${parsed.sujet}\n\n${parsed.corps}`;
+      writeFileSync(tmpFile, emailContent);
+
+      try {
+        execSync(`himalaya send < ${tmpFile}`, {
+          env: { ...process.env, HOME: "/root" },
+          timeout: 15000,
+        });
+        unlinkSync(tmpFile);
+
+        // Logger dans le CRM
+        await db.activite.create({
+          data: {
+            prospectId: id,
+            type: "EMAIL_ENVOYE",
+            description: `Email envoyé : ${parsed.sujet}`,
+          },
+        });
+        await db.prospect.update({
+          where: { id },
+          data: { dateContact: new Date(), statutPipeline: "CONTACTE" },
+        });
+
+        return NextResponse.json({
+          sujet: parsed.sujet,
+          corps: parsed.corps,
+          sent: true,
+        });
+      } catch (err) {
+        try { unlinkSync(tmpFile); } catch { /* ignore */ }
+        return NextResponse.json(
+          { error: "Envoi himalaya échoué", details: String(err) },
+          { status: 500 }
+        );
+      }
     }
 
     return NextResponse.json({ sujet: parsed.sujet, corps: parsed.corps });
