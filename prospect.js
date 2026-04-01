@@ -499,6 +499,48 @@ Réponds UNIQUEMENT en JSON valide :
   return parseClaudeJSON(text, { concurrents: [], benchmark_resume: "" }, "Analyse concurrents");
 }
 
+// ─── Scoring prospects ───────────────────────────────────────────────────────
+
+function calculerScore(prospect) {
+  let score = 0;
+  const statut = prospect.statut || prospect.statut_web || "";
+  const rating = prospect.noteGoogle ?? prospect.note_google ?? null;
+  const nbAvis = prospect.nbAvisGoogle ?? prospect.nb_avis ?? 0;
+  const horaires = prospect.horaires || [];
+  const hasConcurrentAvecBeauSite = prospect._concurrentAvecBeauSite || false;
+
+  // Statut web
+  if (statut === "SANS_SITE")     score += 40;
+  if (statut === "SITE_OBSOLETE") score += 20;
+  if (statut === "SITE_BASIQUE")  score += 10;
+
+  // Site HTTP non HTTPS (détectable si siteUrl commence par http://)
+  const siteUrl = prospect.siteUrl || prospect.site_url || "";
+  if (siteUrl && siteUrl.startsWith("http://")) score += 30;
+
+  // Note Google
+  if (rating !== null) {
+    if (rating < 3.5)  score += 10;
+    if (rating >= 4.5) score += 15;
+  }
+
+  // Nombre d'avis
+  if (nbAvis > 20) score += 10;
+
+  // Horaires renseignés
+  if (horaires && horaires.length > 0) score += 5;
+
+  // Concurrent avec beau site = douleur concurrentielle
+  if (hasConcurrentAvecBeauSite) score += 15;
+
+  // Priorité dérivée
+  let priorite = "FAIBLE";
+  if (score >= 60) priorite = "HAUTE";
+  else if (score >= 30) priorite = "MOYENNE";
+
+  return { score, priorite };
+}
+
 // ─── Recherche & analyse prospects ───────────────────────────────────────────
 
 async function rechercherProspects(query) {
@@ -576,7 +618,8 @@ Réponds UNIQUEMENT en JSON valide :
     "statut": "SANS_SITE|SITE_OBSOLETE|SITE_BASIQUE|SITE_CORRECT",
     "priorite": "HAUTE|MOYENNE|FAIBLE",
     "raison": "explication courte du statut",
-    "argument_commercial": "phrase d'accroche personnalisée pour ce prospect"
+    "argument_commercial": "phrase d'accroche personnalisée pour ce prospect",
+    "horaires": ["Lundi: 9h-18h", "..."] 
   }],
   "top3": ["Nom1", "Nom2", "Nom3"]
 }`,
@@ -589,6 +632,13 @@ Réponds UNIQUEMENT en JSON valide :
 
   if (result?.prospects?.length) {
     result.concurrents = await analyserConcurrents(query, result.prospects);
+    // Appliquer le scoring sur chaque prospect
+    result.prospects = result.prospects.map(p => {
+      const { score, priorite } = calculerScore(p);
+      return { ...p, score, priorite };
+    });
+    // Trier par score décroissant
+    result.prospects.sort((a, b) => b.score - a.score);
   }
   return result;
 }
