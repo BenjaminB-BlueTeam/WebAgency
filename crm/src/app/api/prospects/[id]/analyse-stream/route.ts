@@ -89,9 +89,15 @@ export async function GET(
 
         const response = await anthropic.messages.create({
           model: "claude-sonnet-4-6",
-          max_tokens: 4000,
+          max_tokens: 16384,
           messages: [{ role: "user", content: prompt }],
         });
+
+        if (response.stop_reason === "max_tokens") {
+          send({ error: "Réponse Claude tronquée (max_tokens atteint) — réessayez", done: true });
+          controller.close();
+          return;
+        }
 
         const raw = response.content.find(b => b.type === "text")?.text ?? "{}";
         let rapport: AnalyseResult;
