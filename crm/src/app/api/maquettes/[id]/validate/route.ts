@@ -2,6 +2,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { requireAuth } from "@/lib/auth";
+import { avancerPipeline } from "@/lib/pipeline";
 
 export async function POST(
   req: NextRequest,
@@ -39,6 +40,7 @@ export async function POST(
         description: "Maquette validée",
       },
     });
+    await avancerPipeline(maquette.prospectId, "MAQUETTE_VALIDEE");
     return NextResponse.json({ statut: "VALIDEE" });
   }
 

@@ -5,6 +5,7 @@ import { requireAuth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { getEmailPrompt } from "@/lib/prompts/email";
 import { execFileSync } from "child_process";
+import { avancerPipeline } from "@/lib/pipeline";
 
 export async function POST(
   request: NextRequest,
@@ -108,10 +109,7 @@ export async function POST(
             description: `Email envoyé : ${finalSujet}`,
           },
         });
-        await db.prospect.update({
-          where: { id },
-          data: { dateContact: new Date(), statutPipeline: "CONTACTE" },
-        });
+        await avancerPipeline(id, "EMAIL_ENVOYE");
 
         return NextResponse.json({
           sujet: finalSujet,

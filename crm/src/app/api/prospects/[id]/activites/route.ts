@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { requireAuth } from "@/lib/auth";
+import { avancerPipeline } from "@/lib/pipeline";
 
 const VALID_TYPES = [
   "APPEL",
@@ -55,6 +56,10 @@ export async function POST(
       description,
     },
   });
+
+  if (type === "RDV") {
+    await avancerPipeline(id, "RDV");
+  }
 
   return NextResponse.json(activite, { status: 201 });
 }

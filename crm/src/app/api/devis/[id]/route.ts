@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { requireAuth } from "@/lib/auth";
+import { avancerPipeline } from "@/lib/pipeline";
 
 const ALLOWED_STATUTS = ["BROUILLON", "ENVOYE", "ACCEPTE", "REFUSE", "EXPIRE"] as const;
 
@@ -44,6 +45,9 @@ export async function PATCH(
   if (body.offre !== undefined) data.offre = String(body.offre).slice(0, 200);
 
   const devis = await db.devis.update({ where: { id }, data });
+  if (body.statut === "ACCEPTE") {
+    await avancerPipeline(devis.prospectId, "DEVIS_ACCEPTE");
+  }
   return NextResponse.json(devis);
 }
 

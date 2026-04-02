@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { requireAuth } from "@/lib/auth";
 import { randomBytes } from "crypto";
+import { avancerPipeline } from "@/lib/pipeline";
 
 function genRef() {
   const now = new Date();
@@ -70,6 +71,7 @@ export async function POST(request: NextRequest) {
       description: `Devis ${devis.reference} créé — ${ht}€ HT`,
     },
   });
+  await avancerPipeline(prospectId, "DEVIS_CREE");
 
   return NextResponse.json(devis, { status: 201 });
 }
