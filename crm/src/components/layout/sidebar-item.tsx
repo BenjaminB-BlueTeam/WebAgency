@@ -1,5 +1,6 @@
 "use client";
 
+import React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useLayout } from "./layout-provider";
@@ -14,9 +15,10 @@ interface SidebarItemProps {
   href: string;
   icon: LucideIcon;
   label: string;
+  badge?: React.ReactNode;
 }
 
-export function SidebarItem({ href, icon: Icon, label }: SidebarItemProps) {
+export function SidebarItem({ href, icon: Icon, label, badge }: SidebarItemProps) {
   const pathname = usePathname();
   const { collapsed, mobileOpen, closeMobile } = useLayout();
 
@@ -68,6 +70,7 @@ export function SidebarItem({ href, icon: Icon, label }: SidebarItemProps) {
     >
       <Icon className="size-5 shrink-0" />
       <span>{label}</span>
+      {badge}
     </Link>
   );
 }

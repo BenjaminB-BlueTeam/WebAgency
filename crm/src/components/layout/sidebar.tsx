@@ -18,6 +18,7 @@ import {
 import { toast } from "sonner";
 import { useLayout } from "./layout-provider";
 import { SidebarItem } from "./sidebar-item";
+import { MaquettesBadge } from "./maquettes-badge";
 
 const navItems = [
   { href: "/", icon: LayoutDashboard, label: "Dashboard" },
@@ -107,7 +108,11 @@ export function Sidebar() {
         {/* Navigation */}
         <nav className="flex-1 space-y-0.5 overflow-y-auto px-3 py-4">
           {navItems.map((item) => (
-            <SidebarItem key={item.href} {...item} />
+            <SidebarItem
+              key={item.href}
+              {...item}
+              badge={item.href === "/maquettes" ? <MaquettesBadge /> : undefined}
+            />
           ))}
         </nav>
 

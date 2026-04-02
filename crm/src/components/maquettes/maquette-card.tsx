@@ -11,6 +11,8 @@ interface MaquetteCardProps {
   demoUrl: string | null;
   htmlPath: string | null;
   createdAt: string;
+  githubUrl?: string | null;
+  version?: number | null;
 }
 
 const MAQUETTE_STATUT_COLORS: Record<string, string> = {
@@ -19,6 +21,9 @@ const MAQUETTE_STATUT_COLORS: Record<string, string> = {
   ENVOYE: "bg-purple-500/15 text-purple-400 border-purple-500/20",
   VALIDE: "bg-green-500/15 text-green-400 border-green-500/20",
   REFUSE: "bg-red-500/15 text-red-400 border-red-500/20",
+  ATTENTE_VALIDATION: "bg-amber-500/15 text-amber-400 border-amber-500/20",
+  VALIDEE: "bg-green-500/15 text-green-400 border-green-500/20",
+  A_CORRIGER: "bg-red-500/15 text-red-400 border-red-500/20",
 };
 
 const MAQUETTE_STATUT_LABELS: Record<string, string> = {
@@ -27,6 +32,9 @@ const MAQUETTE_STATUT_LABELS: Record<string, string> = {
   ENVOYE: "Envoy\u00e9",
   VALIDE: "Valid\u00e9",
   REFUSE: "Refus\u00e9",
+  ATTENTE_VALIDATION: "En attente",
+  VALIDEE: "Valid\u00e9e",
+  A_CORRIGER: "\u00c0 corriger",
 };
 
 
@@ -38,6 +46,8 @@ export function MaquetteCard({
   demoUrl,
   htmlPath,
   createdAt,
+  githubUrl,
+  version,
 }: MaquetteCardProps) {
   const colorClass =
     MAQUETTE_STATUT_COLORS[statut] ?? "bg-zinc-500/15 text-zinc-400 border-zinc-500/20";
@@ -77,6 +87,22 @@ export function MaquetteCard({
         <div className="flex items-center justify-between text-xs text-muted-foreground">
           <span className="uppercase tracking-wide">{type}</span>
           <span>{new Date(createdAt).toLocaleDateString("fr-FR")}</span>
+        </div>
+
+        {/* Version + GitHub */}
+        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+          {version && version > 1 && <span className="text-violet-400/70">v{version}</span>}
+          {githubUrl && (
+            <a
+              href={githubUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={e => e.stopPropagation()}
+              className="text-white/30 hover:text-white/60 transition-colors"
+            >
+              GitHub ↗
+            </a>
+          )}
         </div>
       </div>
     </Link>
