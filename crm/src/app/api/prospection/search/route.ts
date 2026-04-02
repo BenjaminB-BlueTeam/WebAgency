@@ -16,6 +16,8 @@ export interface SearchProspect {
   siteUrl: string | null;
   adresse: string | null;
   noteGoogle: number | null;
+  nbAvisGoogle?: number | null;
+  score?: number;
   statut: string;
   priorite: string;
   raison: string | null;
