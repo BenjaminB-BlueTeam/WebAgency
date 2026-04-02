@@ -7,7 +7,6 @@ interface ProspectionResultsPanelProps {
   status: "idle" | "running" | "done" | "error";
   statusMessage: string;
   results: SearchProspect[];
-  query: string;
   error?: string;
 }
 
@@ -15,7 +14,6 @@ export function ProspectionResultsPanel({
   status,
   statusMessage,
   results,
-  query,
   error,
 }: ProspectionResultsPanelProps) {
   if (status === "idle") {
@@ -47,13 +45,6 @@ export function ProspectionResultsPanel({
 
       <ResultsTable prospects={results} />
 
-      {status === "running" && results.length === 0 && (
-        <div className="glass rounded-xl p-6 flex items-center justify-center">
-          <p className="text-sm text-white/40 animate-pulse">
-            Analyse en cours…
-          </p>
-        </div>
-      )}
     </div>
   );
 }

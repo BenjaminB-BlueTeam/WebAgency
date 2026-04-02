@@ -117,7 +117,6 @@ export default function ProspectionPage() {
             status={status}
             statusMessage={statusMessage}
             results={results}
-            query={activeQuery}
             error={error}
           />
         </div>
