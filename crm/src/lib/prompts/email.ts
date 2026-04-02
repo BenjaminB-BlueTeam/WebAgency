@@ -44,6 +44,7 @@ RÈGLES IMPÉRATIVES :
 Réponds UNIQUEMENT en JSON valide sans markdown :
 {
   "sujet": "objet de l'email court et percutant",
-  "corps": "corps de l'email complet avec retours à la ligne sous forme \\n"
+  "corps": "corps de l'email complet avec retours à la ligne sous forme \\n",
+  "variante_sms": "version courte < 300 chars pour SMS/WhatsApp, ton direct, sans formule de politesse"
 }`;
 }

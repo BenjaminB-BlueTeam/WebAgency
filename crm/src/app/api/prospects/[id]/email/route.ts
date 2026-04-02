@@ -66,7 +66,7 @@ export async function POST(
     const text = (response.content.find(b => b.type === "text")?.text ?? "").trim();
     const clean = text.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();
 
-    let parsed: { sujet?: string; corps?: string } | null = null;
+    let parsed: { sujet?: string; corps?: string; variante_sms?: string } | null = null;
     try {
       parsed = JSON.parse(clean);
     } catch {
@@ -89,7 +89,9 @@ export async function POST(
         return NextResponse.json({ error: "Email prospect invalide" }, { status: 400 });
       }
 
-      const emailContent = `From: contact@flandre-web.fr\nTo: ${destinataire}\nSubject: ${parsed.sujet}\n\n${parsed.corps}`;
+      const finalSujet = (typeof body.sujet === "string" && body.sujet.trim()) ? body.sujet.trim() : (parsed.sujet ?? "");
+      const finalCorps = (typeof body.corps === "string" && body.corps.trim()) ? body.corps.trim() : (parsed.corps ?? "");
+      const emailContent = `From: contact@flandre-web.fr\nTo: ${destinataire}\nSubject: ${finalSujet}\n\n${finalCorps}`;
 
       try {
         execFileSync("himalaya", ["send"], {
@@ -103,7 +105,7 @@ export async function POST(
           data: {
             prospectId: id,
             type: "EMAIL_ENVOYE",
-            description: `Email envoyé : ${parsed.sujet}`,
+            description: `Email envoyé : ${finalSujet}`,
           },
         });
         await db.prospect.update({
@@ -112,8 +114,8 @@ export async function POST(
         });
 
         return NextResponse.json({
-          sujet: parsed.sujet,
-          corps: parsed.corps,
+          sujet: finalSujet,
+          corps: finalCorps,
           sent: true,
         });
       } catch (err) {
@@ -124,7 +126,7 @@ export async function POST(
       }
     }
 
-    return NextResponse.json({ sujet: parsed.sujet, corps: parsed.corps });
+    return NextResponse.json({ sujet: parsed.sujet, corps: parsed.corps, variante_sms: parsed.variante_sms ?? "" });
   } catch (err) {
     console.error("[prospects/email]", err);
     return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });
