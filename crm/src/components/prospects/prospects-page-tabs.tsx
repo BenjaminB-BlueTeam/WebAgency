@@ -12,6 +12,9 @@ interface ProspectRow {
   telephone: string | null;
   email: string | null;
   siteUrl: string | null;
+  noteGoogle: number | null;
+  nbAvisGoogle: number | null;
+  notes: string | null;
   statut: string;
   priorite: string;
   statutPipeline: string;
