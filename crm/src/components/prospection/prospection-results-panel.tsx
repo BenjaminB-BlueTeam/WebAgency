@@ -1,7 +1,6 @@
 "use client";
 
-import Link from "next/link";
-import { SearchResultCard } from "./search-result-card";
+import { ResultsTable } from "./results-table";
 import type { SearchProspect } from "@/app/api/prospection/search/route";
 
 interface ProspectionResultsPanelProps {
@@ -46,29 +45,7 @@ export function ProspectionResultsPanel({
         </div>
       )}
 
-      {results.length > 0 && (
-        <div className="flex items-center justify-between">
-          <span className="text-xs text-white/50 font-medium">
-            {results.length} prospect{results.length > 1 ? "s" : ""} — &ldquo;{query}&rdquo;
-          </span>
-          <Link
-            href="/prospects"
-            className="text-xs text-violet-400 hover:text-violet-300 transition-colors"
-          >
-            Voir dans Prospects →
-          </Link>
-        </div>
-      )}
-
-      <div className="flex flex-col gap-3">
-        {results.map((prospect, i) => (
-          <SearchResultCard
-            key={`${prospect.nom}-${prospect.ville}`}
-            prospect={prospect}
-            isTop={i === 0 && prospect.priorite === "HAUTE"}
-          />
-        ))}
-      </div>
+      <ResultsTable prospects={results} />
 
       {status === "running" && results.length === 0 && (
         <div className="glass rounded-xl p-6 flex items-center justify-center">
