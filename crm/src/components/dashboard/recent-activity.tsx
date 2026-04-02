@@ -29,7 +29,7 @@ function formatDate(date: Date): string {
 export function RecentActivity({ activites }: RecentActivityProps) {
   return (
     <div className="glass glow-line relative overflow-hidden rounded-xl p-4">
-      <p className="mb-3 text-[9px] font-medium uppercase tracking-[0.12em] text-white/40">
+      <p className="mb-3 text-xs font-medium uppercase tracking-[0.12em] text-white/40">
         Activité récente
       </p>
       {activites.length === 0 ? (
@@ -50,10 +50,10 @@ export function RecentActivity({ activites }: RecentActivityProps) {
                     boxShadow: `0 0 6px ${dot.glow}`,
                   }}
                 />
-                <p className="min-w-0 flex-1 truncate text-[10px] leading-snug text-white/70">
+                <p className="min-w-0 flex-1 truncate text-xs leading-snug text-white/70">
                   {a.description}
                 </p>
-                <span className="shrink-0 text-[9px] text-white/25">
+                <span className="shrink-0 text-[10px] text-white/25">
                   {formatDate(a.date)}
                 </span>
               </li>

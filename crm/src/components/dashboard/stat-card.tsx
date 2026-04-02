@@ -33,14 +33,14 @@ export function StatCard({
         glowLineClass
       )}
     >
-      <p className="text-[9px] font-medium uppercase tracking-[0.12em] text-white/40">
+      <p className="text-xs font-medium uppercase tracking-[0.12em] text-white/40">
         {label}
       </p>
-      <p className="mt-2 text-[2rem] font-bold leading-none tracking-tight text-white">
+      <p className="mt-2 font-bold leading-none tracking-tight text-white" style={{ fontSize: "clamp(1.5rem, 3.5vw, 2rem)" }}>
         {value}
       </p>
       {subtitle && (
-        <p className={cn("mt-1.5 text-[10px]", subtitleColor ?? "text-white/35")}>
+        <p className={cn("mt-1.5 text-xs", subtitleColor ?? "text-white/35")}>
           {subtitle}
         </p>
       )}

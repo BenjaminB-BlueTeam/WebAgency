@@ -189,13 +189,57 @@
 }
 
 @layer components {
-  /* Glow line — inset top shadow (survit à overflow:hidden + border-radius) */
+  /* Glow line — trait lumineux en haut de la carte */
   .glow-line {
     position: relative;
+  }
+  .glow-line::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      rgba(124, 58, 237, 0.6) 50%,
+      transparent 100%
+    );
+    pointer-events: none;
+    z-index: 1;
   }
 
   /* Glow line variante danger */
   .glow-line-danger {
     position: relative;
+  }
+  .glow-line-danger::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      rgba(239, 68, 68, 0.7) 50%,
+      transparent 100%
+    );
+    pointer-events: none;
+    z-index: 1;
+  }
+}
+
+/* Respect prefers-reduced-motion */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }

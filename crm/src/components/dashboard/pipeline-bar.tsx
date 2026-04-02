@@ -59,7 +59,7 @@ export function PipelineBar({ segments }: PipelineBarProps) {
 
   return (
     <div className="glass glow-line relative overflow-hidden rounded-xl p-4">
-      <p className="mb-3 text-[9px] font-medium uppercase tracking-[0.12em] text-white/40">
+      <p className="mb-3 text-xs font-medium uppercase tracking-[0.12em] text-white/40">
         Pipeline
       </p>
       {total === 0 ? (
@@ -67,7 +67,7 @@ export function PipelineBar({ segments }: PipelineBarProps) {
       ) : (
         <>
           {/* Barre segmentée */}
-          <div className="mb-3 flex h-2.5 w-full gap-0.5 overflow-hidden rounded-full">
+          <div className="mb-3 flex h-2.5 w-full gap-0.5 overflow-hidden rounded-full" role="img" aria-label={`Pipeline: ${visible.map(s => `${PIPELINE_LABELS[s.status] ?? s.status} ${s.count}`).join(", ")}`}>
             {visible.map((seg) => {
               const c = PIPELINE_COLORS[seg.status] ?? {
                 from: "#94a3b8",
@@ -102,7 +102,7 @@ export function PipelineBar({ segments }: PipelineBarProps) {
               return (
                 <span
                   key={seg.status}
-                  className="flex items-center gap-1.5 text-[9px] uppercase tracking-[0.08em] text-white/50"
+                  className="flex items-center gap-1.5 text-xs uppercase tracking-[0.08em] text-white/50"
                 >
                   <span
                     className="inline-block h-1.5 w-1.5 shrink-0 rounded-full"

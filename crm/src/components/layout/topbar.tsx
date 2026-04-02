@@ -1,7 +1,8 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-import { Menu } from "lucide-react";
+import { Menu, ChevronRight } from "lucide-react";
+import Link from "next/link";
 import { useLayout } from "./layout-provider";
 
 const pageTitles: Record<string, string> = {
@@ -16,14 +17,27 @@ const pageTitles: Record<string, string> = {
   "/parametres": "Paramètres",
 };
 
+function getBreadcrumbs(pathname: string): { label: string; href: string }[] {
+  const matched = Object.entries(pageTitles).find(
+    ([key]) => key !== "/" && pathname.startsWith(key)
+  );
+  if (!matched) return [{ label: pageTitles[pathname] ?? "WebAgency CRM", href: pathname }];
+
+  const [parentHref, parentLabel] = matched;
+  if (pathname === parentHref) return [{ label: parentLabel, href: parentHref }];
+
+  return [
+    { label: parentLabel, href: parentHref },
+    { label: "Détail", href: pathname },
+  ];
+}
+
 export function Topbar() {
   const pathname = usePathname();
   const { openMobile } = useLayout();
 
-  const title =
-    pageTitles[pathname] ??
-    Object.entries(pageTitles).find(([key]) => key !== "/" && pathname.startsWith(key))?.[1] ??
-    "WebAgency CRM";
+  const crumbs = getBreadcrumbs(pathname);
+  const isNested = crumbs.length > 1;
 
   return (
     <header className="flex h-14 shrink-0 items-center gap-3 border-b border-border px-4 md:px-6">
@@ -34,7 +48,30 @@ export function Topbar() {
       >
         <Menu className="size-5" />
       </button>
-      <h1 className="text-lg font-semibold tracking-tight">{title}</h1>
+      <nav aria-label="Fil d'Ariane" className="flex items-center gap-1.5">
+        {crumbs.map((crumb, i) => {
+          const isLast = i === crumbs.length - 1;
+          return (
+            <span key={crumb.href} className="flex items-center gap-1.5">
+              {i > 0 && (
+                <ChevronRight className="size-3.5 text-muted-foreground/50" aria-hidden="true" />
+              )}
+              {isLast ? (
+                <h1 className={`font-semibold tracking-tight ${isNested ? "text-base" : "text-lg"}`}>
+                  {crumb.label}
+                </h1>
+              ) : (
+                <Link
+                  href={crumb.href}
+                  className="text-sm text-muted-foreground transition-colors hover:text-foreground"
+                >
+                  {crumb.label}
+                </Link>
+              )}
+            </span>
+          );
+        })}
+      </nav>
     </header>
   );
 }

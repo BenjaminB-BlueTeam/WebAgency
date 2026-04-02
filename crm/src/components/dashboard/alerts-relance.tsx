@@ -21,7 +21,7 @@ const PRIORITE_STYLES: Record<string, { badge: string; border: string }> = {
     badge: "bg-yellow-500/15 text-yellow-400",
     border: "border border-yellow-500/30",
   },
-  BASSE: {
+  FAIBLE: {
     badge: "bg-zinc-500/15 text-zinc-400",
     border: "border border-zinc-500/20",
   },
@@ -36,7 +36,7 @@ export function AlertsRelance({ relances }: AlertsRelanceProps) {
         hasUrgent ? "glass-danger glow-line-danger" : "glass glow-line"
       }`}
     >
-      <p className="mb-3 text-[9px] font-medium uppercase tracking-[0.12em] text-white/40">
+      <p className="mb-3 text-xs font-medium uppercase tracking-[0.12em] text-white/40">
         À relancer ({relances.length})
       </p>
       {relances.length === 0 ? (
@@ -57,18 +57,18 @@ export function AlertsRelance({ relances }: AlertsRelanceProps) {
                 <div className="min-w-0 flex-1">
                   <Link
                     href={`/prospects/${r.id}`}
-                    className="text-[10px] font-medium text-white/80 transition-colors hover:text-violet-300"
+                    className="text-xs font-medium text-white/80 transition-colors hover:text-violet-300"
                   >
                     {r.nom}
                   </Link>
-                  <p className="text-[9px] text-white/35">{r.ville}</p>
+                  <p className="text-[10px] text-white/35">{r.ville}</p>
                 </div>
                 <span
-                  className={`inline-flex items-center rounded-full px-2 py-0.5 text-[9px] font-medium ${style.badge} ${style.border}`}
+                  className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-medium ${style.badge} ${style.border}`}
                 >
                   {r.priorite}
                 </span>
-                <span className={`shrink-0 text-[10px] font-medium ${daysColor}`}>
+                <span className={`shrink-0 text-xs font-medium ${daysColor}`}>
                   {r.daysSinceContact}j
                 </span>
               </li>

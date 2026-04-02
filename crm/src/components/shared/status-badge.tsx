@@ -76,7 +76,7 @@ export function StatusBadge({ type, value }: StatusBadgeProps) {
   return (
     <Badge
       variant="outline"
-      className={cn("text-[0.7rem] font-medium", colorClass)}
+      className={cn("text-xs font-medium", colorClass)}
     >
       {label}
     </Badge>
