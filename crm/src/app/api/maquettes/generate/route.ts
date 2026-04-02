@@ -6,6 +6,7 @@ import { db } from "@/lib/db";
 import { getDesignDirection } from "@/lib/design-direction";
 import { getSystemPrompt, getUserPrompt } from "@/lib/prompts/maquette";
 import { deployToNetlify } from "@/lib/netlify-deploy";
+import { createMaquetteRepo } from "@/lib/github";
 
 // Allow up to 5 minutes (Vercel Pro). Hobby plan caps at 60s.
 export const maxDuration = 300;
@@ -97,37 +98,54 @@ export async function POST(request: NextRequest) {
       // Continue without demo URL — HTML is saved in DB
     }
 
-    // Save to DB (upsert: one maquette per prospect for simplicity)
-    // find-first pattern: avoids requiring @@unique([prospectId, type])
-    const maquette = await db.maquette.upsert({
-      where: {
-        id: (await db.maquette.findFirst({
-          where: { prospectId, type: "html" },
-          select: { id: true },
-        }))?.id ?? "new-does-not-exist",
-      },
-      create: {
+    // Check max 3 maquettes per prospect
+    const count = await db.maquette.count({ where: { prospectId } });
+    if (count >= 3) {
+      return NextResponse.json(
+        { error: "Maximum 3 maquettes atteint pour ce prospect. Supprimez-en une." },
+        { status: 422 }
+      );
+    }
+
+    const version = count + 1;
+
+    // GitHub (non-blocking if token absent)
+    let githubUrl: string | null = null;
+    if (process.env.GITHUB_TOKEN) {
+      try {
+        const { htmlUrl } = await createMaquetteRepo(
+          prospect.nom,
+          prospect.ville,
+          html,
+          version
+        );
+        githubUrl = htmlUrl;
+      } catch (err) {
+        console.error("[maquettes/generate] GitHub failed:", err);
+        // Continue — Netlify deploy is more important
+      }
+    }
+
+    // Save to DB — CREATE (versioned)
+    const maquette = await db.maquette.create({
+      data: {
         prospectId,
         type: "html",
         html,
         demoUrl,
         netlifySiteId,
-        statut: demoUrl ? "ENVOYE" : "BROUILLON",
-      },
-      update: {
-        html,
-        demoUrl,
-        netlifySiteId,
-        statut: demoUrl ? "ENVOYE" : "BROUILLON",
+        githubUrl,
+        version,
+        promptUsed: user.slice(0, 5000),
+        statut: demoUrl ? "ATTENTE_VALIDATION" : "BROUILLON",
       },
     });
 
-    // Log activity
     await db.activite.create({
       data: {
         prospectId,
         type: "NOTE",
-        description: `Maquette générée${demoUrl ? ` — démo : ${demoUrl}` : " (sans déploiement Netlify)"}`,
+        description: `Maquette v${version} générée${demoUrl ? ` — démo : ${demoUrl}` : " (sans déploiement Netlify)"}`,
       },
     });
 
