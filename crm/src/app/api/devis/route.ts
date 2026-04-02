@@ -29,49 +29,54 @@ export async function POST(request: NextRequest) {
   const authError = await requireAuth(request);
   if (authError) return authError;
 
-  const body = await request.json();
-  const { prospectId, offre, montantHT, lignes = "[]", validiteJours = 30, notes } = body;
+  try {
+    const body = await request.json();
+    const { prospectId, offre, montantHT, lignes = "[]", validiteJours = 30, notes } = body;
 
-  if (!prospectId || !offre || montantHT == null) {
-    return NextResponse.json({ error: "prospectId, offre et montantHT sont requis" }, { status: 400 });
+    if (!prospectId || !offre || montantHT == null) {
+      return NextResponse.json({ error: "prospectId, offre et montantHT sont requis" }, { status: 400 });
+    }
+
+    const ht = parseFloat(montantHT);
+    if (isNaN(ht) || ht <= 0) {
+      return NextResponse.json({ error: "montantHT invalide" }, { status: 400 });
+    }
+
+    const tauxParam = await db.parametre.findUnique({ where: { cle: "tarif_tva" } });
+    const tauxTva = parseFloat(tauxParam?.valeur ?? "0") / 100;
+    const ttc = Math.round(ht * (1 + tauxTva) * 100) / 100;
+    const expiration = new Date();
+    expiration.setDate(expiration.getDate() + validiteJours);
+
+    const devis = await db.devis.create({
+      data: {
+        prospectId,
+        offre: String(offre).slice(0, 200),
+        montantHT: ht,
+        montantTTC: ttc,
+        lignes: String(lignes),
+        reference: genRef(),
+        validiteJours,
+        dateExpiration: expiration,
+        notes: notes ? String(notes).slice(0, 1000) : null,
+      },
+      include: {
+        prospect: { select: { id: true, nom: true, ville: true } },
+      },
+    });
+
+    await db.activite.create({
+      data: {
+        prospectId,
+        type: "DEVIS",
+        description: `Devis ${devis.reference} créé — ${ht}€ HT`,
+      },
+    });
+    await avancerPipeline(prospectId, "DEVIS_CREE");
+
+    return NextResponse.json(devis, { status: 201 });
+  } catch (err) {
+    console.error("[devis POST]", err);
+    return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });
   }
-
-  const ht = parseFloat(montantHT);
-  if (isNaN(ht) || ht <= 0) {
-    return NextResponse.json({ error: "montantHT invalide" }, { status: 400 });
-  }
-
-  const tauxParam = await db.parametre.findUnique({ where: { cle: "tarif_tva" } });
-  const tauxTva = parseFloat(tauxParam?.valeur ?? "0") / 100;
-  const ttc = Math.round(ht * (1 + tauxTva) * 100) / 100;
-  const expiration = new Date();
-  expiration.setDate(expiration.getDate() + validiteJours);
-
-  const devis = await db.devis.create({
-    data: {
-      prospectId,
-      offre: String(offre).slice(0, 200),
-      montantHT: ht,
-      montantTTC: ttc,
-      lignes: String(lignes),
-      reference: genRef(),
-      validiteJours,
-      dateExpiration: expiration,
-      notes: notes ? String(notes).slice(0, 1000) : null,
-    },
-    include: {
-      prospect: { select: { id: true, nom: true, ville: true } },
-    },
-  });
-
-  await db.activite.create({
-    data: {
-      prospectId,
-      type: "DEVIS",
-      description: `Devis ${devis.reference} créé — ${ht}€ HT`,
-    },
-  });
-  await avancerPipeline(prospectId, "DEVIS_CREE");
-
-  return NextResponse.json(devis, { status: 201 });
 }
