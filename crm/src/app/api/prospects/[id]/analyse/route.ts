@@ -52,8 +52,21 @@ Réponds en JSON :
 
   const text = response.content.find(b => b.type === 'text')?.text || '{}';
   let analyse;
-  try { analyse = JSON.parse(text.replace(/```json\n?|\n?```/g, '')); }
-  catch { analyse = { error: 'Parse error', raw: text }; }
+  const cleaned = text.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+  try {
+    analyse = JSON.parse(cleaned);
+  } catch {
+    const match = cleaned.match(/\{[\s\S]*\}/);
+    if (match) {
+      try { analyse = JSON.parse(match[0]); }
+      catch {
+        try { analyse = JSON.parse(match[0].replace(/,\s*([}\]])/g, '$1')); }
+        catch { analyse = { error: 'Parse error', raw: text.slice(0, 300) }; }
+      }
+    } else {
+      analyse = { error: 'Parse error', raw: text.slice(0, 300) };
+    }
+  }
 
   await db.prospect.update({
     where: { id },

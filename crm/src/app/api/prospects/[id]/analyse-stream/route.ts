@@ -95,12 +95,30 @@ export async function GET(
 
         const raw = response.content.find(b => b.type === "text")?.text ?? "{}";
         let rapport: AnalyseResult;
+        const cleaned = raw.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();
         try {
-          rapport = JSON.parse(raw.replace(/```json\n?|\n?```/g, "").trim());
+          rapport = JSON.parse(cleaned);
         } catch {
-          send({ error: "Parse JSON échoué", raw: raw.slice(0, 500), done: true });
-          controller.close();
-          return;
+          // Try extracting the JSON object from surrounding text
+          const match = cleaned.match(/\{[\s\S]*\}/);
+          if (!match) {
+            send({ error: "Parse JSON échoué — aucun objet JSON trouvé", raw: raw.slice(0, 300), done: true });
+            controller.close();
+            return;
+          }
+          try {
+            rapport = JSON.parse(match[0]);
+          } catch {
+            // Fix trailing commas and retry
+            const fixed = match[0].replace(/,\s*([}\]])/g, "$1");
+            try {
+              rapport = JSON.parse(fixed);
+            } catch {
+              send({ error: "Parse JSON échoué", raw: match[0].slice(0, 300), done: true });
+              controller.close();
+              return;
+            }
+          }
         }
 
         // Persist in DB
