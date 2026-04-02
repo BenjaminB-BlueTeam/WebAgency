@@ -5,6 +5,7 @@ export interface GooglePlace {
   name: string;
   formatted_address: string;
   rating?: number;
+  user_ratings_total?: number;
   types: string[];
 }
 

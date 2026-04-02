@@ -3,6 +3,7 @@ import { NextRequest } from "next/server";
 import Anthropic from "@anthropic-ai/sdk";
 import { requireAuth } from "@/lib/auth";
 import { placesTextSearch, placesDetails } from "@/lib/places";
+import { calculerScore } from "@/lib/scoring";
 import { db } from "@/lib/db";
 
 const MAX_PLACES = 10;
@@ -61,6 +62,7 @@ export async function GET(request: NextRequest) {
           nom: string;
           adresse: string;
           rating: number | null;
+          nbAvisGoogle: number | null;
           telephone: string | null;
           website: string | null;
           types: string[];
@@ -75,6 +77,7 @@ export async function GET(request: NextRequest) {
                 nom: place.name,
                 adresse: place.formatted_address,
                 rating: place.rating ?? null,
+                nbAvisGoogle: place.user_ratings_total ?? null,
                 telephone: details?.formatted_phone_number ?? null,
                 website: details?.website ?? null,
                 types: place.types,
@@ -165,15 +168,27 @@ Réponds UNIQUEMENT en JSON valide :
             where: { nom: p.nom, ville: p.ville },
             select: { id: true },
           });
+          const enrichedMatch = enriched.find(e => e.nom === p.nom);
+          const nbAvisGoogle = enrichedMatch?.nbAvisGoogle ?? null;
+          const siteUrl = p.site_url ?? null;
+          const noteGoogle = p.noteGoogle ?? null;
+          const { score } = calculerScore({
+            statut: p.statut,
+            siteUrl,
+            noteGoogle,
+            nbAvisGoogle: nbAvisGoogle ?? undefined,
+          });
           const prospect: SearchProspect = {
             nom: p.nom,
             activite: p.activite ?? q,
             ville: p.ville,
             telephone: p.telephone ?? null,
             email: p.email ?? null,
-            siteUrl: p.site_url ?? null,
+            siteUrl,
             adresse: p.adresse ?? null,
-            noteGoogle: p.noteGoogle ?? null,
+            noteGoogle,
+            nbAvisGoogle,
+            score,
             statut: p.statut,
             priorite: p.priorite,
             raison: p.raison ?? null,
