@@ -70,6 +70,7 @@ export async function POST(request: NextRequest) {
     source = "MANUEL",
     adresse,
     noteGoogle,
+    nbAvisGoogle,
   } = body;
 
   if (!nom || !activite || !ville) {
@@ -98,6 +99,7 @@ export async function POST(request: NextRequest) {
       source,
       adresse: adresse ? String(adresse).slice(0, 300) : null,
       noteGoogle: noteGoogle != null ? (isNaN(parseFloat(noteGoogle)) ? null : parseFloat(noteGoogle)) : null,
+      nbAvisGoogle: nbAvisGoogle != null ? (isNaN(parseInt(nbAvisGoogle)) ? null : parseInt(nbAvisGoogle)) : null,
     },
   });
 

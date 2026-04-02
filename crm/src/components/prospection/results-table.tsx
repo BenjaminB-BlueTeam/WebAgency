@@ -1,7 +1,7 @@
 // crm/src/components/prospection/results-table.tsx
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState } from "react";
 import { toast } from "sonner";
 import { StatusBadge } from "@/components/shared/status-badge";
 import type { SearchProspect } from "@/app/api/prospection/search/route";
@@ -41,41 +41,52 @@ export function ResultsTable({ prospects }: ResultsTableProps) {
     setAdding(true);
     let added = 0;
     let skipped = 0;
+    let failed = 0;
     const toAdd = prospects.filter(p => selected.has(key(p)));
 
-    // Batch by 3
-    for (let i = 0; i < toAdd.length; i += 3) {
-      const batch = toAdd.slice(i, i + 3);
-      await Promise.all(
-        batch.map(async p => {
-          const res = await fetch("/api/prospects", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              nom: p.nom, activite: p.activite, ville: p.ville,
-              telephone: p.telephone, email: p.email, siteUrl: p.siteUrl,
-              adresse: p.adresse, noteGoogle: p.noteGoogle,
-              statut: p.statut, priorite: p.priorite,
-              raison: p.raison, argumentCommercial: p.argumentCommercial,
-              source: "PROSPECTION",
-            }),
-          });
-          if (res.ok) {
-            added++;
-            setAddedIds(prev => new Set([...prev, key(p)]));
-          } else if (res.status === 409) {
-            skipped++;
-          }
-        })
-      );
+    try {
+      for (let i = 0; i < toAdd.length; i += 3) {
+        const batch = toAdd.slice(i, i + 3);
+        await Promise.all(
+          batch.map(async p => {
+            try {
+              const res = await fetch("/api/prospects", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  nom: p.nom, activite: p.activite, ville: p.ville,
+                  telephone: p.telephone, email: p.email, siteUrl: p.siteUrl,
+                  adresse: p.adresse, noteGoogle: p.noteGoogle,
+                  nbAvisGoogle: p.nbAvisGoogle,
+                  statut: p.statut, priorite: p.priorite,
+                  raison: p.raison, argumentCommercial: p.argumentCommercial,
+                  source: "PROSPECTION",
+                }),
+              });
+              if (res.ok) {
+                added++;
+                setAddedIds(prev => new Set([...prev, key(p)]));
+              } else if (res.status === 409) {
+                skipped++;
+              } else {
+                failed++;
+              }
+            } catch {
+              failed++;
+            }
+          })
+        );
+      }
+    } finally {
+      setSelected(new Set());
+      setAdding(false);
+      const parts: string[] = [];
+      if (added > 0) parts.push(`${added} ajouté${added > 1 ? "s" : ""}`);
+      if (skipped > 0) parts.push(`${skipped} déjà existant${skipped > 1 ? "s" : ""} ignoré${skipped > 1 ? "s" : ""}`);
+      if (failed > 0) parts.push(`${failed} échec${failed > 1 ? "s" : ""}`);
+      if (parts.length > 0) toast.success(parts.join(" · "));
+      else if (added === 0 && skipped === 0 && failed === 0) toast.error("Aucun prospect traité");
     }
-
-    setSelected(new Set());
-    setAdding(false);
-    const parts: string[] = [];
-    if (added > 0) parts.push(`${added} ajouté${added > 1 ? "s" : ""}`);
-    if (skipped > 0) parts.push(`${skipped} déjà existant${skipped > 1 ? "s" : ""} ignoré${skipped > 1 ? "s" : ""}`);
-    if (parts.length > 0) toast.success(parts.join(" · "));
   }
 
   if (prospects.length === 0) return null;
