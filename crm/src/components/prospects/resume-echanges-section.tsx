@@ -1,55 +1,43 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { MessageSquare } from "lucide-react";
-import {
-  Card,
-  CardHeader,
-  CardTitle,
-  CardContent,
-} from "@/components/ui/card";
+import { useEffect, useState, useCallback } from "react";
+import { RefreshCw, Loader2 } from "lucide-react";
 
-interface ResumeEchangesSectionProps {
-  prospectId: string;
-}
+interface Props { prospectId: string; }
 
-export function ResumeEchangesSection({ prospectId }: ResumeEchangesSectionProps) {
+export function ResumeEchangesSection({ prospectId }: Props) {
   const [resume, setResume] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    async function fetchResume() {
-      try {
-        const res = await fetch(`/api/prospects/${prospectId}`);
-        if (!res.ok) return;
-        const data = await res.json();
-        if (data.resumeEchanges && data.resumeEchanges !== "Aucun échange enregistré.") {
-          setResume(data.resumeEchanges);
-        }
-      } catch {
-        // silently ignore
-      } finally {
-        setLoading(false);
-      }
-    }
-    fetchResume();
+  const fetch_ = useCallback(async () => {
+    setLoading(true);
+    try {
+      const res = await fetch(`/api/prospects/${prospectId}/resume`);
+      if (!res.ok) return;
+      const data = await res.json();
+      setResume(data.resume ?? null);
+    } catch { /* ignore */ }
+    finally { setLoading(false); }
   }, [prospectId]);
 
-  if (loading || !resume) return null;
+  useEffect(() => { fetch_(); }, [fetch_]);
+
+  if (!resume && !loading) return null;
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <MessageSquare className="size-4" />
-          Résumé des échanges
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-line">
-          {resume}
-        </p>
-      </CardContent>
-    </Card>
+    <div className="rounded-lg border border-border/30 bg-white/2 px-3 py-2">
+      <div className="flex items-center justify-between mb-1">
+        <span className="text-[10px] uppercase tracking-wider text-white/30">Résumé des échanges</span>
+        <button type="button" onClick={fetch_} disabled={loading}
+          className="text-white/20 hover:text-white/50 transition-colors">
+          {loading ? <Loader2 className="size-3 animate-spin" /> : <RefreshCw className="size-3" />}
+        </button>
+      </div>
+      {loading && !resume ? (
+        <p className="text-xs text-white/30 animate-pulse">Génération du résumé…</p>
+      ) : (
+        <p className="text-xs text-white/60 leading-relaxed">{resume}</p>
+      )}
+    </div>
   );
 }
