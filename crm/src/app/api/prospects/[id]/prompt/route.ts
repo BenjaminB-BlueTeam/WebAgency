@@ -30,6 +30,7 @@ export async function GET(
       siteUrl: true,
       statut: true,
       argumentCommercial: true,
+      notes: true,
     },
   });
 
@@ -38,7 +39,28 @@ export async function GET(
   }
 
   const d = getDesignDirection(prospect.activite);
-  const prompt = getUserPrompt(prospect, d);
+  let prompt = getUserPrompt(prospect, d);
+
+  // Enrichissement analyse concurrentielle
+  if (prospect.notes) {
+    try {
+      const notes = JSON.parse(prospect.notes as string);
+      const analyse = notes.analyse_concurrentielle;
+      if (analyse?.prompt_maquette_enrichi) {
+        prompt += `\n\n--- ANALYSE CONCURRENTIELLE ---\n${analyse.prompt_maquette_enrichi}`;
+      }
+      if (analyse?.argumentaire?.arguments_chocs?.length) {
+        prompt += `\n\nARGUMENTS DIFFÉRENCIANTS : ${analyse.argumentaire.arguments_chocs.join(" | ")}`;
+      }
+      if (analyse?.opportunites_differenciation?.length) {
+        prompt += `\n\nOPPORTUNITÉS : ${analyse.opportunites_differenciation.join(", ")}`;
+      }
+      // Inject prospect feedback if available (for regeneration)
+      if (notes.dernier_feedback_prospect) {
+        prompt += `\n\n--- RETOURS DU PROSPECT ---\n${notes.dernier_feedback_prospect}\nAdapte la maquette en tenant compte de ces retours spécifiques.`;
+      }
+    } catch { /* ignore */ }
+  }
 
   return NextResponse.json({ prompt });
 }
