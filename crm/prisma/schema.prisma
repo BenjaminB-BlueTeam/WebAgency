@@ -62,6 +62,12 @@ model Maquette {
   dateEnvoi         DateTime?
   dateValidation    DateTime?
   retourClient      String?
+
+  // Versioning + GitHub
+  githubUrl         String?
+  version           Int      @default(1)
+  promptUsed        String?
+
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
 }
