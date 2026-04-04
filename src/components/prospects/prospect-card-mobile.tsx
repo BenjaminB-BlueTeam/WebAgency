@@ -8,13 +8,11 @@ import type { Prospect } from "@/types/prospect"
 
 interface ProspectCardMobileProps {
   prospect: Prospect
-  isExpanded: boolean
   onToggle: () => void
 }
 
 export function ProspectCardMobile({
   prospect,
-  isExpanded,
   onToggle,
 }: ProspectCardMobileProps) {
   return (

@@ -48,7 +48,7 @@ const SORTABLE_COLUMNS: { label: string; key: SortKey | null; className?: string
 export function ProspectList({ initialProspects }: ProspectListProps) {
   const [prospects, setProspects] = useState<Prospect[]>(initialProspects)
   const [loading, setLoading] = useState(false)
-  const [initialLoad, setInitialLoad] = useState(false)
+  const [initialLoad] = useState(false)
   const [expandedId, setExpandedId] = useState<string | null>(null)
   const [search, setSearch] = useState("")
   const [statut, setStatut] = useState("all")
@@ -268,7 +268,6 @@ export function ProspectList({ initialProspects }: ProspectListProps) {
                   <div key={prospect.id}>
                     <ProspectCardMobile
                       prospect={prospect}
-                      isExpanded={expandedId === prospect.id}
                       onToggle={() => toggleExpand(prospect.id)}
                     />
                     <AnimatePresence>
