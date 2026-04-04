@@ -154,7 +154,7 @@ export function Sidebar() {
               <button
                 key={href}
                 onClick={() => router.push(href)}
-                className={`flex items-center w-full px-[14px] py-2.5 transition-colors ${
+                className={`flex items-center w-full px-[14px] py-2.5 cursor-pointer transition-colors ${
                   active
                     ? "bg-[#111111] text-[#fafafa]"
                     : "text-[#555555] hover:text-[#fafafa] hover:bg-[#0a0a0a]"
@@ -173,7 +173,7 @@ export function Sidebar() {
         <div className="border-t border-[#111111] shrink-0">
           <button
             onClick={handleLogout}
-            className="flex items-center w-full px-[14px] py-3 text-[#555555] hover:text-[#f87171] hover:bg-[#0a0a0a] transition-colors"
+            className="flex items-center w-full px-[14px] py-3 cursor-pointer text-[#555555] hover:text-[#f87171] hover:bg-[#0a0a0a] transition-colors"
           >
             <LogOut size={16} className="shrink-0" />
             <span className="ml-3 text-sm font-medium whitespace-nowrap">
