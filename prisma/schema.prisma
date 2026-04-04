@@ -1,0 +1,156 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model Prospect {
+  id                String     @id @default(cuid())
+  nom               String
+  activite          String
+  ville             String
+  adresse           String?
+  telephone         String?
+  email             String?
+  siteUrl           String?
+  placeId           String?    @unique
+  noteGoogle        Float?
+  nbAvisGoogle      Int?
+  scorePresenceWeb  Int?
+  scoreSEO          Int?
+  scoreDesign       Int?
+  scoreFinancier    Int?
+  scorePotentiel    Int?
+  scoreGlobal       Int?
+  statutPipeline    String     @default("A_DEMARCHER")
+  dateContact       DateTime?
+  dateRdv           DateTime?
+  dateMaquetteEnvoi DateTime?
+  dateSignature     DateTime?
+  raisonPerte       String?
+  derniereRelance   DateTime?
+  prochaineRelance  DateTime?
+  createdAt         DateTime   @default(now())
+  updatedAt         DateTime   @updatedAt
+
+  maquettes  Maquette[]
+  analyses   Analyse[]
+  emails     Email[]
+  notes      Note[]
+  activites  Activite[]
+  client     Client?
+
+  @@unique([nom, ville])
+  @@index([statutPipeline])
+  @@index([scoreGlobal])
+}
+
+model Analyse {
+  id              String   @id @default(cuid())
+  prospectId      String
+  concurrents     String   // JSON
+  recommandations String   // JSON
+  promptUsed      String?
+  createdAt       DateTime @default(now())
+
+  prospect Prospect @relation(fields: [prospectId], references: [id], onDelete: Cascade)
+}
+
+model Maquette {
+  id            String   @id @default(cuid())
+  prospectId    String
+  html          String
+  demoUrl       String?
+  netlifySiteId String?
+  version       Int      @default(1)
+  promptUsed    String?
+  statut        String   @default("BROUILLON")
+  createdAt     DateTime @default(now())
+
+  prospect Prospect @relation(fields: [prospectId], references: [id], onDelete: Cascade)
+}
+
+model Email {
+  id         String    @id @default(cuid())
+  prospectId String
+  type       String
+  sujet      String
+  contenu    String
+  statut     String    @default("BROUILLON")
+  dateEnvoi  DateTime?
+  createdAt  DateTime  @default(now())
+
+  prospect Prospect @relation(fields: [prospectId], references: [id], onDelete: Cascade)
+}
+
+model Note {
+  id         String   @id @default(cuid())
+  prospectId String
+  contenu    String
+  createdAt  DateTime @default(now())
+
+  prospect Prospect @relation(fields: [prospectId], references: [id], onDelete: Cascade)
+}
+
+model Activite {
+  id          String   @id @default(cuid())
+  prospectId  String?
+  type        String
+  description String
+  createdAt   DateTime @default(now())
+
+  prospect Prospect? @relation(fields: [prospectId], references: [id], onDelete: Cascade)
+}
+
+model Recherche {
+  id               String   @id @default(cuid())
+  query            String
+  ville            String?
+  resultatsCount   Int
+  prospectsAjoutes Int
+  createdAt        DateTime @default(now())
+}
+
+model Parametre {
+  id     String @id @default(cuid())
+  cle    String @unique
+  valeur String
+}
+
+model Client {
+  id                   String    @id @default(cuid())
+  prospectId           String    @unique
+  siteUrl              String
+  plausibleSiteId      String?
+  dateLivraison        DateTime
+  offreType            String
+  maintenanceActive    Boolean   @default(true)
+  stripeCustomerId     String?
+  stripeSubscriptionId String?
+  stripeStatus         String?
+  createdAt            DateTime  @default(now())
+
+  prospect Prospect  @relation(fields: [prospectId], references: [id], onDelete: Cascade)
+  rapports Rapport[]
+}
+
+model Rapport {
+  id         String    @id @default(cuid())
+  clientId   String
+  mois       String
+  visiteurs  Int
+  pagesVues  Int
+  topPages   String    // JSON
+  topSources String    // JSON
+  tendance   Float?
+  resumeIA   String
+  pdfUrl     String?
+  dateEnvoi  DateTime?
+  createdAt  DateTime  @default(now())
+
+  client Client @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
+  @@unique([clientId, mois])
+}
