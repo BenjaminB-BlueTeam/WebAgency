@@ -34,7 +34,6 @@ function isActive(href: string, pathname: string): boolean {
 export function Sidebar() {
   const pathname = usePathname()
   const router = useRouter()
-  const [expanded] = useState(true)
   const [mobileOpen, setMobileOpen] = useState(false)
 
   async function handleLogout() {

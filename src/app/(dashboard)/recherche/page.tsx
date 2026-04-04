@@ -69,7 +69,8 @@ export default function RecherchePage() {
 
     const prospects = resultats
       .filter((r) => selectedIds.has(r.placeId))
-      .map(({ dejaEnBase: _omit, ...rest }) => rest)
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      .map(({ dejaEnBase, ...rest }) => rest)
 
     try {
       const res = await fetch("/api/prospection/save", {
