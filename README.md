@@ -54,6 +54,23 @@ CRM interne pour la prospection de clients web dans la region des Flandres. Rech
 - Historique des recherches en base (modele Recherche)
 - 5 tests unitaires (parsing Google Places, appels API, erreurs)
 
+### Session 5 — Scoring multi-axes + analyse IA
+- Scoring 5 axes : Potentiel web (PageSpeed), SEO (PageSpeed), Design/UX (Firecrawl + Claude), Financier (noteGoogle + avis), Urgence (Claude)
+- Score global = moyenne ponderee (poids 3/2/2/1/3)
+- Client Anthropic SDK (Claude Sonnet) + client Firecrawl (scraping HTML)
+- Bouton "Scorer ce prospect" / "Rescorer" sur la fiche prospect
+- API POST /api/prospects/[id]/score
+- 12 tests unitaires (calcul pondere, formule financier, parsing JSON Claude)
+
+### Session 6 — Pipeline Kanban
+- **Page Pipeline** (`/pipeline`) : kanban drag & drop avec 7 colonnes
+- @dnd-kit : support souris desktop + tactile mobile
+- Drop met a jour le statut via PATCH API + creation automatique d'activite
+- Modale "Raison de perte" quand drop dans colonne "Perdu"
+- Cartes : nom, activite, ville, score pastille, date relative
+- Clic carte → navigation vers fiche prospect
+- Responsive : scroll horizontal avec snap sur mobile
+
 ## Demarrage
 
 ```bash
@@ -88,13 +105,15 @@ src/
 │   ├── (dashboard)/        # Pages protegees avec layout sidebar
 │   │   ├── prospects/      # Liste + fiche prospect [id]
 │   │   ├── recherche/      # Recherche Google Places
+│   │   ├── pipeline/       # Kanban drag & drop
 │   │   └── ...             # Autres pages (placeholder)
 │   ├── api/                # API routes (prospects, prospection)
 │   └── login/              # Page login
 ├── components/
 │   ├── ui/                 # Composants shadcn/ui
 │   ├── prospects/          # Composants prospects (12 fichiers)
-│   └── recherche/          # Composants recherche (3 fichiers)
+│   ├── recherche/          # Composants recherche (3 fichiers)
+│   └── pipeline/           # Composants kanban (4 fichiers)
 ├── types/                  # Types TypeScript
 └── lib/
     ├── animations.ts       # Variants Framer Motion
@@ -102,5 +121,8 @@ src/
     ├── db.ts               # Client Prisma
     ├── date.ts             # Utilitaires dates
     ├── places.ts           # Client Google Places API
+    ├── anthropic.ts        # Client Anthropic (Claude)
+    ├── scrape.ts           # Client Firecrawl
+    ├── scoring.ts          # Scoring multi-axes
     └── validation.ts       # Validation + allowlists
 ```
