@@ -17,7 +17,7 @@ CRM interne pour la prospection de clients web dans la region des Flandres. Rech
 ### Session 1 — Auth + Layout
 - Page login (fond noir, input password, bouton blanc)
 - Authentification JWT + bcrypt avec middleware de protection
-- Layout dashboard avec sidebar (desktop collapse/expand + mobile hamburger)
+- Layout dashboard avec sidebar (desktop toujours ouverte 200px + mobile hamburger)
 - 7 pages placeholder (dashboard, recherche, prospects, pipeline, emails, clients, parametres)
 
 ### Session 2 — CRUD Prospects + API
@@ -55,7 +55,7 @@ Variables d'environnement requises dans `.env.local` :
 
 ```
 CRM_SESSION_SECRET=<secret JWT 256 bits minimum>
-CRM_PASSWORD_HASH=<hash bcrypt du mot de passe admin>
+CRM_PASSWORD_HASH=<hash bcrypt, echapper les $ avec \$ pour Next.js>
 ```
 
 ## Commandes

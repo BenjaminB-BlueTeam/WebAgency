@@ -34,7 +34,7 @@ function isActive(href: string, pathname: string): boolean {
 export function Sidebar() {
   const pathname = usePathname()
   const router = useRouter()
-  const [expanded, setExpanded] = useState(false)
+  const [expanded] = useState(true)
   const [mobileOpen, setMobileOpen] = useState(false)
 
   async function handleLogout() {
@@ -133,43 +133,27 @@ export function Sidebar() {
       </AnimatePresence>
 
       {/* ── Desktop sidebar (hover to expand) ──────────────────────── */}
-      <motion.nav
-        className="hidden md:flex fixed inset-y-0 left-0 z-30 flex-col bg-[#000000] border-r border-[#111111] overflow-hidden"
-        initial={false}
-        animate={{ width: expanded ? 200 : 52 }}
-        transition={{ duration: 0.2, ease: "easeOut" }}
-        onHoverStart={() => setExpanded(true)}
-        onHoverEnd={() => setExpanded(false)}
+      <nav
+        className="hidden md:flex fixed inset-y-0 left-0 z-30 w-[200px] flex-col bg-[#000000] border-r border-[#111111]"
       >
         {/* Logo */}
         <div className="flex items-center px-[12px] py-4 border-b border-[#111111] shrink-0" style={{ height: 56 }}>
           <div className="w-7 h-7 shrink-0 bg-white rounded-[6px] flex items-center justify-center">
             <span className="text-black text-sm font-[800] leading-none">F</span>
           </div>
-          <AnimatePresence>
-            {expanded && (
-              <motion.span
-                className="ml-3 text-[#fafafa] text-sm font-semibold whitespace-nowrap overflow-hidden"
-                initial={{ opacity: 0, width: 0 }}
-                animate={{ opacity: 1, width: "auto" }}
-                exit={{ opacity: 0, width: 0 }}
-                transition={{ duration: 0.15 }}
-              >
-                Flandre
-              </motion.span>
-            )}
-          </AnimatePresence>
+          <span className="ml-3 text-[#fafafa] text-sm font-semibold whitespace-nowrap">
+            Flandre
+          </span>
         </div>
 
         {/* Desktop nav items */}
-        <div className="flex-1 py-2 overflow-hidden">
+        <div className="flex-1 py-2">
           {NAV_ITEMS.map(({ href, label, icon: Icon }) => {
             const active = isActive(href, pathname)
             return (
               <button
                 key={href}
                 onClick={() => router.push(href)}
-                title={!expanded ? label : undefined}
                 className={`flex items-center w-full px-[14px] py-2.5 transition-colors ${
                   active
                     ? "bg-[#111111] text-[#fafafa]"
@@ -177,19 +161,9 @@ export function Sidebar() {
                 }`}
               >
                 <Icon size={16} className="shrink-0" />
-                <AnimatePresence>
-                  {expanded && (
-                    <motion.span
-                      className="ml-3 text-sm font-medium whitespace-nowrap overflow-hidden"
-                      initial={{ opacity: 0, width: 0 }}
-                      animate={{ opacity: 1, width: "auto" }}
-                      exit={{ opacity: 0, width: 0 }}
-                      transition={{ duration: 0.15 }}
-                    >
-                      {label}
-                    </motion.span>
-                  )}
-                </AnimatePresence>
+                <span className="ml-3 text-sm font-medium whitespace-nowrap">
+                  {label}
+                </span>
               </button>
             )
           })}
@@ -199,26 +173,15 @@ export function Sidebar() {
         <div className="border-t border-[#111111] shrink-0">
           <button
             onClick={handleLogout}
-            title={!expanded ? "Déconnexion" : undefined}
             className="flex items-center w-full px-[14px] py-3 text-[#555555] hover:text-[#f87171] hover:bg-[#0a0a0a] transition-colors"
           >
             <LogOut size={16} className="shrink-0" />
-            <AnimatePresence>
-              {expanded && (
-                <motion.span
-                  className="ml-3 text-sm font-medium whitespace-nowrap overflow-hidden"
-                  initial={{ opacity: 0, width: 0 }}
-                  animate={{ opacity: 1, width: "auto" }}
-                  exit={{ opacity: 0, width: 0 }}
-                  transition={{ duration: 0.15 }}
-                >
-                  Déconnexion
-                </motion.span>
-              )}
-            </AnimatePresence>
+            <span className="ml-3 text-sm font-medium whitespace-nowrap">
+              Déconnexion
+            </span>
           </button>
         </div>
-      </motion.nav>
+      </nav>
     </>
   )
 }
