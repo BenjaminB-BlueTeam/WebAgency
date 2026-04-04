@@ -43,6 +43,17 @@ CRM interne pour la prospection de clients web dans la region des Flandres. Rech
 - Etat vide avec onboarding vers la recherche
 - Design system "Noir Absolu" strict : fond #000, cartes #0a0a0a, bordures #1a1a1a
 
+### Session 4 — Recherche Google Places
+- **Page recherche** (`/recherche`) : formulaire activite + ville + rayon
+- Client Google Places API (New) avec parsing des resultats
+- Detection des doublons par placeId avant enregistrement
+- Cartes resultats avec note Google, badges "A un site" / "Pas de site" / "Deja enregistre"
+- Expand par carte : adresse, telephone, lien site web
+- Selection par checkbox + enregistrement en batch des prospects selectionnes
+- Score "Potentiel web" : 10/10 si pas de site (potentiel max), 3/10 si site existant
+- Historique des recherches en base (modele Recherche)
+- 5 tests unitaires (parsing Google Places, appels API, erreurs)
+
 ## Demarrage
 
 ```bash
@@ -56,6 +67,7 @@ Variables d'environnement requises dans `.env.local` :
 ```
 CRM_SESSION_SECRET=<secret JWT 256 bits minimum>
 CRM_PASSWORD_HASH=<hash bcrypt, echapper les $ avec \$ pour Next.js>
+GOOGLE_PLACES_KEY=<cle API Google Places (New)>
 ```
 
 ## Commandes
@@ -75,17 +87,20 @@ src/
 ├── app/
 │   ├── (dashboard)/        # Pages protegees avec layout sidebar
 │   │   ├── prospects/      # Liste + fiche prospect [id]
+│   │   ├── recherche/      # Recherche Google Places
 │   │   └── ...             # Autres pages (placeholder)
-│   ├── api/                # API routes
+│   ├── api/                # API routes (prospects, prospection)
 │   └── login/              # Page login
 ├── components/
 │   ├── ui/                 # Composants shadcn/ui
-│   └── prospects/          # Composants prospects (12 fichiers)
+│   ├── prospects/          # Composants prospects (12 fichiers)
+│   └── recherche/          # Composants recherche (3 fichiers)
 ├── types/                  # Types TypeScript
 └── lib/
     ├── animations.ts       # Variants Framer Motion
     ├── auth.ts             # JWT + bcrypt
     ├── db.ts               # Client Prisma
     ├── date.ts             # Utilitaires dates
+    ├── places.ts           # Client Google Places API
     └── validation.ts       # Validation + allowlists
 ```
