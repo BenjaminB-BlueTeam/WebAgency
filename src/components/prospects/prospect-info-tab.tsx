@@ -1,12 +1,14 @@
 "use client"
 
 import { useState } from "react"
-import { Phone, Mail, MapPin, Globe, Star } from "lucide-react"
+import { Phone, Mail, MapPin, Globe, Star, Zap, Loader2 } from "lucide-react"
+import { toast } from "sonner"
 import type { ProspectWithRelations } from "@/types/prospect"
 import { STATUT_PIPELINE_VALUES } from "@/lib/validation"
 import { ScorePastille } from "./score-pastille"
 import { ScoreBar } from "./score-bar"
 import { ProspectNotes } from "./prospect-notes"
+import { Button } from "@/components/ui/button"
 
 const STATUT_LABELS: Record<string, string> = {
   A_DEMARCHER: "A démarcher",
@@ -24,6 +26,35 @@ interface ProspectInfoTabProps {
 
 export function ProspectInfoTab({ prospect }: ProspectInfoTabProps) {
   const [statutPipeline, setStatutPipeline] = useState(prospect.statutPipeline)
+  const [scores, setScores] = useState({
+    scorePresenceWeb: prospect.scorePresenceWeb,
+    scoreSEO: prospect.scoreSEO,
+    scoreDesign: prospect.scoreDesign,
+    scoreFinancier: prospect.scoreFinancier,
+    scorePotentiel: prospect.scorePotentiel,
+    scoreGlobal: prospect.scoreGlobal,
+  })
+  const [scoring, setScoring] = useState(false)
+
+  async function handleScore() {
+    setScoring(true)
+    try {
+      const res = await fetch(`/api/prospects/${prospect.id}/score`, {
+        method: "POST",
+      })
+      const json = await res.json()
+      if (!res.ok) {
+        toast.error(json.error ?? "Erreur lors du scoring")
+        return
+      }
+      setScores(json.data)
+      toast.success(`Scoring terminé — Score global : ${json.data.scoreGlobal ?? "N/A"}/10`)
+    } catch {
+      toast.error("Erreur réseau")
+    } finally {
+      setScoring(false)
+    }
+  }
 
   async function handleStatutChange(newStatut: string) {
     const previous = statutPipeline
@@ -149,17 +180,38 @@ export function ProspectInfoTab({ prospect }: ProspectInfoTabProps) {
 
       {/* Scoring */}
       <div className="rounded-[6px] border border-[#1a1a1a] bg-[#0a0a0a] p-4">
-        <p className="mb-3 text-xs text-[#555555] uppercase tracking-wider">Score</p>
-        <div className="flex items-center gap-4 mb-4">
-          <ScorePastille score={prospect.scoreGlobal} size={40} />
-          <span className="text-sm text-[#737373]">Score global</span>
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-3">
+            <h3 className="text-sm font-medium text-[#737373] uppercase tracking-wider">
+              Scoring
+            </h3>
+            <ScorePastille score={scores.scoreGlobal} size={40} />
+          </div>
+          <Button
+            onClick={handleScore}
+            disabled={scoring}
+            variant={scores.scoreGlobal !== null ? "outline" : "default"}
+            size="sm"
+          >
+            {scoring ? (
+              <>
+                <Loader2 size={14} className="animate-spin" />
+                Analyse en cours...
+              </>
+            ) : (
+              <>
+                <Zap size={14} />
+                {scores.scoreGlobal !== null ? "Rescorer" : "Scorer ce prospect"}
+              </>
+            )}
+          </Button>
         </div>
         <div className="flex flex-col gap-2">
-          <ScoreBar label="Potentiel web" value={prospect.scorePresenceWeb} />
-          <ScoreBar label="SEO" value={prospect.scoreSEO} />
-          <ScoreBar label="Design" value={prospect.scoreDesign} />
-          <ScoreBar label="Financier" value={prospect.scoreFinancier} />
-          <ScoreBar label="Potentiel" value={prospect.scorePotentiel} />
+          <ScoreBar label="Potentiel web" value={scores.scorePresenceWeb} />
+          <ScoreBar label="SEO" value={scores.scoreSEO} />
+          <ScoreBar label="Design" value={scores.scoreDesign} />
+          <ScoreBar label="Financier" value={scores.scoreFinancier} />
+          <ScoreBar label="Potentiel" value={scores.scorePotentiel} />
         </div>
       </div>
 
