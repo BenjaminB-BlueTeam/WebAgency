@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { requireAuth } from "@/lib/auth"
 import { prisma } from "@/lib/db"
-import { validateProspectCreate } from "@/lib/validation"
+import { validateProspectCreate, isValidStatutPipeline } from "@/lib/validation"
 import { Prisma } from "@prisma/client"
 
 const ALLOWED_SORT_FIELDS = ["nom", "scoreGlobal", "createdAt"] as const
@@ -25,6 +25,9 @@ export async function GET(request: NextRequest) {
     const where: Prisma.ProspectWhereInput = {}
 
     if (statut) {
+      if (!isValidStatutPipeline(statut)) {
+        return NextResponse.json({ error: "Statut invalide" }, { status: 400 })
+      }
       where.statutPipeline = statut
     }
 
