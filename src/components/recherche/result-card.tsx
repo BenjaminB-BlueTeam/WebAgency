@@ -3,7 +3,6 @@
 import { Star, Globe, Phone, MapPin, ExternalLink } from "lucide-react"
 import { motion, AnimatePresence } from "motion/react"
 import { staggerItem, expandCollapse } from "@/lib/animations"
-import { ScoreBar } from "@/components/prospects/score-bar"
 import type { SearchResult } from "@/types/places"
 
 interface ResultCardProps {
@@ -21,7 +20,6 @@ export function ResultCard({
   isExpanded,
   onToggleExpand,
 }: ResultCardProps) {
-  const presenceScore = result.siteUrl ? 3 : 10
 
   return (
     <motion.div
@@ -112,9 +110,6 @@ export function ResultCard({
                 </a>
               </div>
             )}
-            <div className="pt-1">
-              <ScoreBar label="Présence web" value={presenceScore} />
-            </div>
           </motion.div>
         )}
       </AnimatePresence>

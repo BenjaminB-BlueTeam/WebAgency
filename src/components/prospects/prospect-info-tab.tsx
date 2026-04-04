@@ -155,7 +155,7 @@ export function ProspectInfoTab({ prospect }: ProspectInfoTabProps) {
           <span className="text-sm text-[#737373]">Score global</span>
         </div>
         <div className="flex flex-col gap-2">
-          <ScoreBar label="Présence Web" value={prospect.scorePresenceWeb} />
+          <ScoreBar label="Potentiel web" value={prospect.scorePresenceWeb} />
           <ScoreBar label="SEO" value={prospect.scoreSEO} />
           <ScoreBar label="Design" value={prospect.scoreDesign} />
           <ScoreBar label="Financier" value={prospect.scoreFinancier} />

@@ -77,7 +77,7 @@ export function ProspectExpand({ prospect }: { prospect: Prospect }) {
           <h4 className="text-xs font-medium text-[#737373] uppercase tracking-wider mb-2">
             Scoring
           </h4>
-          <ScoreBar label="Présence Web" value={prospect.scorePresenceWeb} />
+          <ScoreBar label="Potentiel web" value={prospect.scorePresenceWeb} />
           <ScoreBar label="SEO" value={prospect.scoreSEO} />
           <ScoreBar label="Design" value={prospect.scoreDesign} />
           <ScoreBar label="Financier" value={prospect.scoreFinancier} />
