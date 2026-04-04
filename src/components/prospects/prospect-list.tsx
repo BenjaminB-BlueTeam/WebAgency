@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useCallback, useRef } from "react"
+import React, { useState, useEffect, useCallback, useRef } from "react"
 import { motion, AnimatePresence } from "motion/react"
 import { ChevronUp, ChevronDown } from "lucide-react"
 import { staggerContainer } from "@/lib/animations"
@@ -206,23 +206,22 @@ export function ProspectList({ initialProspects }: ProspectListProps) {
                   animate="animate"
                 >
                   {prospects.map((prospect) => (
-                    <>
+                    <React.Fragment key={prospect.id}>
                       <ProspectRow
-                        key={prospect.id}
                         prospect={prospect}
                         isExpanded={expandedId === prospect.id}
                         onToggle={() => toggleExpand(prospect.id)}
                       />
                       <AnimatePresence>
                         {expandedId === prospect.id && (
-                          <tr key={`expand-${prospect.id}`}>
+                          <tr>
                             <td colSpan={8} className="p-0">
                               <ProspectExpand prospect={prospect} />
                             </td>
                           </tr>
                         )}
                       </AnimatePresence>
-                    </>
+                    </React.Fragment>
                   ))}
                 </motion.tbody>
               )}
