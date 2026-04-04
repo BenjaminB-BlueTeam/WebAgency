@@ -29,6 +29,23 @@ export const hoverLift = {
   transition: { duration: 0.15 },
 }
 
+/** Expand/collapse pour panneaux inline */
+export const expandCollapse: Variants = {
+  initial: { height: 0, opacity: 0, overflow: "hidden" },
+  animate: {
+    height: "auto",
+    opacity: 1,
+    overflow: "hidden",
+    transition: { height: { duration: 0.3, ease: "easeOut" }, opacity: { duration: 0.2, ease: "easeOut" } },
+  },
+  exit: {
+    height: 0,
+    opacity: 0,
+    overflow: "hidden",
+    transition: { height: { duration: 0.2, ease: "easeIn" }, opacity: { duration: 0.15, ease: "easeIn" } },
+  },
+}
+
 /** Props pour drag sur les cartes kanban */
 export const scaleOnDrag = {
   whileDrag: { scale: 1.02, boxShadow: "0 4px 20px rgba(0,0,0,0.5)" },
