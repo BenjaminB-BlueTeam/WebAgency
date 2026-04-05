@@ -71,6 +71,17 @@ CRM interne pour la prospection de clients web dans la region des Flandres. Rech
 - Clic carte → navigation vers fiche prospect
 - Responsive : scroll horizontal avec snap sur mobile
 
+### Session 7 — Generation de maquettes (Google Stitch + Netlify)
+- **Onglet Maquette** sur la fiche prospect : 3 etats (vide / generation en cours / maquette disponible)
+- `lib/stitch/buildPrompt.ts` : Claude Sonnet genere un prompt de design UI adapte au metier du prospect
+- `lib/stitch.ts` : wrapper `@google/stitch-sdk` — genere 4 pages HTML (accueil, services, contact, a-propos)
+- `lib/netlify-deploy.ts` : deploiement multi-pages via Netlify File Digest API (SHA1, sans zip)
+- `POST /api/maquettes/generate` : orchestration complete avec cap a 3 maquettes par prospect
+- `GET /api/maquettes/[id]` : detail maquette ; `GET /api/maquettes/[id]/preview` : redirect 302 vers demoUrl
+- Reutilisation du `netlifySiteId` pour v2/v3 (mise a jour du meme site Netlify)
+- Timeout client 5 min avec message d'erreur, toast de confirmation sur copie URL
+- Variables d'environnement : `STITCH_API_KEY`, `NETLIFY_TOKEN`
+
 ## Demarrage
 
 ```bash
@@ -84,7 +95,11 @@ Variables d'environnement requises dans `.env.local` :
 ```
 CRM_SESSION_SECRET=<secret JWT 256 bits minimum>
 CRM_PASSWORD_HASH=<hash bcrypt, echapper les $ avec \$ pour Next.js>
-GOOGLE_PLACES_KEY=<cle API Google Places (New)>
+GOOGLE_PLACES_API_KEY=<cle API Google Places (New)>
+ANTHROPIC_API_KEY=<cle API Anthropic>
+FIRECRAWL_API_KEY=<cle API Firecrawl>
+STITCH_API_KEY=<cle API Google Stitch>
+NETLIFY_TOKEN=<personal access token Netlify>
 ```
 
 ## Commandes
@@ -124,5 +139,7 @@ src/
     ├── anthropic.ts        # Client Anthropic (Claude)
     ├── scrape.ts           # Client Firecrawl
     ├── scoring.ts          # Scoring multi-axes
-    └── validation.ts       # Validation + allowlists
+    ├── validation.ts       # Validation + allowlists
+    ├── stitch/             # Google Stitch SDK (buildPrompt + generateMaquette)
+    └── netlify-deploy.ts   # Deploiement multi-pages Netlify
 ```
