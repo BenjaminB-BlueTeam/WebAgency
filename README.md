@@ -93,6 +93,28 @@ CRM interne pour la prospection de clients web dans la region des Flandres. Rech
 - Timeout client 5 min avec message d'erreur, toast de confirmation sur copie URL
 - Variables d'environnement : `STITCH_API_KEY`, `NETLIFY_TOKEN`
 
+### Session 9 — Dashboard
+- **Page Dashboard** (`/`) : vue d'ensemble du pipeline commercial
+- 5 stat cards animees : total prospects, a demarcher, maquettes envoyees, clients signes, taux de conversion
+- Barre pipeline : repartition visuelle des 7 statuts avec pourcentages
+- Widget relances : prospects dont la prochaine relance est depassee (badge rouge)
+- Timeline activites : 10 dernieres activites avec icones par type et liens vers les fiches
+- `lib/dashboard.ts` : 3 fonctions (`getDashboardStats`, `getDashboardRelances`, `getDashboardActivites`)
+- 3 API routes : `GET /api/dashboard/stats|relances|activites`
+- Page Server Component avec chargement parallele (`Promise.all`)
+- 16 tests unitaires
+
+### Session 10 — Analyse concurrentielle
+- **Onglet Analyse** sur la fiche prospect : recherche jusqu'a 5 concurrents locaux avec site web
+- Scraping de leurs sites via Firecrawl, analyse IA via Claude (forces, faiblesses, positionnement)
+- Synthese du marche + recommandations pour se demarquer
+- Upsert en base (1 analyse par prospect) — alimente ensuite le prompt de maquette
+- `lib/analyse.ts` : `findCompetitorCandidates`, `scrapeCompetitors`, `buildAnalyseResult`
+- `POST /api/prospects/[id]/analyse` : orchestration complete
+- Bouton "Analyser concurrence" dans le panneau expand de la liste des prospects
+- `analyzeWithClaude` : parametre optionnel `maxTokens` (defaut 1024, 4096 pour l'analyse)
+- 15 tests unitaires (lib + route)
+
 ## Demarrage
 
 ```bash
@@ -155,5 +177,7 @@ src/
     ├── validation.ts       # Validation + allowlists
     ├── stitch/             # Google Stitch SDK (buildPrompt + generateMaquette)
     ├── netlify-deploy.ts   # Deploiement multi-pages Netlify
-    └── email.ts            # generateProspectionEmail, buildEmailHtml, sendEmail
+    ├── email.ts            # generateProspectionEmail, buildEmailHtml, sendEmail
+    ├── dashboard.ts        # getDashboardStats, getDashboardRelances, getDashboardActivites
+    └── analyse.ts          # findCompetitorCandidates, scrapeCompetitors, buildAnalyseResult
 ```
