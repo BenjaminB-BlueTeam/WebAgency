@@ -60,6 +60,8 @@ export async function POST(_request: NextRequest, { params }: RouteParams) {
     if (error instanceof Error && error.message === "Unauthorized") {
       return NextResponse.json({ error: "Non autorisé" }, { status: 401 })
     }
-    return NextResponse.json({ error: "Erreur serveur" }, { status: 500 })
+    console.error("[/api/prospects/[id]/analyse]", error)
+    const message = error instanceof Error ? error.message : "Erreur serveur"
+    return NextResponse.json({ error: message }, { status: 500 })
   }
 }

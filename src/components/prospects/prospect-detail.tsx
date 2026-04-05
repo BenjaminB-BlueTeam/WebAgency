@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { useSearchParams } from "next/navigation"
 import Link from "next/link"
 import { motion, AnimatePresence } from "motion/react"
 import { ArrowLeft } from "lucide-react"
@@ -16,7 +17,8 @@ import { ProspectAnalyseTab } from "@/components/prospects/prospect-analyse-tab"
 import type { ProspectWithRelations } from "@/types/prospect"
 
 export function ProspectDetail({ prospect }: { prospect: ProspectWithRelations }) {
-  const [activeTab, setActiveTab] = useState("informations")
+  const searchParams = useSearchParams()
+  const [activeTab, setActiveTab] = useState(searchParams.get("tab") ?? "informations")
   const [showDemarcher, setShowDemarcher] = useState(false)
 
   return (

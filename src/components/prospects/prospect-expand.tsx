@@ -92,8 +92,8 @@ export function ProspectExpand({ prospect }: { prospect: Prospect }) {
           <Button asChild size="sm">
             <Link href={`/prospects/${prospect.id}`}>Voir fiche</Link>
           </Button>
-          <Button variant="outline" size="sm" disabled className="opacity-50">
-            Analyser concurrence
+          <Button asChild variant="outline" size="sm">
+            <Link href={`/prospects/${prospect.id}?tab=analyse`}>Analyser concurrence</Link>
           </Button>
           <Button variant="outline" size="sm" disabled className="opacity-50">
             Démarcher
