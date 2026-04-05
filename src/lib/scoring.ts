@@ -48,15 +48,22 @@ export function calculateGlobalScore(scores: {
   return Math.round(sum / poidsTotal)
 }
 
-export function scoreFinancier(
+export async function scoreFinancier(
+  activite: string,
+  ville: string,
   noteGoogle: number | null,
   nbAvisGoogle: number | null
-): number | null {
-  if (noteGoogle === null || nbAvisGoogle === null) return null
-  return Math.min(
-    10,
-    Math.round((noteGoogle / 5) * 5 + Math.min(nbAvisGoogle / 50, 5))
-  )
+): Promise<number | null> {
+  try {
+    const response = await analyzeWithClaude(
+      "Tu es un expert en prospection commerciale pour les agences web. Réponds uniquement en JSON valide.",
+      `Basé sur ces données : activité = ${activite}, ville = ${ville}, note Google = ${noteGoogle ?? "inconnue"}/5, nombre d'avis = ${nbAvisGoogle ?? "inconnu"}. Estime de 0 à 10 si cette entreprise a la capacité financière d'investir ~2000€ dans un site web. Considère le secteur d'activité, le volume d'activité estimé via les avis, et la zone géographique. Réponds uniquement en JSON : {"score": number, "justification": string}`
+    )
+    const parsed = parseClaudeJSON<{ score: number }>(response)
+    return Math.max(0, Math.min(10, parsed.score))
+  } catch {
+    return null
+  }
 }
 
 async function scorePresenceWeb(siteUrl: string | null): Promise<number> {
@@ -181,7 +188,7 @@ export async function scoreProspect(
     prospect.activite,
     prospect.ville
   )
-  const financier = scoreFinancier(prospect.noteGoogle, prospect.nbAvisGoogle)
+  const financier = await scoreFinancier(prospect.activite, prospect.ville, prospect.noteGoogle, prospect.nbAvisGoogle)
   const potentiel = await scorePotentielAchat(prospect, {
     scorePresenceWeb: presenceWeb,
     scoreSEO: seo,

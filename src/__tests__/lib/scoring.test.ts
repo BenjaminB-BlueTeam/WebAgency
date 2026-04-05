@@ -1,6 +1,13 @@
-import { describe, it, expect } from "vitest"
+import { describe, it, expect, vi, beforeEach } from "vitest"
 import { calculateGlobalScore, scoreFinancier } from "@/lib/scoring"
 import { parseClaudeJSON } from "@/lib/anthropic"
+
+vi.mock("@/lib/anthropic", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/lib/anthropic")>()
+  return { ...actual, analyzeWithClaude: vi.fn() }
+})
+
+import { analyzeWithClaude } from "@/lib/anthropic"
 
 describe("calculateGlobalScore", () => {
   it("calculates weighted average with all axes", () => {
@@ -40,24 +47,38 @@ describe("calculateGlobalScore", () => {
 })
 
 describe("scoreFinancier", () => {
-  it("calculates score from noteGoogle and nbAvisGoogle", () => {
-    expect(scoreFinancier(4.5, 120)).toBe(7)
+  beforeEach(() => vi.clearAllMocks())
+
+  it("returns Claude score clamped to 0-10", async () => {
+    vi.mocked(analyzeWithClaude).mockResolvedValue('{"score": 7, "justification": "Secteur actif"}')
+    const result = await scoreFinancier("garagiste", "Steenvoorde", 5.0, 22)
+    expect(result).toBe(7)
   })
 
-  it("caps at 10", () => {
-    expect(scoreFinancier(5, 500)).toBe(10)
+  it("clamps score above 10 to 10", async () => {
+    vi.mocked(analyzeWithClaude).mockResolvedValue('{"score": 12, "justification": "Très bonne capacité"}')
+    const result = await scoreFinancier("notaire", "Lille", 4.8, 200)
+    expect(result).toBe(10)
   })
 
-  it("returns null when noteGoogle is null", () => {
-    expect(scoreFinancier(null, 100)).toBeNull()
+  it("clamps score below 0 to 0", async () => {
+    vi.mocked(analyzeWithClaude).mockResolvedValue('{"score": -2, "justification": "Micro-entreprise"}')
+    const result = await scoreFinancier("artisan", "Village", 3.0, 2)
+    expect(result).toBe(0)
   })
 
-  it("returns null when nbAvisGoogle is null", () => {
-    expect(scoreFinancier(4.0, null)).toBeNull()
+  it("returns null on Claude error", async () => {
+    vi.mocked(analyzeWithClaude).mockRejectedValue(new Error("API error"))
+    const result = await scoreFinancier("boulanger", "Hazebrouck", null, null)
+    expect(result).toBeNull()
   })
 
-  it("handles low values", () => {
-    expect(scoreFinancier(2, 5)).toBe(2)
+  it("passes activite and ville in the prompt", async () => {
+    vi.mocked(analyzeWithClaude).mockResolvedValue('{"score": 6, "justification": "OK"}')
+    await scoreFinancier("fleuriste", "Bailleul", 4.2, 30)
+    const call = vi.mocked(analyzeWithClaude).mock.calls[0]
+    expect(call[1]).toContain("fleuriste")
+    expect(call[1]).toContain("Bailleul")
   })
 })
 
