@@ -16,7 +16,7 @@ export async function GET(_request: NextRequest, { params }: RouteParams) {
       where: { id },
       include: {
         maquettes: true,
-        analyses: true,
+        analyses: { orderBy: { createdAt: "desc" }, take: 1 },
         emails: true,
         notes: { orderBy: { createdAt: "desc" } },
         activites: { orderBy: { createdAt: "desc" } },
