@@ -71,7 +71,9 @@ export async function deployToNetlify(
   // Build file map with nav injected
   const fileMap: Record<string, string> = {}
   for (const screen of screens) {
-    fileMap[`/${NAME_TO_FILE[screen.name]}`] = injectNav(screen.html, screen.name)
+    const file = NAME_TO_FILE[screen.name]
+    if (!file) continue // skip unknown screen names
+    fileMap[`/${file}`] = injectNav(screen.html, screen.name)
   }
 
   // Get or create site
@@ -96,7 +98,7 @@ export async function deployToNetlify(
 
   // Upload files
   for (const [path, content] of Object.entries(fileMap)) {
-    await fetch(`${NETLIFY_API}/deploys/${deploy.id}/files${path}`, {
+    const uploadRes = await fetch(`${NETLIFY_API}/deploys/${deploy.id}/files${path}`, {
       method: "PUT",
       headers: {
         Authorization: `Bearer ${process.env.NETLIFY_TOKEN}`,
@@ -104,6 +106,9 @@ export async function deployToNetlify(
       },
       body: content,
     })
+    if (!uploadRes.ok) {
+      throw new Error(`Failed to upload ${path}: ${uploadRes.status}`)
+    }
   }
 
   return { url: `https://${siteName}.netlify.app`, siteId }
