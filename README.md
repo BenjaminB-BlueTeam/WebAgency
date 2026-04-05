@@ -95,7 +95,7 @@ Variables d'environnement requises dans `.env.local` :
 ```
 CRM_SESSION_SECRET=<secret JWT 256 bits minimum>
 CRM_PASSWORD_HASH=<hash bcrypt, echapper les $ avec \$ pour Next.js>
-GOOGLE_PLACES_API_KEY=<cle API Google Places (New)>
+GOOGLE_PLACES_KEY=<cle API Google Places (New)>
 ANTHROPIC_API_KEY=<cle API Anthropic>
 FIRECRAWL_API_KEY=<cle API Firecrawl>
 STITCH_API_KEY=<cle API Google Stitch>
