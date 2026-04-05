@@ -55,7 +55,7 @@ CRM interne pour la prospection de clients web dans la region des Flandres. Rech
 - 5 tests unitaires (parsing Google Places, appels API, erreurs)
 
 ### Session 5 — Scoring multi-axes + analyse IA
-- Scoring 5 axes : Potentiel web (PageSpeed), SEO (PageSpeed), Design/UX (Firecrawl + Claude), Financier (noteGoogle + avis), Urgence (Claude)
+- Scoring 5 axes : Potentiel web (PageSpeed), SEO (PageSpeed), Design/UX (Firecrawl + Claude), Financier (Claude — secteur + localisation + avis), Urgence (Claude)
 - Score global = moyenne ponderee (poids 3/2/2/1/3)
 - Client Anthropic SDK (Claude Sonnet) + client Firecrawl (scraping HTML)
 - Bouton "Scorer ce prospect" / "Rescorer" sur la fiche prospect
@@ -70,6 +70,17 @@ CRM interne pour la prospection de clients web dans la region des Flandres. Rech
 - Cartes : nom, activite, ville, score pastille, date relative
 - Clic carte → navigation vers fiche prospect
 - Responsive : scroll horizontal avec snap sur mobile
+
+### Session 8 — Prospection email (IA + Resend)
+- **Bouton "Demarcher"** sur chaque fiche prospect : ouvre une modale de composition d'email
+- Generation IA du sujet + corps via Claude (contexte : metier, ville, lien demo maquette)
+- Preview HTML de l'email dans un `<iframe>` avec rendu fidele
+- Sujet et corps editables avant envoi
+- Envoi via Resend SDK (`RESEND_API_KEY`, `RESEND_FROM_EMAIL`)
+- A l'envoi : activite `EMAIL` creee, pipeline A_DEMARCHER → MAQUETTE_EMAIL_ENVOYES automatiquement
+- Idempotence : un brouillon ne peut etre envoye qu'une seule fois (statut BROUILLON → ENVOYE)
+- 2 nouvelles API routes : `POST /api/prospects/[id]/email/generate` et `POST /api/prospects/[id]/email/send`
+- 26 tests unitaires (lib/email, route generate, route send)
 
 ### Session 7 — Generation de maquettes (Google Stitch + Netlify)
 - **Onglet Maquette** sur la fiche prospect : 3 etats (vide / generation en cours / maquette disponible)
@@ -100,6 +111,8 @@ ANTHROPIC_API_KEY=<cle API Anthropic>
 FIRECRAWL_API_KEY=<cle API Firecrawl>
 STITCH_API_KEY=<cle API Google Stitch>
 NETLIFY_TOKEN=<personal access token Netlify>
+RESEND_API_KEY=<cle API Resend>
+RESEND_FROM_EMAIL=<adresse email verifee dans Resend>
 ```
 
 ## Commandes
@@ -141,5 +154,6 @@ src/
     ├── scoring.ts          # Scoring multi-axes
     ├── validation.ts       # Validation + allowlists
     ├── stitch/             # Google Stitch SDK (buildPrompt + generateMaquette)
-    └── netlify-deploy.ts   # Deploiement multi-pages Netlify
+    ├── netlify-deploy.ts   # Deploiement multi-pages Netlify
+    └── email.ts            # generateProspectionEmail, buildEmailHtml, sendEmail
 ```
