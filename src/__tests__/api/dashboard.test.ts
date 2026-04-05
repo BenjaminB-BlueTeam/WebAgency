@@ -26,10 +26,6 @@ const mockStats = {
 const mockRelances = { count: 1, prospects: [{ id: "p1", nom: "Test", activite: "X", ville: "Y", prochaineRelance: "2024-01-01T00:00:00.000Z" }] }
 const mockActivites = [{ id: "a1", type: "EMAIL", description: "Email envoyé", createdAt: "2024-01-01T00:00:00.000Z", prospectId: "p1", prospectNom: "Garage Martin" }]
 
-function makeReq(url: string) {
-  return new Request(url, { method: "GET" })
-}
-
 describe("GET /api/dashboard/stats", () => {
   beforeEach(() => {
     vi.clearAllMocks()
@@ -39,12 +35,12 @@ describe("GET /api/dashboard/stats", () => {
 
   it("returns 401 when not authenticated", async () => {
     vi.mocked(requireAuth).mockRejectedValue(new Error("Unauthorized"))
-    const res = await statsGET(makeReq("http://localhost/api/dashboard/stats") as any)
+    const res = await statsGET()
     expect(res.status).toBe(401)
   })
 
   it("returns 200 with stats data", async () => {
-    const res = await statsGET(makeReq("http://localhost/api/dashboard/stats") as any)
+    const res = await statsGET()
     expect(res.status).toBe(200)
     const json = await res.json()
     expect(json.data.totalProspects).toBe(10)
@@ -61,12 +57,12 @@ describe("GET /api/dashboard/relances", () => {
 
   it("returns 401 when not authenticated", async () => {
     vi.mocked(requireAuth).mockRejectedValue(new Error("Unauthorized"))
-    const res = await relancesGET(makeReq("http://localhost/api/dashboard/relances") as any)
+    const res = await relancesGET()
     expect(res.status).toBe(401)
   })
 
   it("returns 200 with relances data", async () => {
-    const res = await relancesGET(makeReq("http://localhost/api/dashboard/relances") as any)
+    const res = await relancesGET()
     expect(res.status).toBe(200)
     const json = await res.json()
     expect(json.data.count).toBe(1)
@@ -83,12 +79,12 @@ describe("GET /api/dashboard/activites", () => {
 
   it("returns 401 when not authenticated", async () => {
     vi.mocked(requireAuth).mockRejectedValue(new Error("Unauthorized"))
-    const res = await activitesGET(makeReq("http://localhost/api/dashboard/activites") as any)
+    const res = await activitesGET()
     expect(res.status).toBe(401)
   })
 
   it("returns 200 with activites data", async () => {
-    const res = await activitesGET(makeReq("http://localhost/api/dashboard/activites") as any)
+    const res = await activitesGET()
     expect(res.status).toBe(200)
     const json = await res.json()
     expect(json.data).toHaveLength(1)
