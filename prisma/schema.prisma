@@ -49,7 +49,7 @@ model Prospect {
 
 model Analyse {
   id              String   @id @default(cuid())
-  prospectId      String
+  prospectId      String   @unique
   concurrents     String   // JSON
   recommandations String   // JSON
   promptUsed      String?
