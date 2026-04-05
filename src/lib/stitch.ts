@@ -36,7 +36,6 @@ function getStitch(): Stitch {
     // StitchToolClient reads STITCH_API_KEY from env automatically when no apiKey provided
     const toolClient = new StitchToolClient()
     // Cast to constructor form to support vi.fn() mocks in tests (arrow-function implementations)
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const StitchCtor = Stitch as unknown as new (client: StitchToolClient) => Stitch
     stitchInstance = new StitchCtor(toolClient)
   }

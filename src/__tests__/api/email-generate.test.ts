@@ -1,4 +1,5 @@
 // src/__tests__/api/email-generate.test.ts
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { describe, it, expect, vi, beforeEach } from "vitest"
 
 vi.mock("@/lib/auth", () => ({ requireAuth: vi.fn() }))
