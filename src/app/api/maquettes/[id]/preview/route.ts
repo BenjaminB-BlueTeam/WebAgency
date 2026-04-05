@@ -25,7 +25,7 @@ export async function GET(
       )
     }
 
-    return NextResponse.redirect(maquette.demoUrl)
+    return NextResponse.redirect(maquette.demoUrl, 302)
   } catch (error) {
     if (error instanceof Error && error.message === "Unauthorized") {
       return NextResponse.json({ error: "Non autorisé" }, { status: 401 })

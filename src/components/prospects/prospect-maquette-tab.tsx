@@ -2,6 +2,7 @@
 
 import { useState, useRef } from "react"
 import { useRouter } from "next/navigation"
+import { toast } from "sonner"
 import { motion } from "motion/react"
 import { fadeInUp } from "@/lib/animations"
 
@@ -67,6 +68,7 @@ export function ProspectMaquetteTab({ prospect }: Props) {
   function handleCopyUrl() {
     if (!selected?.demoUrl) return
     navigator.clipboard.writeText(selected.demoUrl)
+    toast("URL copiée")
   }
 
   if (generating) {
