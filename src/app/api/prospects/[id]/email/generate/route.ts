@@ -48,7 +48,6 @@ export async function POST(_request: NextRequest, { params }: RouteParams) {
         id: email.id,
         sujet: email.sujet,
         corps,
-        contenu: email.contenu,
         htmlPreview: email.contenu,
       },
     })
