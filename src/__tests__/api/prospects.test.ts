@@ -274,3 +274,121 @@ describe("GET /api/prospects — search filter", () => {
     expect(json.data).toHaveLength(0)
   })
 })
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Block 1: PATCH status change → activite créée
+// ─────────────────────────────────────────────────────────────────────────────
+
+describe("PATCH /api/prospects/[id] — status change creates activite", () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+    mockPrismaProspect.findUnique.mockResolvedValue({
+      id: "clx123",
+      statutPipeline: "A_DEMARCHER",
+    })
+    const updatedProspect = {
+      id: "clx123",
+      nom: "Boulangerie Dupont",
+      statutPipeline: "MAQUETTE_EMAIL_ENVOYES",
+    }
+    mockTransaction.mockResolvedValue([updatedProspect, {}])
+    mockPrismaProspect.update.mockResolvedValue(updatedProspect)
+  })
+
+  it("uses $transaction when statutPipeline changes", async () => {
+    const req = makeRequest("http://localhost:3000/api/prospects/clx123", {
+      method: "PATCH",
+      body: { statutPipeline: "MAQUETTE_EMAIL_ENVOYES" },
+    })
+    const params = Promise.resolve({ id: "clx123" })
+    const res = await PATCH(req, { params })
+
+    expect(res.status).toBe(200)
+    expect(mockTransaction).toHaveBeenCalledOnce()
+  })
+
+  it("does NOT use $transaction when statutPipeline unchanged", async () => {
+    const req = makeRequest("http://localhost:3000/api/prospects/clx123", {
+      method: "PATCH",
+      body: { nom: "Nouveau nom" },
+    })
+    const params = Promise.resolve({ id: "clx123" })
+    mockPrismaProspect.update.mockResolvedValue({ id: "clx123", nom: "Nouveau nom", statutPipeline: "A_DEMARCHER" })
+    const res = await PATCH(req, { params })
+
+    expect(res.status).toBe(200)
+    expect(mockTransaction).not.toHaveBeenCalled()
+  })
+})
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Block 2: GET statut filter
+// ─────────────────────────────────────────────────────────────────────────────
+
+describe("GET /api/prospects — statut filter", () => {
+  const mockProspects = [
+    { id: "1", nom: "Boulangerie Dupont", activite: "Boulangerie", ville: "Lille", statutPipeline: "A_DEMARCHER", scoreGlobal: null },
+    { id: "2", nom: "Garage Martin", activite: "Garagiste", ville: "Roubaix", statutPipeline: "REPONDU", scoreGlobal: 7 },
+    { id: "3", nom: "Salon Beauté", activite: "Coiffure", ville: "Tourcoing", statutPipeline: "A_DEMARCHER", scoreGlobal: 5 },
+  ]
+
+  beforeEach(() => {
+    vi.clearAllMocks()
+  })
+
+  it("filters by statut=A_DEMARCHER — passes where clause to findMany", async () => {
+    mockPrismaProspect.findMany.mockResolvedValue(
+      mockProspects.filter((p) => p.statutPipeline === "A_DEMARCHER")
+    )
+    const req = makeRequest("http://localhost:3000/api/prospects?statut=A_DEMARCHER")
+    const res = await GET(req)
+
+    expect(res.status).toBe(200)
+    const json = await res.json()
+    expect(json.data).toHaveLength(2)
+    expect(mockPrismaProspect.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: expect.objectContaining({ statutPipeline: "A_DEMARCHER" }),
+      })
+    )
+  })
+
+  it("returns 400 for invalid statut value", async () => {
+    const req = makeRequest("http://localhost:3000/api/prospects?statut=INVALIDE")
+    const res = await GET(req)
+    expect(res.status).toBe(400)
+  })
+})
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Block 3: GET scoreMin filter
+// ─────────────────────────────────────────────────────────────────────────────
+
+describe("GET /api/prospects — scoreMin filter", () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+  })
+
+  it("passes scoreGlobal gte filter to findMany when scoreMin provided", async () => {
+    mockPrismaProspect.findMany.mockResolvedValue([])
+    const req = makeRequest("http://localhost:3000/api/prospects?scoreMin=6")
+    const res = await GET(req)
+
+    expect(res.status).toBe(200)
+    expect(mockPrismaProspect.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: expect.objectContaining({ scoreGlobal: { gte: 6 } }),
+      })
+    )
+  })
+
+  it("ignores scoreMin when value is not a number", async () => {
+    mockPrismaProspect.findMany.mockResolvedValue([])
+    const req = makeRequest("http://localhost:3000/api/prospects?scoreMin=abc")
+    const res = await GET(req)
+
+    expect(res.status).toBe(200)
+    const callArg = mockPrismaProspect.findMany.mock.calls[0][0] as { where: Record<string, unknown> }
+    expect(callArg.where).not.toHaveProperty("scoreGlobal")
+  })
+})
