@@ -54,7 +54,7 @@ export function ActivityTimeline({ activites }: ActivityTimelineProps) {
               >
                 <div
                   className="absolute left-0 top-1 h-[14px] w-[14px] shrink-0 rounded-full border"
-                  style={{ backgroundColor: "#1a1a1a", borderColor: "#333" }}
+                  style={{ backgroundColor: "#1a1a1a", borderColor: "#1a1a1a" }}
                   aria-hidden
                 />
                 <div className="shrink-0 mt-0.5">
@@ -66,7 +66,7 @@ export function ActivityTimeline({ activites }: ActivityTimelineProps) {
                     {a.prospectNom && (
                       <Link
                         href={`/prospects`}
-                        className="text-xs text-[#60a5fa] hover:text-white transition-colors truncate"
+                        className="text-xs text-[#737373] hover:text-[#fafafa] transition-colors truncate"
                       >
                         {a.prospectNom}
                       </Link>
