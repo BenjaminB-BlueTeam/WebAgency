@@ -77,8 +77,7 @@ export function DemarcherSheet({ prospect, onClose }: Props) {
     }
   }
 
-  async function handleSaveDraft() {
-    toast.success("Brouillon sauvegardé")
+  function handleClose() {
     onClose()
   }
 
@@ -182,8 +181,8 @@ export function DemarcherSheet({ prospect, onClose }: Props) {
 
               {/* Actions */}
               <div className="flex justify-end gap-2 pt-2">
-                <Button variant="outline" size="sm" onClick={handleSaveDraft}>
-                  Sauvegarder le brouillon
+                <Button variant="outline" size="sm" onClick={handleClose}>
+                  Fermer
                 </Button>
                 <Button
                   size="sm"

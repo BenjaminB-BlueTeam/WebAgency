@@ -17,7 +17,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
 
     const body: unknown = await request.json()
     const b = body as Record<string, unknown>
-    const emailId = str(b.emailId, 50)
+    const emailId = str(b.emailId, 128)
     const sujet = str(b.sujet, 500)
     const corps = str(b.corps, 10000)
 
