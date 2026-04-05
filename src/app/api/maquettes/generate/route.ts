@@ -69,7 +69,7 @@ export async function POST(request: NextRequest) {
       },
     })
 
-    return NextResponse.json({ data: { id: maquette.id, demoUrl: url, version } })
+    return NextResponse.json({ data: { id: maquette.id, demoUrl: maquette.demoUrl, version: maquette.version } })
   } catch (error) {
     if (error instanceof Error && error.message === "Unauthorized") {
       return NextResponse.json({ error: "Non autorisé" }, { status: 401 })
