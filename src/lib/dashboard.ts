@@ -64,6 +64,7 @@ export interface DashboardActivite {
   type: string
   description: string
   createdAt: string
+  prospectId: string | null
   prospectNom: string | null
 }
 
@@ -144,6 +145,7 @@ export async function getDashboardActivites(): Promise<DashboardActivite[]> {
     type: a.type,
     description: a.description,
     createdAt: a.createdAt.toISOString(),
+    prospectId: a.prospectId ?? null,
     prospectNom: a.prospect?.nom ?? null,
   }))
 }

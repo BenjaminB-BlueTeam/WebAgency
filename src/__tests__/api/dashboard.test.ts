@@ -24,7 +24,7 @@ const mockStats = {
 }
 
 const mockRelances = { count: 1, prospects: [{ id: "p1", nom: "Test", activite: "X", ville: "Y", prochaineRelance: "2024-01-01T00:00:00.000Z" }] }
-const mockActivites = [{ id: "a1", type: "EMAIL", description: "Email envoyé", createdAt: "2024-01-01T00:00:00.000Z", prospectNom: "Garage Martin" }]
+const mockActivites = [{ id: "a1", type: "EMAIL", description: "Email envoyé", createdAt: "2024-01-01T00:00:00.000Z", prospectId: "p1", prospectNom: "Garage Martin" }]
 
 function makeReq(url: string) {
   return new Request(url, { method: "GET" })

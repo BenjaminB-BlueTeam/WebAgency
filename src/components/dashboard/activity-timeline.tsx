@@ -63,9 +63,9 @@ export function ActivityTimeline({ activites }: ActivityTimelineProps) {
                 <div className="flex-1 min-w-0">
                   <p className="text-sm text-[#fafafa] leading-snug">{a.description}</p>
                   <div className="flex items-center gap-2 mt-0.5">
-                    {a.prospectNom && (
+                    {a.prospectNom && a.prospectId && (
                       <Link
-                        href={`/prospects`}
+                        href={`/prospects/${a.prospectId}`}
                         className="text-xs text-[#737373] hover:text-[#fafafa] transition-colors truncate"
                       >
                         {a.prospectNom}
