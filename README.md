@@ -93,7 +93,7 @@ CRM interne pour la prospection de clients web dans la region des Flandres. Rech
 - Timeout client 5 min avec message d'erreur, toast de confirmation sur copie URL
 - Variables d'environnement : `STITCH_API_KEY`, `NETLIFY_TOKEN`
 
-### Session 9 — Dashboard
+### Session 10 — Dashboard
 - **Page Dashboard** (`/`) : vue d'ensemble du pipeline commercial
 - 5 stat cards animees : total prospects, a demarcher, maquettes envoyees, clients signes, taux de conversion
 - Barre pipeline : repartition visuelle des 7 statuts avec pourcentages
@@ -104,7 +104,7 @@ CRM interne pour la prospection de clients web dans la region des Flandres. Rech
 - Page Server Component avec chargement parallele (`Promise.all`)
 - 16 tests unitaires
 
-### Session 10 — Analyse concurrentielle
+### Session 11 — Analyse concurrentielle
 - **Onglet Analyse** sur la fiche prospect : recherche jusqu'a 5 concurrents locaux avec site web
 - Scraping de leurs sites via Firecrawl, analyse IA via Claude (forces, faiblesses, positionnement)
 - Synthese du marche + recommandations pour se demarquer
