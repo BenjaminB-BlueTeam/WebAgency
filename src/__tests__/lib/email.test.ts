@@ -83,14 +83,14 @@ describe("sendEmail", () => {
 
   it("returns true on successful send", async () => {
     const mockSend = vi.fn().mockResolvedValue({ data: { id: "123" }, error: null })
-    vi.mocked(Resend).mockImplementation(() => ({ emails: { send: mockSend } } as unknown as Resend))
+    vi.mocked(Resend).mockImplementation(function () { return { emails: { send: mockSend } } as unknown as Resend })
     const result = await sendEmail("test@example.com", "Sujet", "<p>HTML</p>")
     expect(result).toBe(true)
   })
 
   it("returns false when Resend returns an error", async () => {
     const mockSend = vi.fn().mockResolvedValue({ data: null, error: { message: "send failed" } })
-    vi.mocked(Resend).mockImplementation(() => ({ emails: { send: mockSend } } as unknown as Resend))
+    vi.mocked(Resend).mockImplementation(function () { return { emails: { send: mockSend } } as unknown as Resend })
     const result = await sendEmail("test@example.com", "Sujet", "<p>HTML</p>")
     expect(result).toBe(false)
   })
