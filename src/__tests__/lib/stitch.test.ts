@@ -6,7 +6,8 @@ const mockProject = { id: "proj-123", generate: mockGenerate }
 const mockCreateProject = vi.fn().mockResolvedValue(mockProject)
 
 vi.mock("@google/stitch-sdk", () => ({
-  Stitch: vi.fn().mockImplementation(() => ({ createProject: mockCreateProject })),
+  Stitch: vi.fn().mockImplementation(function () { return { createProject: mockCreateProject } }),
+  StitchToolClient: vi.fn().mockImplementation(function () { return {} }),
 }))
 
 vi.mock("@/lib/stitch/buildPrompt", () => ({
