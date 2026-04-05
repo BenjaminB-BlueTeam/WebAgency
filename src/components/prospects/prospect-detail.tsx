@@ -3,13 +3,14 @@
 import { useState } from "react"
 import Link from "next/link"
 import { motion, AnimatePresence } from "motion/react"
-import { ArrowLeft, Search, Palette } from "lucide-react"
+import { ArrowLeft, Search } from "lucide-react"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Button } from "@/components/ui/button"
 import { slideIn } from "@/lib/animations"
 import { StatusBadge } from "@/components/prospects/status-badge"
 import { ProspectInfoTab } from "@/components/prospects/prospect-info-tab"
 import { ProspectActivityTab } from "@/components/prospects/prospect-activity-tab"
+import { ProspectMaquetteTab } from "@/components/prospects/prospect-maquette-tab"
 import type { ProspectWithRelations } from "@/types/prospect"
 
 export function ProspectDetail({ prospect }: { prospect: ProspectWithRelations }) {
@@ -66,11 +67,7 @@ export function ProspectDetail({ prospect }: { prospect: ProspectWithRelations }
               )}
 
               {activeTab === "maquette" && (
-                <PlaceholderTab
-                  icon={<Palette size={48} className="text-[#555555]" />}
-                  title="Aucune maquette générée"
-                  buttonLabel="Générer une maquette"
-                />
+                <ProspectMaquetteTab prospect={prospect} />
               )}
 
               {activeTab === "activite" && (
