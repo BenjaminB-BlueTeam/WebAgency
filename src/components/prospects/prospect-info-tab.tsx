@@ -11,12 +11,12 @@ import { ProspectNotes } from "./prospect-notes"
 import { Button } from "@/components/ui/button"
 
 const STATUT_LABELS: Record<string, string> = {
-  A_DEMARCHER: "A démarcher",
-  CONTACTE: "Contacté",
+  A_DEMARCHER: "À démarcher",
+  MAQUETTE_EMAIL_ENVOYES: "Maquette + Email envoyés",
+  REPONDU: "Répondu",
   RDV_PLANIFIE: "RDV planifié",
-  MAQUETTE_ENVOYEE: "Maquette envoyée",
-  RELANCE: "Relance",
-  SIGNE: "Signé",
+  NEGOCIATION: "Négociation",
+  CLIENT: "Client",
   PERDU: "Perdu",
 }
 

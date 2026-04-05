@@ -8,6 +8,7 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Button } from "@/components/ui/button"
 import { slideIn } from "@/lib/animations"
 import { StatusBadge } from "@/components/prospects/status-badge"
+import { DemarcherSheet } from "@/components/prospects/demarcher-sheet"
 import { ProspectInfoTab } from "@/components/prospects/prospect-info-tab"
 import { ProspectActivityTab } from "@/components/prospects/prospect-activity-tab"
 import { ProspectMaquetteTab } from "@/components/prospects/prospect-maquette-tab"
@@ -15,6 +16,7 @@ import type { ProspectWithRelations } from "@/types/prospect"
 
 export function ProspectDetail({ prospect }: { prospect: ProspectWithRelations }) {
   const [activeTab, setActiveTab] = useState("informations")
+  const [showDemarcher, setShowDemarcher] = useState(false)
 
   return (
     <div>
@@ -27,9 +29,14 @@ export function ProspectDetail({ prospect }: { prospect: ProspectWithRelations }
           <ArrowLeft size={14} />
           Prospects
         </Link>
-        <div className="flex items-center gap-3">
-          <h1 className="text-xl font-bold text-[#fafafa]">{prospect.nom}</h1>
-          <StatusBadge statut={prospect.statutPipeline} />
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <h1 className="text-xl font-bold text-[#fafafa]">{prospect.nom}</h1>
+            <StatusBadge statut={prospect.statutPipeline} />
+          </div>
+          <Button size="sm" onClick={() => setShowDemarcher(true)}>
+            Démarcher
+          </Button>
         </div>
         <p className="text-sm text-[#737373] mt-1">
           {prospect.activite} — {prospect.ville}
@@ -77,6 +84,10 @@ export function ProspectDetail({ prospect }: { prospect: ProspectWithRelations }
           </AnimatePresence>
         </div>
       </Tabs>
+
+      {showDemarcher && (
+        <DemarcherSheet prospect={prospect} onClose={() => setShowDemarcher(false)} />
+      )}
     </div>
   )
 }
