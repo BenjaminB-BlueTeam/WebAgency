@@ -82,12 +82,15 @@ export async function sendEmail(
   subject: string,
   htmlContent: string
 ): Promise<boolean> {
-  const resend = new Resend(process.env.RESEND_API_KEY)
+  const resend = new Resend(process.env.RESEND_API_KEY!)
   const { error } = await resend.emails.send({
     from: process.env.RESEND_FROM_EMAIL!,
     to,
     subject,
     html: htmlContent,
   })
+  if (error) {
+    console.error("Resend error:", error)
+  }
   return error === null
 }

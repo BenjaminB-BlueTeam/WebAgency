@@ -7,9 +7,7 @@ vi.mock("@/lib/anthropic", () => ({
 }))
 
 vi.mock("resend", () => ({
-  Resend: vi.fn().mockImplementation(() => ({
-    emails: { send: vi.fn() },
-  })),
+  Resend: vi.fn(),
 }))
 
 import { generateProspectionEmail, buildEmailHtml, sendEmail } from "@/lib/email"
