@@ -3,7 +3,7 @@
 import { useState } from "react"
 import Link from "next/link"
 import { motion, AnimatePresence } from "motion/react"
-import { ArrowLeft, Search } from "lucide-react"
+import { ArrowLeft } from "lucide-react"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Button } from "@/components/ui/button"
 import { slideIn } from "@/lib/animations"
@@ -12,6 +12,7 @@ import { DemarcherSheet } from "@/components/prospects/demarcher-sheet"
 import { ProspectInfoTab } from "@/components/prospects/prospect-info-tab"
 import { ProspectActivityTab } from "@/components/prospects/prospect-activity-tab"
 import { ProspectMaquetteTab } from "@/components/prospects/prospect-maquette-tab"
+import { ProspectAnalyseTab } from "@/components/prospects/prospect-analyse-tab"
 import type { ProspectWithRelations } from "@/types/prospect"
 
 export function ProspectDetail({ prospect }: { prospect: ProspectWithRelations }) {
@@ -66,11 +67,7 @@ export function ProspectDetail({ prospect }: { prospect: ProspectWithRelations }
               )}
 
               {activeTab === "analyse" && (
-                <PlaceholderTab
-                  icon={<Search size={48} className="text-[#555555]" />}
-                  title="Aucune analyse concurrentielle"
-                  buttonLabel="Lancer l'analyse"
-                />
+                <ProspectAnalyseTab prospect={prospect} />
               )}
 
               {activeTab === "maquette" && (
@@ -88,26 +85,6 @@ export function ProspectDetail({ prospect }: { prospect: ProspectWithRelations }
       {showDemarcher && (
         <DemarcherSheet prospect={prospect} onClose={() => setShowDemarcher(false)} />
       )}
-    </div>
-  )
-}
-
-function PlaceholderTab({
-  icon,
-  title,
-  buttonLabel,
-}: {
-  icon: React.ReactNode
-  title: string
-  buttonLabel: string
-}) {
-  return (
-    <div className="flex flex-col items-center justify-center py-16 text-center">
-      <div className="mb-4">{icon}</div>
-      <p className="text-sm text-[#737373] mb-4">{title}</p>
-      <Button variant="outline" disabled className="opacity-50">
-        {buttonLabel}
-      </Button>
     </div>
   )
 }
