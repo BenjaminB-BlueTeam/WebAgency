@@ -80,7 +80,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
         prisma.activite.create({
           data: {
             prospectId: id,
-            type: "CHANGEMENT_STATUT",
+            type: "PIPELINE",
             description: `Statut changé de ${existing.statutPipeline} vers ${data!.statutPipeline}`,
           },
         }),

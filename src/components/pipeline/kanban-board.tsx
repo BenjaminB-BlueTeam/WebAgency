@@ -19,11 +19,11 @@ import type { Prospect } from "@/types/prospect"
 
 const COLUMNS: { id: string; label: string }[] = [
   { id: "A_DEMARCHER", label: "À démarcher" },
-  { id: "CONTACTE", label: "Contacté" },
+  { id: "MAQUETTE_EMAIL_ENVOYES", label: "Maquette + Email envoyés" },
+  { id: "REPONDU", label: "Répondu" },
   { id: "RDV_PLANIFIE", label: "RDV planifié" },
-  { id: "MAQUETTE_ENVOYEE", label: "Maquette envoyée" },
-  { id: "RELANCE", label: "Relance" },
-  { id: "SIGNE", label: "Signé" },
+  { id: "NEGOCIATION", label: "Négociation" },
+  { id: "CLIENT", label: "Client" },
   { id: "PERDU", label: "Perdu" },
 ]
 
