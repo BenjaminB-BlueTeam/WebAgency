@@ -1,8 +1,8 @@
-import { NextRequest, NextResponse } from "next/server"
+import { NextResponse } from "next/server"
 import { requireAuth } from "@/lib/auth"
 import { getDashboardRelances } from "@/lib/dashboard"
 
-export async function GET(_request: NextRequest) {
+export async function GET() {
   try {
     await requireAuth()
     const data = await getDashboardRelances()
