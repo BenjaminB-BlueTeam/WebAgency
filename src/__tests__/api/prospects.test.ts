@@ -330,7 +330,7 @@ describe("PATCH /api/prospects/[id] — status change creates activite", () => {
       body: JSON.stringify({ statutPipeline: "REPONDU" }),
     })
     const params = Promise.resolve({ id: "p1" })
-    const res = await PATCH(req as any, { params })
+    const res = await PATCH(req as unknown as NextRequest, { params })
     expect(res.status).toBe(200)
     expect(vi.mocked(refreshProchainRelance)).toHaveBeenCalledWith("p1")
   })
@@ -343,7 +343,7 @@ describe("PATCH /api/prospects/[id] — status change creates activite", () => {
     })
     const params = Promise.resolve({ id: "p1" })
     mockPrismaProspect.update.mockResolvedValue({ id: "p1", telephone: "03 20 00 00 00", statutPipeline: "A_DEMARCHER" })
-    const res = await PATCH(req as any, { params })
+    const res = await PATCH(req as unknown as NextRequest, { params })
     expect(res.status).toBe(200)
     expect(vi.mocked(refreshProchainRelance)).not.toHaveBeenCalled()
   })
