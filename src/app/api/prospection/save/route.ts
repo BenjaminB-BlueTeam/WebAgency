@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { requireAuth } from "@/lib/auth"
-import { prisma } from "@/lib/db"
+import { prisma, isUniqueConstraintError } from "@/lib/db"
 import { validateString } from "@/lib/validation"
-import { Prisma } from "@prisma/client"
 import type { PlaceResult } from "@/types/places"
 
 function extractVille(adresse: string): string {
@@ -93,10 +92,7 @@ export async function POST(request: NextRequest) {
 
         saved++
       } catch (createErr) {
-        if (
-          createErr instanceof Prisma.PrismaClientKnownRequestError &&
-          createErr.code === "P2002"
-        ) {
+        if (isUniqueConstraintError(createErr)) {
           skipped++
         } else {
           throw createErr

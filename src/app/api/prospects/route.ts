@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { requireAuth } from "@/lib/auth"
-import { prisma } from "@/lib/db"
+import { prisma, isUniqueConstraintError, isNotFoundError } from "@/lib/db"
 import { validateProspectCreate, isValidStatutPipeline } from "@/lib/validation"
 import { Prisma } from "@prisma/client"
 
@@ -82,10 +82,7 @@ export async function POST(request: NextRequest) {
     if (error instanceof Error && error.message === "Unauthorized") {
       return NextResponse.json({ error: "Non autorisé" }, { status: 401 })
     }
-    if (
-      error instanceof Prisma.PrismaClientKnownRequestError &&
-      error.code === "P2002"
-    ) {
+    if (isUniqueConstraintError(error)) {
       return NextResponse.json(
         { error: "Un prospect avec ce nom dans cette ville existe déjà" },
         { status: 409 }

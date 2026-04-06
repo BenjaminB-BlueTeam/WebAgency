@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { requireAuth } from "@/lib/auth"
-import { prisma } from "@/lib/db"
+import { prisma, isUniqueConstraintError } from "@/lib/db"
 import { validateProspectUpdate } from "@/lib/validation"
 import { Prisma } from "@prisma/client"
 import { refreshProchainRelance } from "@/lib/relance-writer"
@@ -103,19 +103,14 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
     if (error instanceof Error && error.message === "Unauthorized") {
       return NextResponse.json({ error: "Non autorisé" }, { status: 401 })
     }
-    if (error instanceof Prisma.PrismaClientKnownRequestError) {
-      if (error.code === "P2002") {
-        return NextResponse.json(
-          { error: "Un prospect avec ce nom dans cette ville existe déjà" },
-          { status: 409 }
-        )
-      }
-      if (error.code === "P2025") {
-        return NextResponse.json(
-          { error: "Prospect non trouvé" },
-          { status: 404 }
-        )
-      }
+    if (isUniqueConstraintError(error)) {
+      return NextResponse.json(
+        { error: "Un prospect avec ce nom dans cette ville existe déjà" },
+        { status: 409 }
+      )
+    }
+    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2025") {
+      return NextResponse.json({ error: "Prospect non trouvé" }, { status: 404 })
     }
     return NextResponse.json({ error: "Erreur serveur" }, { status: 500 })
   }

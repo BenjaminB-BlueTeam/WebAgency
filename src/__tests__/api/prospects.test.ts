@@ -23,13 +23,17 @@ const { mockPrismaProspect, mockPrismaActivite, mockTransaction } = vi.hoisted((
   return { mockPrismaProspect, mockPrismaActivite, mockTransaction }
 })
 
-vi.mock("@/lib/db", () => ({
-  prisma: {
-    prospect: mockPrismaProspect,
-    activite: mockPrismaActivite,
-    $transaction: mockTransaction,
-  },
-}))
+vi.mock("@/lib/db", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/lib/db")>()
+  return {
+    ...actual,
+    prisma: {
+      prospect: mockPrismaProspect,
+      activite: mockPrismaActivite,
+      $transaction: mockTransaction,
+    },
+  }
+})
 
 // Import routes AFTER mocks
 import { GET, POST } from "@/app/api/prospects/route"
