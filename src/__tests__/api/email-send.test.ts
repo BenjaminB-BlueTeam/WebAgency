@@ -20,6 +20,7 @@ import { POST } from "@/app/api/prospects/[id]/email/send/route"
 import { requireAuth } from "@/lib/auth"
 import { prisma } from "@/lib/db"
 import { sendEmail, buildEmailHtml } from "@/lib/email"
+import { refreshProchainRelance } from "@/lib/relance-writer"
 
 const params = Promise.resolve({ id: "p1" })
 function makeReq(body = { emailId: "e1", sujet: "Votre site web", corps: "Bonjour Martin" }) {
@@ -137,5 +138,11 @@ describe("POST /api/prospects/[id]/email/send", () => {
     vi.mocked(prisma.prospect.findUnique).mockResolvedValue({ ...mockProspect, statutPipeline: "REPONDU" } as any)
     await POST(makeReq() as any, { params })
     expect(vi.mocked(prisma.prospect.update)).not.toHaveBeenCalled()
+  })
+
+  it("calls refreshProchainRelance after successful send", async () => {
+    const res = await POST(makeReq() as any, { params })
+    expect(res.status).toBe(200)
+    expect(vi.mocked(refreshProchainRelance)).toHaveBeenCalledWith("p1")
   })
 })

@@ -35,6 +35,7 @@ vi.mock("@/lib/db", () => ({
 import { GET, POST } from "@/app/api/prospects/route"
 import { PATCH } from "@/app/api/prospects/[id]/route"
 import { Prisma } from "@prisma/client"
+import { refreshProchainRelance } from "@/lib/relance-writer"
 
 function makeRequest(
   url: string,
@@ -283,6 +284,7 @@ describe("GET /api/prospects — search filter", () => {
 describe("PATCH /api/prospects/[id] — status change creates activite", () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    vi.mocked(refreshProchainRelance).mockResolvedValue(undefined)
     mockPrismaProspect.findUnique.mockResolvedValue({
       id: "clx123",
       statutPipeline: "A_DEMARCHER",
@@ -319,6 +321,31 @@ describe("PATCH /api/prospects/[id] — status change creates activite", () => {
 
     expect(res.status).toBe(200)
     expect(mockTransaction).not.toHaveBeenCalled()
+  })
+
+  it("calls refreshProchainRelance when statutPipeline changes", async () => {
+    const req = new Request("http://localhost/api/prospects/p1", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ statutPipeline: "REPONDU" }),
+    })
+    const params = Promise.resolve({ id: "p1" })
+    const res = await PATCH(req as any, { params })
+    expect(res.status).toBe(200)
+    expect(vi.mocked(refreshProchainRelance)).toHaveBeenCalledWith("p1")
+  })
+
+  it("does not call refreshProchainRelance when only unrelated fields change", async () => {
+    const req = new Request("http://localhost/api/prospects/p1", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ telephone: "03 20 00 00 00" }),
+    })
+    const params = Promise.resolve({ id: "p1" })
+    mockPrismaProspect.update.mockResolvedValue({ id: "p1", telephone: "03 20 00 00 00", statutPipeline: "A_DEMARCHER" })
+    const res = await PATCH(req as any, { params })
+    expect(res.status).toBe(200)
+    expect(vi.mocked(refreshProchainRelance)).not.toHaveBeenCalled()
   })
 })
 
