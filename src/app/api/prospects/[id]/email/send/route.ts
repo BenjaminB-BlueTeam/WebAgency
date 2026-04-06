@@ -74,7 +74,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       })
     }
 
-    refreshProchainRelance(id).catch(console.error)
+    refreshProchainRelance(id).catch(() => {})
 
     return NextResponse.json({ data: { success: true } })
   } catch (error) {

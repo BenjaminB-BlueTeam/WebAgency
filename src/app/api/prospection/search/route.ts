@@ -82,7 +82,6 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ error: err.message }, { status: 502 })
       }
     }
-    console.error("[prospection/search] unhandled error:", err)
     return NextResponse.json(
       { error: process.env.NODE_ENV === "development" ? String(err) : "Erreur interne du serveur" },
       { status: 500 }

@@ -95,7 +95,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
     }
 
     if (data!.statutPipeline !== undefined || data!.dateRdv !== undefined || data!.dateMaquetteEnvoi !== undefined) {
-      refreshProchainRelance(id).catch(console.error)
+      refreshProchainRelance(id).catch(() => {})
     }
 
     return NextResponse.json({ data: prospect })
