@@ -62,6 +62,25 @@ Chaque modification prend effet immédiatement sans redéploiement.
 - Les valeurs par défaut sont codées dans le code comme fallback
 - Si la clé n'existe pas en base, le fallback s'applique → rien ne casse jamais
 
+## Ajout manuel de prospect (priorité : haute)
+Bouton "Ajouter un prospect" sur la page Prospects.
+- Ouvre une modale avec un formulaire : nom, activité, ville, téléphone, email, site web (tous optionnels sauf nom)
+- Crée le prospect en base via POST /api/prospects existant
+- Permet de se tester soi-même comme prospect pour valider le workflow complet
+- Utile aussi quand un prospect vient par recommandation ou par contact direct (pas via Google Places)
+
+## Ajustement maquette post-génération (priorité : haute)
+Après génération d'une maquette, pouvoir donner des instructions de correction sans tout régénérer depuis zéro.
+- Bouton "Ajuster" à côté de "Régénérer" dans l'onglet maquette
+- Ouvre un textarea : "Qu'est-ce que tu veux modifier ?"
+  Exemples : "Change la couleur principale en bleu", "Ajoute une page Tarifs",
+  "Remplace le texte d'accroche par...", "Mets le CTA en rouge"
+- Claude reçoit le code du site actuel + les instructions de modification
+- Il retourne le code modifié (pas une régénération complète)
+- Redéploiement Netlify avec le code ajusté
+- L'historique des ajustements est stocké (prompt initial + corrections successives)
+- Ne compte pas dans la limite des 3 versions (c'est un ajustement, pas une régénération)
+
 ## Fix mineurs post-sessions
 - Dashboard tauxConversion : calculer sur prospects email envoyé+, pas total
 - computeProchainRelance : description.includes("NEGOCIATION") fragile → filtre robuste
