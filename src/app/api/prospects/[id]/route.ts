@@ -94,7 +94,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
       })
     }
 
-    if (data!.statutPipeline !== undefined || data!.dateRdv !== undefined) {
+    if (data!.statutPipeline !== undefined || data!.dateRdv !== undefined || data!.dateMaquetteEnvoi !== undefined) {
       refreshProchainRelance(id).catch(console.error)
     }
 
