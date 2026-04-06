@@ -62,6 +62,18 @@ Chaque modification prend effet immédiatement sans redéploiement.
 - Les valeurs par défaut sont codées dans le code comme fallback
 - Si la clé n'existe pas en base, le fallback s'applique → rien ne casse jamais
 
+## Veille nouveaux prospects (priorité : haute)
+Widget sur le Dashboard : "Nouvelles entreprises dans la région"
+- Vercel Cron quotidien (chaque matin à 8h) qui interroge Pappers
+  sur les entreprises créées dans les dernières 24h dans le département 59
+- Filtre optionnel par code NAF (pour cibler les métiers pertinents)
+- Affichage sur le dashboard : nom, activité (libellé NAF), ville, date de création
+- Bouton "Ajouter comme prospect" sur chaque ligne → crée le prospect en base
+  et lance le scoring automatiquement
+- Badge compteur sur le widget : "3 nouvelles entreprises aujourd'hui"
+- Coût Pappers : ~2 crédits/jour (recherche 0.1/résultat) → ~60 crédits/mois
+- Les entreprises déjà ajoutées comme prospect ne réapparaissent pas
+
 ## Scoring automatique à la recherche (priorité : haute)
 Quand des prospects sont trouvés via Google Places, le scoring se lance automatiquement.
 - Phase 1 : recherche Google Places → affichage des résultats → message "Recherche terminée. Scoring en cours..."
