@@ -33,9 +33,39 @@ export function parsePlacesResponse(response: GooglePlacesResponse): PlaceResult
   }))
 }
 
-export async function searchPlaces(query: string, ville: string): Promise<PlaceResult[]> {
+async function geocodeCity(ville: string, apiKey: string): Promise<{ lat: number; lng: number } | null> {
+  try {
+    const url = new URL("https://maps.googleapis.com/maps/api/geocode/json")
+    url.searchParams.set("address", `${ville}, France`)
+    url.searchParams.set("key", apiKey)
+    const res = await fetch(url.toString())
+    if (!res.ok) return null
+    const data = await res.json() as {
+      results?: Array<{ geometry?: { location?: { lat: number; lng: number } } }>
+    }
+    return data.results?.[0]?.geometry?.location ?? null
+  } catch {
+    return null
+  }
+}
+
+export async function searchPlaces(query: string, ville: string, radiusMeters?: number): Promise<PlaceResult[]> {
   const apiKey = process.env.GOOGLE_PLACES_KEY
   if (!apiKey) throw new Error("Clé API Google Places non configurée")
+
+  const body: Record<string, unknown> = { textQuery: `${query} ${ville}` }
+
+  if (radiusMeters) {
+    const coords = await geocodeCity(ville, apiKey)
+    if (coords) {
+      body.locationBias = {
+        circle: {
+          center: { latitude: coords.lat, longitude: coords.lng },
+          radius: radiusMeters,
+        },
+      }
+    }
+  }
 
   const res = await fetch(PLACES_ENDPOINT, {
     method: "POST",
@@ -44,7 +74,7 @@ export async function searchPlaces(query: string, ville: string): Promise<PlaceR
       "X-Goog-Api-Key": apiKey,
       "X-Goog-FieldMask": FIELD_MASK,
     },
-    body: JSON.stringify({ textQuery: `${query} ${ville}` }),
+    body: JSON.stringify(body),
   })
 
   if (!res.ok) {

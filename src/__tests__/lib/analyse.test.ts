@@ -33,12 +33,13 @@ const makePlace = (id: string, siteUrl: string | null) => ({
 describe("findCompetitorCandidates", () => {
   beforeEach(() => vi.clearAllMocks())
 
-  it("retourne max 5 candidats avec siteUrl", async () => {
-    const many = Array.from({ length: 10 }, (_, i) => makePlace(`p${i}`, `https://site${i}.com`))
+  it("retourne max 8 candidats incluant ceux sans site", async () => {
+    const many = Array.from({ length: 10 }, (_, i) =>
+      makePlace(`p${i}`, i % 2 === 0 ? `https://site${i}.com` : null)
+    )
     vi.mocked(searchPlaces).mockResolvedValue(many as any)
     const result = await findCompetitorCandidates("Garagiste", "Lille")
-    expect(result).toHaveLength(5)
-    result.forEach((r) => expect(r.siteUrl).not.toBeNull())
+    expect(result).toHaveLength(8)
   })
 
   it("exclut le placeId du prospect", async () => {
@@ -54,6 +55,12 @@ describe("findCompetitorCandidates", () => {
     const result = await findCompetitorCandidates("Garagiste", "Lille")
     expect(result).toHaveLength(0)
   })
+
+  it("appelle searchPlaces avec un rayon de 20km", async () => {
+    vi.mocked(searchPlaces).mockResolvedValue([])
+    await findCompetitorCandidates("Plombier", "Saint-Sylvestre-Cappel")
+    expect(searchPlaces).toHaveBeenCalledWith("Plombier", "Saint-Sylvestre-Cappel", 20000)
+  })
 })
 
 describe("scrapeCompetitors", () => {
@@ -66,6 +73,14 @@ describe("scrapeCompetitors", () => {
     expect(result).toHaveLength(2)
     expect(result[0].nom).toBe("Concurrent p1")
     expect(result[0].html).toBe("<html>content</html>")
+  })
+
+  it("ignore les candidats sans siteUrl", async () => {
+    const candidates = [makePlace("p1", "https://a.com"), makePlace("p2", null), makePlace("p3", "https://b.com")]
+    vi.mocked(scrapeUrl).mockResolvedValue("<html>content</html>")
+    const result = await scrapeCompetitors(candidates as any)
+    expect(result).toHaveLength(2)
+    expect(result.map((r) => r.nom)).toEqual(["Concurrent p1", "Concurrent p3"])
   })
 
   it("ignore les échecs de scraping", async () => {
@@ -114,6 +129,15 @@ describe("buildAnalyseResult", () => {
     expect(result.concurrents[0].nom).toBe("Concurrent A")
     expect(result.synthese).toBe("Marché peu concurrentiel")
     expect(result.recommandations).toHaveLength(1)
+  })
+
+  it("inclut les concurrents sans site dans le prompt", async () => {
+    vi.mocked(analyzeWithClaude).mockResolvedValue(claudeResponse)
+    const noSite = [makePlace("ns1", null), makePlace("ns2", null)]
+    await buildAnalyseResult(prospect, scraped, noSite as any)
+    const call = vi.mocked(analyzeWithClaude).mock.calls[0]
+    expect(call[1]).toContain("Concurrent ns1")
+    expect(call[1]).toContain("sans site web")
   })
 
   it("lève une erreur si Claude retourne du JSON invalide", async () => {

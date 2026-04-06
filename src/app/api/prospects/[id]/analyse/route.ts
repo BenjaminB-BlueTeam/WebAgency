@@ -25,7 +25,8 @@ export async function POST(_request: NextRequest, { params }: RouteParams) {
       prospect.placeId
     )
     const scraped = await scrapeCompetitors(candidates)
-    const result = await buildAnalyseResult(prospect, scraped)
+    const noSite = candidates.filter((c) => c.siteUrl === null)
+    const result = await buildAnalyseResult(prospect, scraped, noSite)
 
     const concurrents = JSON.stringify(result.concurrents)
     const recommandations = JSON.stringify({

@@ -22,17 +22,18 @@ export async function findCompetitorCandidates(
   ville: string,
   ownPlaceId?: string | null
 ): Promise<PlaceResult[]> {
-  const results = await searchPlaces(activite, ville)
+  const results = await searchPlaces(activite, ville, 20000)
   return results
-    .filter((r) => r.siteUrl !== null && r.placeId !== ownPlaceId)
-    .slice(0, 5)
+    .filter((r) => r.placeId !== ownPlaceId)
+    .slice(0, 8)
 }
 
 export async function scrapeCompetitors(
   candidates: PlaceResult[]
 ): Promise<{ nom: string; siteUrl: string; html: string }[]> {
+  const withSite = candidates.filter((c) => c.siteUrl !== null)
   const settled = await Promise.allSettled(
-    candidates.map(async (c) => ({
+    withSite.map(async (c) => ({
       nom: c.nom,
       siteUrl: c.siteUrl!,
       html: await scrapeUrl(c.siteUrl!),
@@ -53,7 +54,8 @@ Réponds UNIQUEMENT avec du JSON valide, sans commentaires ni markdown.`
 
 export async function buildAnalyseResult(
   prospect: { nom: string; activite: string; ville: string },
-  scrapedCompetitors: { nom: string; siteUrl: string; html: string }[]
+  scrapedCompetitors: { nom: string; siteUrl: string; html: string }[],
+  noWebsiteCompetitors: PlaceResult[] = []
 ): Promise<AnalyseResult> {
   const competitorsText =
     scrapedCompetitors.length === 0
@@ -62,13 +64,18 @@ export async function buildAnalyseResult(
           .map((c) => `--- ${c.nom} (${c.siteUrl}) ---\n${c.html.slice(0, 3000)}`)
           .join("\n\n")
 
+  const noWebsiteText =
+    noWebsiteCompetitors.length > 0
+      ? `\nConcurrents présents dans la zone mais sans site web : ${noWebsiteCompetitors.map((c) => `${c.nom} (${c.adresse})`).join(", ")}`
+      : ""
+
   const userPrompt = `Analyse la concurrence pour :
 Entreprise : ${prospect.nom}
 Secteur : ${prospect.activite}
 Ville : ${prospect.ville}
 
 Concurrents trouvés :
-${competitorsText}
+${competitorsText}${noWebsiteText}
 
 Réponds avec ce JSON exact :
 {

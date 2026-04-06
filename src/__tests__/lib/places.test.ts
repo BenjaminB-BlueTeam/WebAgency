@@ -93,4 +93,31 @@ describe("searchPlaces", () => {
     })
     await expect(searchPlaces("test", "Lille")).rejects.toThrow("Quota API Google Places dépassé")
   })
+
+  it("passe locationBias quand radiusMeters est fourni et geocoding réussit", async () => {
+    mockFetch
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ results: [{ geometry: { location: { lat: 50.83, lng: 2.57 } } }] }),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ places: [] }),
+      })
+    await searchPlaces("plombier", "Saint-Sylvestre-Cappel", 20000)
+    expect(mockFetch).toHaveBeenCalledTimes(2)
+    const placesBody = JSON.parse(mockFetch.mock.calls[1][1].body as string)
+    expect(placesBody.locationBias).toEqual({
+      circle: { center: { latitude: 50.83, longitude: 2.57 }, radius: 20000 },
+    })
+  })
+
+  it("envoie la requête sans locationBias si geocoding échoue", async () => {
+    mockFetch
+      .mockResolvedValueOnce({ ok: false, status: 400, json: async () => ({}) })
+      .mockResolvedValueOnce({ ok: true, json: async () => ({ places: [] }) })
+    await searchPlaces("plombier", "Inconnu", 20000)
+    const placesBody = JSON.parse(mockFetch.mock.calls[1][1].body as string)
+    expect(placesBody.locationBias).toBeUndefined()
+  })
 })
