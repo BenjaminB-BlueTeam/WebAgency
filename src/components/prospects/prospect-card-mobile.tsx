@@ -9,20 +9,37 @@ import type { Prospect } from "@/types/prospect"
 interface ProspectCardMobileProps {
   prospect: Prospect
   onToggle: () => void
+  isSelected: boolean
+  onSelect: () => void
 }
 
 export function ProspectCardMobile({
   prospect,
   onToggle,
+  isSelected,
+  onSelect,
 }: ProspectCardMobileProps) {
   return (
     <motion.div
       variants={staggerItem}
       {...hoverLift}
       onClick={onToggle}
-      className={`cursor-pointer rounded-[6px] border border-[#1a1a1a] p-3 bg-[#0a0a0a]`}
+      className={`cursor-pointer rounded-[6px] border p-3 bg-[#0a0a0a] transition-colors ${
+        isSelected ? "border-[#555555]" : "border-[#1a1a1a]"
+      }`}
     >
       <div className="flex items-start justify-between gap-2">
+        <div
+          className="pt-0.5 shrink-0"
+          onClick={(e) => { e.stopPropagation() }}
+        >
+          <input
+            type="checkbox"
+            checked={isSelected}
+            onChange={onSelect}
+            className="accent-white cursor-pointer"
+          />
+        </div>
         <div className="min-w-0 flex-1">
           <p className="text-sm font-medium text-[#fafafa] truncate">
             {prospect.nom}

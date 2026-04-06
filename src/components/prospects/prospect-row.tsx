@@ -12,9 +12,11 @@ interface ProspectRowProps {
   prospect: Prospect
   isExpanded: boolean
   onToggle: () => void
+  isSelected: boolean
+  onSelect: () => void
 }
 
-export function ProspectRow({ prospect, isExpanded, onToggle }: ProspectRowProps) {
+export function ProspectRow({ prospect, isExpanded, onToggle, isSelected, onSelect }: ProspectRowProps) {
   return (
     <motion.tr
       variants={staggerItem}
@@ -23,6 +25,14 @@ export function ProspectRow({ prospect, isExpanded, onToggle }: ProspectRowProps
         isExpanded ? "bg-[#0a0a0a]" : ""
       }`}
     >
+      <td className="py-3 px-2 w-10" onClick={(e) => { e.stopPropagation() }}>
+        <input
+          type="checkbox"
+          checked={isSelected}
+          onChange={onSelect}
+          className="accent-white cursor-pointer"
+        />
+      </td>
       <td className="py-3 px-4 text-sm text-[#fafafa] font-medium">
         {prospect.nom}
       </td>

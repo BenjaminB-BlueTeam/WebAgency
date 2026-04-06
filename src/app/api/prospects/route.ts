@@ -94,3 +94,27 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Erreur serveur" }, { status: 500 })
   }
 }
+
+export async function DELETE(request: NextRequest) {
+  try {
+    await requireAuth()
+
+    const body: unknown = await request.json()
+    if (typeof body !== "object" || body === null) {
+      return NextResponse.json({ error: "Corps de requête invalide" }, { status: 400 })
+    }
+    const ids = (body as Record<string, unknown>).ids
+    if (!Array.isArray(ids) || ids.length === 0 || !ids.every((id) => typeof id === "string")) {
+      return NextResponse.json({ error: "ids doit être un tableau de strings non vide" }, { status: 400 })
+    }
+
+    const { count } = await prisma.prospect.deleteMany({ where: { id: { in: ids } } })
+
+    return NextResponse.json({ data: { deleted: count } })
+  } catch (error) {
+    if (error instanceof Error && error.message === "Unauthorized") {
+      return NextResponse.json({ error: "Non autorisé" }, { status: 401 })
+    }
+    return NextResponse.json({ error: "Erreur serveur" }, { status: 500 })
+  }
+}

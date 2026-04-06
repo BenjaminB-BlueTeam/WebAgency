@@ -2,8 +2,10 @@
 
 import React, { useState, useEffect, useCallback, useRef } from "react"
 import { motion, AnimatePresence } from "motion/react"
-import { ChevronUp, ChevronDown } from "lucide-react"
+import { ChevronUp, ChevronDown, Trash2 } from "lucide-react"
+import { toast } from "sonner"
 import { staggerContainer } from "@/lib/animations"
+import { Button } from "@/components/ui/button"
 import { ProspectFilters } from "@/components/prospects/prospect-filters"
 import { ProspectRow } from "@/components/prospects/prospect-row"
 import { ProspectCardMobile } from "@/components/prospects/prospect-card-mobile"
@@ -21,7 +23,7 @@ interface ProspectListProps {
 function SkeletonRow() {
   return (
     <tr>
-      <td colSpan={8} className="py-2 px-4">
+      <td colSpan={9} className="py-2 px-4">
         <div className="h-12 w-full rounded-[6px] bg-[#0a0a0a] animate-pulse" />
       </td>
     </tr>
@@ -55,6 +57,9 @@ export function ProspectList({ initialProspects }: ProspectListProps) {
   const [scoreMin, setScoreMin] = useState(0)
   const [sort, setSort] = useState<SortKey>("createdAt")
   const [order, setOrder] = useState<SortOrder>("desc")
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
+  const [confirmingDelete, setConfirmingDelete] = useState(false)
+  const [deleting, setDeleting] = useState(false)
 
   const searchDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const isFirstRender = useRef(true)
@@ -127,7 +132,45 @@ export function ProspectList({ initialProspects }: ProspectListProps) {
     setExpandedId((prev) => (prev === id ? null : id))
   }, [])
 
+  const handleToggleSelect = useCallback((id: string) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      return next
+    })
+  }, [])
+
+  const handleSelectAll = useCallback(() => {
+    setSelectedIds((prev) =>
+      prev.size === prospects.length ? new Set() : new Set(prospects.map((p) => p.id))
+    )
+  }, [prospects])
+
+  async function handleBulkDelete() {
+    setDeleting(true)
+    try {
+      const res = await fetch("/api/prospects", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ids: Array.from(selectedIds) }),
+      })
+      if (!res.ok) throw new Error("Delete failed")
+      const json = await res.json() as { data: { deleted: number } }
+      toast.success(`${json.data.deleted} prospect${json.data.deleted > 1 ? "s" : ""} supprimé${json.data.deleted > 1 ? "s" : ""}`)
+      setSelectedIds(new Set())
+      setConfirmingDelete(false)
+      await fetchProspects({ search, statut, scoreMin, sort, order })
+    } catch {
+      toast.error("Erreur lors de la suppression")
+    } finally {
+      setDeleting(false)
+    }
+  }
+
   const hasFilters = search !== "" || statut !== "all" || scoreMin > 0
+  const allSelected = prospects.length > 0 && selectedIds.size === prospects.length
+  const someSelected = selectedIds.size > 0
 
   const SortIcon = ({ colKey }: { colKey: SortKey }) => {
     if (sort !== colKey) return <ChevronDown size={12} className="text-[#555555] ml-1 inline" />
@@ -147,11 +190,54 @@ export function ProspectList({ initialProspects }: ProspectListProps) {
         onScoreMinChange={(v) => setScoreMin(v)}
       />
 
+      {/* Bulk delete bar */}
+      {someSelected && (
+        <div className="flex items-center gap-3 mb-4 px-1">
+          <span className="text-sm text-[#737373]">
+            {selectedIds.size} sélectionné{selectedIds.size > 1 ? "s" : ""}
+          </span>
+          {confirmingDelete ? (
+            <>
+              <span className="text-sm text-[#f87171]">Supprimer définitivement ?</span>
+              <Button size="sm" variant="outline" onClick={() => setConfirmingDelete(false)}>
+                Annuler
+              </Button>
+              <Button
+                size="sm"
+                className="bg-[#f87171] text-black hover:bg-[#f87171]/90"
+                onClick={handleBulkDelete}
+                disabled={deleting}
+              >
+                {deleting ? "Suppression..." : "Confirmer"}
+              </Button>
+            </>
+          ) : (
+            <Button
+              size="sm"
+              variant="outline"
+              className="border-[#f87171] text-[#f87171] hover:bg-[#f87171]/10"
+              onClick={() => setConfirmingDelete(true)}
+            >
+              <Trash2 size={14} />
+              Supprimer ({selectedIds.size})
+            </Button>
+          )}
+        </div>
+      )}
+
       {/* Desktop table */}
       <div className="hidden md:block">
         <table className="w-full">
           <thead>
             <tr className="border-b border-[#1a1a1a]">
+              <th className="py-2 px-2 w-10">
+                <input
+                  type="checkbox"
+                  checked={allSelected}
+                  onChange={handleSelectAll}
+                  className="accent-white cursor-pointer"
+                />
+              </th>
               {SORTABLE_COLUMNS.map((col) => (
                 <th
                   key={col.label}
@@ -188,7 +274,7 @@ export function ProspectList({ initialProspects }: ProspectListProps) {
               {prospects.length === 0 ? (
                 <tbody>
                   <tr>
-                    <td colSpan={8}>
+                    <td colSpan={9}>
                       {hasFilters ? (
                         <p className="py-12 text-center text-sm text-[#737373]">
                           Aucun prospect trouvé pour ces filtres
@@ -211,11 +297,13 @@ export function ProspectList({ initialProspects }: ProspectListProps) {
                         prospect={prospect}
                         isExpanded={expandedId === prospect.id}
                         onToggle={() => toggleExpand(prospect.id)}
+                        isSelected={selectedIds.has(prospect.id)}
+                        onSelect={() => handleToggleSelect(prospect.id)}
                       />
                       <AnimatePresence>
                         {expandedId === prospect.id && (
                           <tr>
-                            <td colSpan={8} className="p-0">
+                            <td colSpan={9} className="p-0">
                               <ProspectExpand prospect={prospect} />
                             </td>
                           </tr>
@@ -268,6 +356,8 @@ export function ProspectList({ initialProspects }: ProspectListProps) {
                     <ProspectCardMobile
                       prospect={prospect}
                       onToggle={() => toggleExpand(prospect.id)}
+                      isSelected={selectedIds.has(prospect.id)}
+                      onSelect={() => handleToggleSelect(prospect.id)}
                     />
                     <AnimatePresence>
                       {expandedId === prospect.id && (

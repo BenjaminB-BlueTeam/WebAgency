@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { useSearchParams } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import Link from "next/link"
 import { motion, AnimatePresence } from "motion/react"
 import { ArrowLeft } from "lucide-react"
@@ -17,9 +17,24 @@ import { ProspectAnalyseTab } from "@/components/prospects/prospect-analyse-tab"
 import type { ProspectWithRelations } from "@/types/prospect"
 
 export function ProspectDetail({ prospect }: { prospect: ProspectWithRelations }) {
+  const router = useRouter()
   const searchParams = useSearchParams()
   const [activeTab, setActiveTab] = useState(searchParams.get("tab") ?? "informations")
   const [showDemarcher, setShowDemarcher] = useState(false)
+  const [confirmingDelete, setConfirmingDelete] = useState(false)
+  const [deleting, setDeleting] = useState(false)
+
+  async function handleDelete() {
+    setDeleting(true)
+    try {
+      const res = await fetch(`/api/prospects/${prospect.id}`, { method: "DELETE" })
+      if (!res.ok) throw new Error("Delete failed")
+      router.push("/prospects")
+    } catch {
+      setDeleting(false)
+      setConfirmingDelete(false)
+    }
+  }
 
   return (
     <div>
@@ -32,14 +47,41 @@ export function ProspectDetail({ prospect }: { prospect: ProspectWithRelations }
           <ArrowLeft size={14} />
           Prospects
         </Link>
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <h1 className="text-xl font-bold text-[#fafafa]">{prospect.nom}</h1>
+        <div className="flex items-center justify-between gap-4">
+          <div className="flex items-center gap-3 min-w-0">
+            <h1 className="text-xl font-bold text-[#fafafa] truncate">{prospect.nom}</h1>
             <StatusBadge statut={prospect.statutPipeline} />
           </div>
-          <Button size="sm" onClick={() => setShowDemarcher(true)}>
-            Démarcher
-          </Button>
+          <div className="flex items-center gap-2 shrink-0">
+            {confirmingDelete ? (
+              <>
+                <span className="text-sm text-[#f87171] hidden sm:inline">Supprimer ce prospect ?</span>
+                <Button size="sm" variant="outline" onClick={() => setConfirmingDelete(false)}>
+                  Annuler
+                </Button>
+                <Button
+                  size="sm"
+                  className="bg-[#f87171] text-black hover:bg-[#f87171]/90"
+                  onClick={handleDelete}
+                  disabled={deleting}
+                >
+                  {deleting ? "Suppression..." : "Confirmer"}
+                </Button>
+              </>
+            ) : (
+              <Button
+                size="sm"
+                variant="outline"
+                className="border-[#f87171] text-[#f87171] hover:bg-[#f87171]/10"
+                onClick={() => setConfirmingDelete(true)}
+              >
+                Supprimer
+              </Button>
+            )}
+            <Button size="sm" onClick={() => setShowDemarcher(true)}>
+              Démarcher
+            </Button>
+          </div>
         </div>
         <p className="text-sm text-[#737373] mt-1">
           {prospect.activite} — {prospect.ville}
