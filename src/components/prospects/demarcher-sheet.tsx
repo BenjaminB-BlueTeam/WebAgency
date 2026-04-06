@@ -7,11 +7,17 @@ import { toast } from "sonner"
 import { motion } from "motion/react"
 import { fadeInUp } from "@/lib/animations"
 import { Button } from "@/components/ui/button"
-import type { ProspectWithRelations } from "@/types/prospect"
+
+interface DemarcherSheetProspect {
+  id: string
+  nom: string
+  email: string | null
+}
 
 interface Props {
-  prospect: ProspectWithRelations
+  prospect: DemarcherSheetProspect
   onClose: () => void
+  isRelance?: boolean
 }
 
 interface EmailDraft {
@@ -21,7 +27,7 @@ interface EmailDraft {
   htmlPreview: string
 }
 
-export function DemarcherSheet({ prospect, onClose }: Props) {
+export function DemarcherSheet({ prospect, onClose, isRelance }: Props) {
   const router = useRouter()
   const [loading, setLoading] = useState(true)
   const [sending, setSending] = useState(false)
@@ -35,6 +41,8 @@ export function DemarcherSheet({ prospect, onClose }: Props) {
       try {
         const res = await fetch(`/api/prospects/${prospect.id}/email/generate`, {
           method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ relance: isRelance ?? false }),
         })
         const json = await res.json()
         if (!res.ok) {
@@ -95,7 +103,7 @@ export function DemarcherSheet({ prospect, onClose }: Props) {
           {/* Header */}
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-base font-semibold text-[#fafafa]">
-              Démarcher {prospect.nom}
+              {isRelance ? "Relancer" : "Démarcher"} {prospect.nom}
             </h2>
             <button
               onClick={onClose}
