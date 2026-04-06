@@ -87,10 +87,6 @@ export function DemarcherSheet({ prospect, onClose, isRelance, relanceType }: Pr
     }
   }
 
-  function handleClose() {
-    onClose()
-  }
-
   return (
     <>
       <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
@@ -191,7 +187,7 @@ export function DemarcherSheet({ prospect, onClose, isRelance, relanceType }: Pr
 
               {/* Actions */}
               <div className="flex justify-end gap-2 pt-2">
-                <Button variant="outline" size="sm" onClick={handleClose}>
+                <Button variant="outline" size="sm" onClick={onClose}>
                   Fermer
                 </Button>
                 <Button
