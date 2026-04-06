@@ -49,6 +49,38 @@ describe("generateProspectionEmail", () => {
     expect(result.sujet).toBe("Votre site web")
     expect(result.corps).toBe("Bonjour Martin")
   })
+
+  it("uses relance prompt when isRelance:true with no relanceType", async () => {
+    vi.mocked(analyzeWithClaude).mockResolvedValue("{}")
+    vi.mocked(parseClaudeJSON).mockReturnValue({ sujet: "S", corps: "C" })
+    await generateProspectionEmail(mockProspect, null, null, true)
+    const [systemPrompt] = vi.mocked(analyzeWithClaude).mock.calls[0]
+    expect(systemPrompt).toContain("relance")
+  })
+
+  it("uses maquette prompt when relanceType is MAQUETTE", async () => {
+    vi.mocked(analyzeWithClaude).mockResolvedValue("{}")
+    vi.mocked(parseClaudeJSON).mockReturnValue({ sujet: "S", corps: "C" })
+    await generateProspectionEmail(mockProspect, null, null, true, "MAQUETTE")
+    const [systemPrompt] = vi.mocked(analyzeWithClaude).mock.calls[0]
+    expect(systemPrompt).toContain("maquette")
+  })
+
+  it("uses RDV prompt when relanceType is RDV", async () => {
+    vi.mocked(analyzeWithClaude).mockResolvedValue("{}")
+    vi.mocked(parseClaudeJSON).mockReturnValue({ sujet: "S", corps: "C" })
+    await generateProspectionEmail(mockProspect, null, null, true, "RDV")
+    const [systemPrompt] = vi.mocked(analyzeWithClaude).mock.calls[0]
+    expect(systemPrompt).toContain("RDV")
+  })
+
+  it("uses devis prompt when relanceType is DEVIS", async () => {
+    vi.mocked(analyzeWithClaude).mockResolvedValue("{}")
+    vi.mocked(parseClaudeJSON).mockReturnValue({ sujet: "S", corps: "C" })
+    await generateProspectionEmail(mockProspect, null, null, true, "DEVIS")
+    const [systemPrompt] = vi.mocked(analyzeWithClaude).mock.calls[0]
+    expect(systemPrompt).toContain("devis")
+  })
 })
 
 describe("buildEmailHtml", () => {

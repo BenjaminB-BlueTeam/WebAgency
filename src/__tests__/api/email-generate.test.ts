@@ -107,4 +107,15 @@ describe("POST /api/prospects/[id]/email/generate", () => {
     const calls = vi.mocked(generateProspectionEmail).mock.calls
     expect(calls[0][3]).toBe(true)
   })
+
+  it("passes relanceType to generateProspectionEmail when provided", async () => {
+    const req = new Request("http://localhost/api/prospects/p1/email/generate", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ relance: true, relanceType: "MAQUETTE" }),
+    })
+    await POST(req as any, { params })
+    const calls = vi.mocked(generateProspectionEmail).mock.calls
+    expect(calls[0][4]).toBe("MAQUETTE")
+  })
 })

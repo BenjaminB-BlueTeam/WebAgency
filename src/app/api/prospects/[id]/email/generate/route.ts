@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { requireAuth } from "@/lib/auth"
 import { prisma } from "@/lib/db"
 import { generateProspectionEmail, buildEmailHtml } from "@/lib/email"
+import type { RelanceType } from "@/types/emails"
 
 type RouteParams = { params: Promise<{ id: string }> }
 
@@ -11,13 +12,16 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     const { id } = await params
 
     let isRelance = false
+    let relanceType: RelanceType | undefined
     try {
       const body: unknown = await request.json()
-      if (body && typeof body === "object" && (body as Record<string, unknown>).relance === true) {
-        isRelance = true
+      if (body && typeof body === "object") {
+        const b = body as Record<string, unknown>
+        if (b.relance === true) isRelance = true
+        if (typeof b.relanceType === "string") relanceType = b.relanceType as RelanceType
       }
     } catch {
-      // Body absent ou invalide — isRelance reste false
+      // Body absent ou invalide
     }
 
     const prospect = await prisma.prospect.findUnique({
@@ -39,7 +43,8 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       prospect,
       lastMaquette ? { demoUrl: lastMaquette.demoUrl, version: lastMaquette.version } : null,
       lastAnalyse ? { recommandations: lastAnalyse.recommandations } : null,
-      isRelance
+      isRelance,
+      relanceType
     )
 
     const htmlContent = buildEmailHtml(corps, prospect, lastMaquette?.demoUrl ?? null)

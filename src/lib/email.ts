@@ -1,6 +1,7 @@
 // src/lib/email.ts
 import { Resend } from "resend"
 import { analyzeWithClaude, parseClaudeJSON } from "@/lib/anthropic"
+import type { RelanceType } from "@/types/emails"
 
 interface ProspectInput {
   nom: string
@@ -19,7 +20,8 @@ export async function generateProspectionEmail(
   prospect: ProspectInput,
   maquette?: MaquetteInput | null,
   analyse?: { recommandations: string } | null,
-  isRelance?: boolean
+  isRelance?: boolean,
+  relanceType?: RelanceType
 ): Promise<{ sujet: string; corps: string }> {
   const contextParts: string[] = [
     `activité = ${prospect.activite}`,
@@ -28,9 +30,18 @@ export async function generateProspectionEmail(
   if (maquette?.demoUrl) contextParts.push(`lien démo: ${maquette.demoUrl}`)
   if (analyse) contextParts.push(`recommandations: ${analyse.recommandations}`)
 
-  const systemPrompt = isRelance
-    ? `Tu rédiges des emails de relance pour Flandre Web Agency. Ton professionnel mais chaleureux. Court (max 120 mots). Tu rappelles que tu avais envoyé une présentation de site web et proposes de discuter. Pas de ton commercial agressif. Réponds en JSON : {"sujet": string, "corps": string}`
-    : `Tu rédiges des emails de prospection pour Flandre Web Agency. Ton professionnel mais chaleureux, personnalisé au métier du prospect. Court (max 150 mots). Pas de ton commercial agressif — tu es un voisin qui propose un service utile. Réponds en JSON : {"sujet": string, "corps": string}`
+  let systemPrompt: string
+  if (!isRelance) {
+    systemPrompt = `Tu rédiges des emails de prospection pour Flandre Web Agency. Ton professionnel mais chaleureux, personnalisé au métier du prospect. Court (max 150 mots). Pas de ton commercial agressif — tu es un voisin qui propose un service utile. Réponds en JSON : {"sujet": string, "corps": string}`
+  } else if (relanceType === "MAQUETTE") {
+    systemPrompt = `Tu rédiges des emails de relance pour Flandre Web Agency. La maquette web du prospect a été envoyée sans retour. Rappelle la démo de manière bienveillante et propose un échange. Court (max 120 mots). Réponds en JSON : {"sujet": string, "corps": string}`
+  } else if (relanceType === "RDV") {
+    systemPrompt = `Tu rédiges un email de suivi post-RDV pour Flandre Web Agency. Le rendez-vous a eu lieu mais il n'y a pas eu de suite. Ton bienveillant, tu proposes de passer à l'étape suivante (devis ou présentation). Court (max 120 mots). Réponds en JSON : {"sujet": string, "corps": string}`
+  } else if (relanceType === "DEVIS") {
+    systemPrompt = `Tu rédiges un email de relance devis pour Flandre Web Agency. Un devis a été envoyé sans réponse depuis plus de 10 jours. Ton professionnel et non intrusif, tu proposes de répondre à d'éventuelles questions. Court (max 120 mots). Réponds en JSON : {"sujet": string, "corps": string}`
+  } else {
+    systemPrompt = `Tu rédiges des emails de relance pour Flandre Web Agency. Ton professionnel mais chaleureux. Court (max 120 mots). Tu rappelles que tu avais envoyé une présentation de site web et proposes de discuter. Pas de ton commercial agressif. Réponds en JSON : {"sujet": string, "corps": string}`
+  }
 
   const response = await analyzeWithClaude(
     systemPrompt,
