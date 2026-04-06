@@ -10,6 +10,8 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { fadeInUp } from "@/lib/animations"
 import type { SearchResult } from "@/types/places"
 
+type ScoringState = "idle" | "running" | "done"
+
 export default function RecherchePage() {
   const [query, setQuery] = useState("")
   const [ville, setVille] = useState("")
@@ -21,12 +23,14 @@ export default function RecherchePage() {
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
   const [expandedId, setExpandedId] = useState<string | null>(null)
   const [historyKey, setHistoryKey] = useState(0)
+  const [scoringState, setScoringState] = useState<ScoringState>("idle")
 
   async function runSearch(q: string, v: string, r: string) {
     setLoading(true)
     setResultats(null)
     setSelectedIds(new Set())
     setExpandedId(null)
+    setScoringState("idle")
 
     try {
       const res = await fetch("/api/prospection/search", {
@@ -81,10 +85,15 @@ export default function RecherchePage() {
     if (!resultats || selectedIds.size === 0) return
     setSaving(true)
 
+    // Keep ordered list of placeIds being saved (matches save route processing order)
+    const savedPlaceIdsOrdered = resultats
+      .filter((r) => selectedIds.has(r.placeId))
+      .map((r) => r.placeId)
+
     const prospects = resultats
       .filter((r) => selectedIds.has(r.placeId))
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      .map(({ dejaEnBase, ...rest }) => rest)
+      .map(({ dejaEnBase, scoreGlobal: _sg, ...rest }) => rest)
 
     try {
       const res = await fetch("/api/prospection/save", {
@@ -92,7 +101,10 @@ export default function RecherchePage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ rechercheId, prospects }),
       })
-      const json = await res.json() as { data?: { saved: number; skipped: number }; error?: string }
+      const json = await res.json() as {
+        data?: { saved: number; skipped: number; savedIds: string[] }
+        error?: string
+      }
       if (!res.ok) {
         toast.error(json.error ?? "Erreur lors de l'enregistrement")
         return
@@ -107,10 +119,84 @@ export default function RecherchePage() {
           : prev
       )
       setSelectedIds(new Set())
+
+      const savedIds = json.data?.savedIds ?? []
+      if (savedIds.length > 0) {
+        // Build placeId → dbId map: save route processes prospects in order,
+        // skipping already-existing ones. savedIds[i] = dbId of the i-th prospect
+        // that was actually created (not skipped). We match by iterating savedPlaceIds
+        // in order and pairing with savedIds in order.
+        // Note: skipped prospects don't appear in savedIds, so we must re-filter
+        // savedPlaceIds to only the ones that were saved (count == savedIds.length).
+        // Since the server skips duplicates but we already excluded dejaEnBase from
+        // selectedIds... savedIds.length should equal savedPlaceIdsOrdered.length.
+        // In the edge case they differ, we take min to stay safe.
+        const placeIdToDbId = new Map<string, string>()
+        const limit = Math.min(savedPlaceIdsOrdered.length, savedIds.length)
+        for (let i = 0; i < limit; i++) {
+          placeIdToDbId.set(savedPlaceIdsOrdered[i]!, savedIds[i]!)
+        }
+        setScoringState("running")
+        void runScoring(savedIds, placeIdToDbId)
+      }
     } catch {
       toast.error("Erreur réseau")
     } finally {
       setSaving(false)
+    }
+  }
+
+  async function runScoring(
+    prospectIds: string[],
+    placeIdToDbId: Map<string, string>
+  ) {
+    try {
+      const res = await fetch("/api/prospection/score-batch", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ prospectIds }),
+      })
+      if (!res.ok) {
+        setScoringState("idle")
+        return
+      }
+      const json = await res.json() as {
+        data?: { scores: { id: string; scoreGlobal: number | null }[] }
+      }
+      const scores = json.data?.scores ?? []
+
+      if (scores.length > 0) {
+        // Build dbId → scoreGlobal map
+        const dbIdToScore = new Map(scores.map((s) => [s.id, s.scoreGlobal]))
+        // Build placeId → scoreGlobal map
+        const placeIdToScore = new Map<string, number | null>()
+        for (const [placeId, dbId] of placeIdToDbId) {
+          if (dbIdToScore.has(dbId)) {
+            placeIdToScore.set(placeId, dbIdToScore.get(dbId) ?? null)
+          }
+        }
+
+        setResultats((prev) => {
+          if (!prev) return prev
+          const withScores = prev.map((r) =>
+            placeIdToScore.has(r.placeId)
+              ? { ...r, scoreGlobal: placeIdToScore.get(r.placeId) }
+              : r
+          )
+          // Sort: scored results desc (nulls last), unscored keep relative order
+          return [...withScores].sort((a, b) => {
+            if (a.scoreGlobal != null && b.scoreGlobal != null) return b.scoreGlobal - a.scoreGlobal
+            if (a.scoreGlobal != null) return -1
+            if (b.scoreGlobal != null) return 1
+            return 0
+          })
+        })
+      }
+
+      setScoringState("done")
+      setTimeout(() => setScoringState("idle"), 3000)
+    } catch {
+      setScoringState("idle")
     }
   }
 
@@ -151,15 +237,25 @@ export default function RecherchePage() {
       )}
 
       {!loading && resultats !== null && resultats.length > 0 && (
-        <SearchResults
-          resultats={resultats}
-          selectedIds={selectedIds}
-          onToggleSelect={handleToggleSelect}
-          expandedId={expandedId}
-          onToggleExpand={handleToggleExpand}
-          onSave={handleSave}
-          saving={saving}
-        />
+        <>
+          <SearchResults
+            resultats={resultats}
+            selectedIds={selectedIds}
+            onToggleSelect={handleToggleSelect}
+            expandedId={expandedId}
+            onToggleExpand={handleToggleExpand}
+            onSave={handleSave}
+            saving={saving}
+          />
+          {scoringState === "running" && (
+            <p className="text-sm text-[#737373] mt-2">Scoring en cours...</p>
+          )}
+          {scoringState === "done" && (
+            <p className="text-sm text-[#4ade80] mt-2">
+              Scoring terminé — résultats triés par score
+            </p>
+          )}
+        </>
       )}
     </div>
   )

@@ -65,6 +65,11 @@ export function ResultCard({
                 Pas de site
               </span>
             )}
+            {result.scoreGlobal != null && (
+              <span className="inline-flex items-center px-2 py-0.5 rounded-[9999px] bg-[#0a0a0a] border border-[#1a1a1a] text-xs text-[#fafafa]">
+                Score : {result.scoreGlobal}/10
+              </span>
+            )}
             {result.dejaEnBase && (
               <span className="inline-flex items-center px-2 py-0.5 rounded-[9999px] bg-[#1a1a1a] text-xs text-[#737373]">
                 Déjà enregistré

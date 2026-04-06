@@ -55,6 +55,7 @@ export async function POST(request: NextRequest) {
 
     let saved = 0
     let skipped = 0
+    const savedIds: string[] = []
 
     for (const p of prospects) {
       if (typeof p.placeId === "string" && existingPlaceIds.has(p.placeId)) {
@@ -90,6 +91,7 @@ export async function POST(request: NextRequest) {
           },
         })
 
+        savedIds.push(created.id)
         saved++
       } catch (createErr) {
         if (isUniqueConstraintError(createErr)) {
@@ -107,7 +109,7 @@ export async function POST(request: NextRequest) {
       })
     }
 
-    return NextResponse.json({ data: { saved, skipped } })
+    return NextResponse.json({ data: { saved, skipped, savedIds } })
   } catch (err) {
     if (err instanceof Error && err.message === "Unauthorized") {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })

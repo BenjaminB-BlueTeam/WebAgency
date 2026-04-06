@@ -11,4 +11,5 @@ export interface PlaceResult {
 
 export interface SearchResult extends PlaceResult {
   dejaEnBase: boolean
+  scoreGlobal?: number | null
 }
