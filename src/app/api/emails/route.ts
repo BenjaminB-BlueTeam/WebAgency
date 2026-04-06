@@ -2,7 +2,7 @@
 import { NextResponse } from "next/server"
 import { requireAuth } from "@/lib/auth"
 import { prisma } from "@/lib/db"
-import { computeRelance } from "@/lib/relance"
+import { computeRelance, computeProchainRelance } from "@/lib/relance"
 import type { EmailProspectItem } from "@/types/emails"
 
 export async function GET() {
@@ -11,12 +11,30 @@ export async function GET() {
 
     const prospects = await prisma.prospect.findMany({
       where: { statutPipeline: { notIn: ["CLIENT", "PERDU"] } },
-      include: { emails: { orderBy: { createdAt: "desc" } } },
+      include: {
+        emails: { orderBy: { createdAt: "desc" } },
+        activites: {
+          where: {
+            type: "PIPELINE",
+            description: { contains: "NEGOCIATION" },
+          },
+          orderBy: { createdAt: "desc" },
+          take: 1,
+          select: { type: true, description: true, createdAt: true },
+        },
+      },
       orderBy: { updatedAt: "desc" },
     })
 
     const items: EmailProspectItem[] = prospects.map((p) => {
       const relance = computeRelance(p.prochaineRelance, p.emails)
+      const { relanceType } = computeProchainRelance({
+        statutPipeline: p.statutPipeline,
+        dateMaquetteEnvoi: p.dateMaquetteEnvoi,
+        dateRdv: p.dateRdv,
+        emails: p.emails,
+        activites: p.activites,
+      })
       const lastSentEmail = p.emails.find((e) => e.statut === "ENVOYE") ?? null
 
       return {
@@ -42,6 +60,7 @@ export async function GET() {
           createdAt: e.createdAt.toISOString(),
         })),
         relance,
+        relanceType,
       }
     })
 

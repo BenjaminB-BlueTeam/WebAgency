@@ -8,12 +8,13 @@ vi.mock("@/lib/db", () => ({
 }))
 vi.mock("@/lib/relance", () => ({
   computeRelance: vi.fn().mockReturnValue({ due: false, urgente: false, joursRetard: 0 }),
+  computeProchainRelance: vi.fn().mockReturnValue({ prochaineRelance: null, relanceType: null }),
 }))
 
 import { GET } from "@/app/api/emails/route"
 import { requireAuth } from "@/lib/auth"
 import { prisma } from "@/lib/db"
-import { computeRelance } from "@/lib/relance"
+import { computeRelance, computeProchainRelance } from "@/lib/relance"
 
 function makeProspect(overrides: Record<string, unknown> = {}) {
   return {
@@ -24,8 +25,11 @@ function makeProspect(overrides: Record<string, unknown> = {}) {
     email: "test@test.fr",
     statutPipeline: "A_DEMARCHER",
     prochaineRelance: null,
+    dateMaquetteEnvoi: null,
+    dateRdv: null,
     updatedAt: new Date(),
     emails: [],
+    activites: [],
     ...overrides,
   }
 }
@@ -36,6 +40,7 @@ describe("GET /api/emails", () => {
     vi.mocked(requireAuth).mockResolvedValue(undefined)
     vi.mocked(prisma.prospect.findMany).mockResolvedValue([] as any)
     vi.mocked(computeRelance).mockReturnValue({ due: false, urgente: false, joursRetard: 0 })
+    vi.mocked(computeProchainRelance).mockReturnValue({ prochaineRelance: null, relanceType: null })
   })
 
   it("returns 401 when not authenticated", async () => {
@@ -105,5 +110,20 @@ describe("GET /api/emails", () => {
     const res = await GET()
     const json = await res.json()
     expect(json.data.map((d: any) => d.id)).toEqual(["p3", "p2", "p1"])
+  })
+
+  it("returns relanceType null when no trigger data", async () => {
+    vi.mocked(prisma.prospect.findMany).mockResolvedValue([makeProspect()] as any)
+    const res = await GET()
+    const json = await res.json()
+    expect(json.data[0].relanceType).toBeNull()
+  })
+
+  it("returns relanceType from computeProchainRelance", async () => {
+    vi.mocked(prisma.prospect.findMany).mockResolvedValue([makeProspect()] as any)
+    vi.mocked(computeProchainRelance).mockReturnValue({ prochaineRelance: new Date(), relanceType: "MAQUETTE" })
+    const res = await GET()
+    const json = await res.json()
+    expect(json.data[0].relanceType).toBe("MAQUETTE")
   })
 })
