@@ -3,8 +3,13 @@ import bcrypt from "bcryptjs"
 import { cookies } from "next/headers"
 import { NextResponse } from "next/server"
 
-const SESSION_SECRET = process.env.CRM_SESSION_SECRET!
+const SESSION_SECRET = process.env.CRM_SESSION_SECRET ?? ""
 const COOKIE_NAME = "crm_session"
+
+// Validate secret strength at startup (fails fast if misconfigured)
+if (SESSION_SECRET.length < 32) {
+  throw new Error("CRM_SESSION_SECRET must be at least 32 characters")
+}
 
 interface TokenPayload {
   user: "admin"

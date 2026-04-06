@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server"
+import { createHash, timingSafeEqual } from "crypto"
 import { prisma } from "@/lib/db"
 
 export const maxDuration = 60
@@ -19,7 +20,13 @@ interface PappersRechercheResponse {
 // Vercel cron: runs daily at 8h UTC
 export async function GET(request: Request) {
   const authHeader = request.headers.get("authorization")
-  if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+
+  const expected = `Bearer ${process.env.CRON_SECRET ?? ""}`
+  const actual = authHeader ?? ""
+  // Use fixed-length hashes to avoid length timing leaks
+  const expectedBuf = Buffer.from(createHash("sha256").update(expected).digest("hex"))
+  const actualBuf = Buffer.from(createHash("sha256").update(actual).digest("hex"))
+  if (!timingSafeEqual(expectedBuf, actualBuf)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
 
@@ -34,18 +41,20 @@ export async function GET(request: Request) {
 
   const toISO = (d: Date) => d.toISOString().split("T")[0]
 
-  const url =
-    `https://api.pappers.fr/v2/recherche` +
-    `?date_creation_min=${toISO(yesterday)}` +
-    `&date_creation_max=${toISO(now)}` +
-    `&departement=59` +
-    `&entreprise_cessee=false` +
-    `&par_page=20` +
-    `&api_token=${apiKey}`
+  const pappersUrl = new URL("https://api.pappers.fr/v2/recherche")
+  pappersUrl.searchParams.set("date_creation_min", toISO(yesterday))
+  pappersUrl.searchParams.set("date_creation_max", toISO(now))
+  pappersUrl.searchParams.set("departement", "59")
+  pappersUrl.searchParams.set("entreprise_cessee", "false")
+  pappersUrl.searchParams.set("par_page", "20")
+  // NOTE: Pappers API only supports api_token as query param (no Authorization header support)
+  // Risk accepted: API key may appear in proxy logs. Rotate key periodically.
+  // Future: switch to a server-side proxy if Pappers adds header auth support.
+  pappersUrl.searchParams.set("api_token", apiKey)
 
   let data: PappersRechercheResponse
   try {
-    const res = await fetch(url)
+    const res = await fetch(pappersUrl.toString())
     if (!res.ok) {
       return NextResponse.json(
         { error: `Pappers API error ${res.status}` },
