@@ -52,9 +52,7 @@ export function computeProchainRelance(input: ProspectRelanceInput): ProchainRel
 
   // DEVIS — priorité 1
   if (input.statutPipeline === "NEGOCIATION") {
-    const activite = input.activites
-      .filter((a) => a.type === "PIPELINE" && a.description.includes("NEGOCIATION"))
-      [0]
+    const activite = input.activites.find((a) => a.type === "PIPELINE")
     if (activite) {
       return {
         prochaineRelance: new Date(activite.createdAt.getTime() + 10 * MS_PER_DAY),

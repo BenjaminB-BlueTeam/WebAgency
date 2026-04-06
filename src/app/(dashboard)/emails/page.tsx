@@ -12,7 +12,7 @@ async function getEmailProspects(): Promise<EmailProspectItem[]> {
       include: {
         emails: { orderBy: { createdAt: "desc" } },
         activites: {
-          where: { type: "PIPELINE", description: { contains: "NEGOCIATION" } },
+          where: { type: "PIPELINE" },
           orderBy: { createdAt: "desc" },
           take: 1,
           select: { type: true, description: true, createdAt: true },
