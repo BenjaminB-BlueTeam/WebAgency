@@ -17,10 +17,13 @@ export async function POST(request: NextRequest) {
     }
     const b = body as Record<string, unknown>
 
-    const query = validateString(b.query, 100)
-    if (!query) {
-      return NextResponse.json({ error: "Le champ query est requis (max 100 caractères)" }, { status: 400 })
+    const queryRaw = typeof b.query === "string" && b.query.trim().length > 0
+      ? b.query.trim()
+      : "entreprise"
+    if (queryRaw.length > 100) {
+      return NextResponse.json({ error: "Le champ query est trop long (max 100 caractères)" }, { status: 400 })
     }
+    const query = queryRaw
 
     const ville = validateString(b.ville, 100)
     if (!ville) {
