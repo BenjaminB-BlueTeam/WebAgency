@@ -1,6 +1,6 @@
 // src/app/(dashboard)/emails/page.tsx
 import { prisma } from "@/lib/db"
-import { computeRelance } from "@/lib/relance"
+import { computeRelance, computeProchainRelance } from "@/lib/relance"
 import { EmailsClient } from "@/components/emails/emails-client"
 import type { EmailProspectItem } from "@/types/emails"
 
@@ -8,12 +8,27 @@ async function getEmailProspects(): Promise<EmailProspectItem[]> {
   try {
     const prospects = await prisma.prospect.findMany({
       where: { statutPipeline: { notIn: ["CLIENT", "PERDU"] } },
-      include: { emails: { orderBy: { createdAt: "desc" } } },
+      include: {
+        emails: { orderBy: { createdAt: "desc" } },
+        activites: {
+          where: { type: "PIPELINE", description: { contains: "NEGOCIATION" } },
+          orderBy: { createdAt: "desc" },
+          take: 1,
+          select: { type: true, description: true, createdAt: true },
+        },
+      },
       orderBy: { updatedAt: "desc" },
     })
 
     const items: EmailProspectItem[] = prospects.map((p) => {
       const relance = computeRelance(p.prochaineRelance, p.emails)
+      const { relanceType } = computeProchainRelance({
+        statutPipeline: p.statutPipeline,
+        dateMaquetteEnvoi: p.dateMaquetteEnvoi,
+        dateRdv: p.dateRdv,
+        emails: p.emails,
+        activites: p.activites,
+      })
       const lastSentEmail = p.emails.find((e) => e.statut === "ENVOYE") ?? null
 
       return {
@@ -39,6 +54,7 @@ async function getEmailProspects(): Promise<EmailProspectItem[]> {
           createdAt: e.createdAt.toISOString(),
         })),
         relance,
+        relanceType,
       }
     })
 
