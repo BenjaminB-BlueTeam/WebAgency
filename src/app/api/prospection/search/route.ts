@@ -74,7 +74,14 @@ export async function POST(request: NextRequest) {
       if (err.message.includes("Quota")) {
         return NextResponse.json({ error: err.message }, { status: 429 })
       }
+      if (err.message.includes("Erreur Google Places API")) {
+        return NextResponse.json({ error: err.message }, { status: 502 })
+      }
     }
-    return NextResponse.json({ error: "Erreur interne du serveur" }, { status: 500 })
+    console.error("[prospection/search] unhandled error:", err)
+    return NextResponse.json(
+      { error: process.env.NODE_ENV === "development" ? String(err) : "Erreur interne du serveur" },
+      { status: 500 }
+    )
   }
 }
