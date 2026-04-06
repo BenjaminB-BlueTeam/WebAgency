@@ -7,6 +7,7 @@ import { toast } from "sonner"
 import { motion } from "motion/react"
 import { fadeInUp } from "@/lib/animations"
 import { Button } from "@/components/ui/button"
+import type { RelanceType } from "@/types/emails"
 
 interface DemarcherSheetProspect {
   id: string
@@ -18,6 +19,7 @@ interface Props {
   prospect: DemarcherSheetProspect
   onClose: () => void
   isRelance?: boolean
+  relanceType?: RelanceType
 }
 
 interface EmailDraft {
@@ -27,7 +29,7 @@ interface EmailDraft {
   htmlPreview: string
 }
 
-export function DemarcherSheet({ prospect, onClose, isRelance }: Props) {
+export function DemarcherSheet({ prospect, onClose, isRelance, relanceType }: Props) {
   const router = useRouter()
   const [loading, setLoading] = useState(true)
   const [sending, setSending] = useState(false)
@@ -42,7 +44,7 @@ export function DemarcherSheet({ prospect, onClose, isRelance }: Props) {
         const res = await fetch(`/api/prospects/${prospect.id}/email/generate`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ relance: isRelance ?? false }),
+          body: JSON.stringify({ relance: isRelance ?? false, relanceType }),
         })
         const json = await res.json()
         if (!res.ok) {
@@ -59,7 +61,7 @@ export function DemarcherSheet({ prospect, onClose, isRelance }: Props) {
       }
     }
     generate()
-  }, [prospect.id, isRelance])
+  }, [prospect.id, isRelance, relanceType])
 
   async function handleSend() {
     if (!draft) return

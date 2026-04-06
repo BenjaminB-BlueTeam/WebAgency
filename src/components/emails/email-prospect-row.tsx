@@ -7,14 +7,14 @@ import { StatusBadge } from "@/components/prospects/status-badge"
 import { RelanceBadge } from "@/components/emails/relance-badge"
 import { EmailHistoryExpand } from "@/components/emails/email-history-expand"
 import { Button } from "@/components/ui/button"
-import type { EmailProspectItem } from "@/types/emails"
+import type { EmailProspectItem, RelanceType } from "@/types/emails"
 
 interface Props {
   prospect: EmailProspectItem
   isExpanded: boolean
   onToggleExpand: () => void
   onDemarcher: () => void
-  onRelancer: () => void
+  onRelancer: (relanceType: RelanceType | null) => void
 }
 
 export function EmailProspectRow({
@@ -77,7 +77,7 @@ export function EmailProspectRow({
             <Button
               size="sm"
               variant="outline"
-              onClick={onRelancer}
+              onClick={() => onRelancer(prospect.relanceType)}
               className="h-7 px-2 text-xs border-[#fbbf24] text-[#fbbf24] hover:bg-[#fbbf24]/10"
             >
               <RotateCcw size={12} className="mr-1" />

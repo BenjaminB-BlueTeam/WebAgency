@@ -6,7 +6,7 @@ import { motion } from "motion/react"
 import { staggerContainer, staggerItem } from "@/lib/animations"
 import { EmailProspectRow } from "@/components/emails/email-prospect-row"
 import { DemarcherSheet } from "@/components/prospects/demarcher-sheet"
-import type { EmailProspectItem } from "@/types/emails"
+import type { EmailProspectItem, RelanceType } from "@/types/emails"
 
 interface Props {
   prospects: EmailProspectItem[]
@@ -15,6 +15,7 @@ interface Props {
 interface ModalState {
   prospect: { id: string; nom: string; email: string | null }
   isRelance: boolean
+  relanceType: RelanceType | null
 }
 
 export function EmailsClient({ prospects }: Props) {
@@ -50,8 +51,8 @@ export function EmailsClient({ prospects }: Props) {
               onToggleExpand={() =>
                 setExpandedId(expandedId === prospect.id ? null : prospect.id)
               }
-              onDemarcher={() => setModal({ prospect, isRelance: false })}
-              onRelancer={() => setModal({ prospect, isRelance: true })}
+              onDemarcher={() => setModal({ prospect, isRelance: false, relanceType: null })}
+              onRelancer={(relanceType) => setModal({ prospect, isRelance: true, relanceType })}
             />
           </motion.div>
         ))}
@@ -61,6 +62,7 @@ export function EmailsClient({ prospects }: Props) {
         <DemarcherSheet
           prospect={modal.prospect}
           isRelance={modal.isRelance}
+          relanceType={modal.relanceType ?? undefined}
           onClose={handleClose}
         />
       )}
