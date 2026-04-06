@@ -18,7 +18,10 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       if (body && typeof body === "object") {
         const b = body as Record<string, unknown>
         if (b.relance === true) isRelance = true
-        if (typeof b.relanceType === "string") relanceType = b.relanceType as RelanceType
+        const validRelanceTypes = new Set(["EMAIL", "MAQUETTE", "RDV", "DEVIS"])
+        if (typeof b.relanceType === "string" && validRelanceTypes.has(b.relanceType)) {
+          relanceType = b.relanceType as RelanceType
+        }
       }
     } catch {
       // Body absent ou invalide
