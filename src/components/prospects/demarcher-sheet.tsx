@@ -91,7 +91,7 @@ export function DemarcherSheet({ prospect, onClose, isRelance, relanceType }: Pr
     <>
       <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
       <div className="fixed inset-0 z-50 flex items-center justify-center">
-        <div className="absolute inset-0 bg-black/70" onClick={onClose} />
+        <div className="absolute inset-0 bg-black/80" onClick={onClose} />
         <motion.div
           variants={fadeInUp}
           initial="initial"
@@ -188,7 +188,7 @@ export function DemarcherSheet({ prospect, onClose, isRelance, relanceType }: Pr
               {/* Actions */}
               <div className="flex justify-end gap-2 pt-2">
                 <Button variant="outline" size="sm" onClick={onClose}>
-                  Fermer
+                  Annuler
                 </Button>
                 <Button
                   size="sm"
