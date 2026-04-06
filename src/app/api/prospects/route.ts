@@ -108,9 +108,19 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ error: "ids doit être un tableau de strings non vide" }, { status: 400 })
     }
 
-    const { count } = await prisma.prospect.deleteMany({ where: { id: { in: ids } } })
+    let deleted = 0
+    for (const id of ids as string[]) {
+      try {
+        await prisma.prospect.delete({ where: { id } })
+        deleted++
+      } catch (err) {
+        if (!(err instanceof Prisma.PrismaClientKnownRequestError && err.code === "P2025")) {
+          throw err
+        }
+      }
+    }
 
-    return NextResponse.json({ data: { deleted: count } })
+    return NextResponse.json({ data: { deleted } })
   } catch (error) {
     if (error instanceof Error && error.message === "Unauthorized") {
       return NextResponse.json({ error: "Non autorisé" }, { status: 401 })
