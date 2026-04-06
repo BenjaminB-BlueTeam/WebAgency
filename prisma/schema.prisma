@@ -155,3 +155,16 @@ model Rapport {
 
   @@unique([clientId, mois])
 }
+
+model NouveauProspect {
+  id           String   @id @default(cuid())
+  siren        String   @unique
+  nom          String
+  activite     String
+  codeNAF      String
+  ville        String
+  dateCreation DateTime
+  ajouteComme  Boolean  @default(false)
+  prospectId   String?
+  createdAt    DateTime @default(now())
+}
