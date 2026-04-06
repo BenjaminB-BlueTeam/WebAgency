@@ -142,8 +142,8 @@ Organisée en onglets :
 
 **Onglet 3 — Maquette** : bouton "Générer une maquette" qui :
 1. Récupère les données prospect + analyse concurrentielle
-2. Claude (Sonnet) construit dynamiquement le prompt Stitch (pas de templates métiers hardcodés)
-3. Google Stitch SDK génère les écrans HTML (accueil, services, contact, à propos)
+2. Claude (Sonnet) construit dynamiquement le prompt HTML (pas de templates métiers hardcodés)
+3. Claude génère les écrans HTML multi-pages (accueil, services, contact, à propos)
 4. Déploiement automatique sur Netlify (URL de démo unique)
 5. Sauvegarde en base (HTML + URL + version)
 
@@ -302,7 +302,7 @@ Relations : maquettes[], analyses[], emails[], activites[], notes[], client (opt
 | demoUrl | String | Non | URL Netlify de la démo |
 | netlifySiteId | String | Non | ID du site Netlify |
 | version | Int | Oui | Défaut : 1 (max 3 par prospect) |
-| promptUsed | String | Non | Prompt envoyé à Stitch |
+| promptUsed | String | Non | Prompt utilisé pour la génération HTML |
 | statut | String | Oui | BROUILLON / ENVOYEE / VALIDEE / REJETEE |
 | createdAt | DateTime | Auto | Date de création |
 
@@ -455,7 +455,7 @@ Framework : Vitest.
 - Authentification (login simple)
 - Page Recherche de Prospects (Google Places + scoring)
 - Page Prospects (liste + fiche avec onglets Infos et Maquette)
-- Génération de maquette (Claude + Stitch + Netlify)
+- Génération de maquette (Claude + Netlify)
 - Envoi d'email basique (depuis la fiche prospect)
 - Pipeline kanban minimal (colonnes + drag & drop)
 - Schéma Prisma complet dès le départ
