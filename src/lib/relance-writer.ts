@@ -13,9 +13,12 @@ export async function refreshProchainRelance(prospectId: string): Promise<void> 
           select: { statut: true, dateEnvoi: true },
         },
         activites: {
-          where: { type: "PIPELINE" },
+          where: {
+            type: "PIPELINE",
+            description: { contains: "NEGOCIATION" },
+          },
           orderBy: { createdAt: "desc" },
-          take: 5,
+          take: 1,
           select: { type: true, description: true, createdAt: true },
         },
       },
