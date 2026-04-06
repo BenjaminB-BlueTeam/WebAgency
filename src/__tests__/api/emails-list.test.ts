@@ -34,7 +34,7 @@ describe("GET /api/emails", () => {
   beforeEach(() => {
     vi.clearAllMocks()
     vi.mocked(requireAuth).mockResolvedValue(undefined)
-    vi.mocked(prisma.prospect.findMany).mockResolvedValue([])
+    vi.mocked(prisma.prospect.findMany).mockResolvedValue([] as any)
     vi.mocked(computeRelance).mockReturnValue({ due: false, urgente: false, joursRetard: 0 })
   })
 
@@ -54,7 +54,7 @@ describe("GET /api/emails", () => {
   })
 
   it("returns 200 with data array", async () => {
-    vi.mocked(prisma.prospect.findMany).mockResolvedValue([makeProspect()])
+    vi.mocked(prisma.prospect.findMany).mockResolvedValue([makeProspect()] as any)
     const res = await GET()
     expect(res.status).toBe(200)
     const json = await res.json()
@@ -63,7 +63,7 @@ describe("GET /api/emails", () => {
   })
 
   it("returns relance from computeRelance", async () => {
-    vi.mocked(prisma.prospect.findMany).mockResolvedValue([makeProspect()])
+    vi.mocked(prisma.prospect.findMany).mockResolvedValue([makeProspect()] as any)
     vi.mocked(computeRelance).mockReturnValue({ due: true, urgente: false, joursRetard: 3 })
     const res = await GET()
     const json = await res.json()
@@ -71,7 +71,7 @@ describe("GET /api/emails", () => {
   })
 
   it("returns dernierEmail null when no emails", async () => {
-    vi.mocked(prisma.prospect.findMany).mockResolvedValue([makeProspect()])
+    vi.mocked(prisma.prospect.findMany).mockResolvedValue([makeProspect()] as any)
     const res = await GET()
     const json = await res.json()
     expect(json.data[0].dernierEmail).toBeNull()
@@ -85,7 +85,7 @@ describe("GET /api/emails", () => {
     }
     vi.mocked(prisma.prospect.findMany).mockResolvedValue([
       makeProspect({ emails: [email] }),
-    ])
+    ] as any)
     const res = await GET()
     const json = await res.json()
     expect(json.data[0].dernierEmail.sujet).toBe("Mon email")
@@ -96,7 +96,7 @@ describe("GET /api/emails", () => {
     const due = makeProspect({ id: "p2" })
     const urgente = makeProspect({ id: "p3" })
 
-    vi.mocked(prisma.prospect.findMany).mockResolvedValue([normal, due, urgente])
+    vi.mocked(prisma.prospect.findMany).mockResolvedValue([normal, due, urgente] as any)
     vi.mocked(computeRelance)
       .mockReturnValueOnce({ due: false, urgente: false, joursRetard: 0 })
       .mockReturnValueOnce({ due: true, urgente: false, joursRetard: 3 })
