@@ -82,16 +82,16 @@ CRM interne pour la prospection de clients web dans la region des Flandres. Rech
 - 2 nouvelles API routes : `POST /api/prospects/[id]/email/generate` et `POST /api/prospects/[id]/email/send`
 - 26 tests unitaires (lib/email, route generate, route send)
 
-### Session 7 — Generation de maquettes (Google Stitch + Netlify)
+### Session 7 — Generation de maquettes (Claude + Pexels + Netlify)
 - **Onglet Maquette** sur la fiche prospect : 3 etats (vide / generation en cours / maquette disponible)
-- `lib/stitch/buildPrompt.ts` : Claude Sonnet genere un prompt de design UI adapte au metier du prospect
-- `lib/stitch.ts` : wrapper `@google/stitch-sdk` — genere 4 pages HTML (accueil, services, contact, a-propos)
+- `lib/maquette/build-prompt.ts` : Claude Sonnet genere un prompt de design UI adapte au metier du prospect
+- `lib/maquette/generate-site.ts` : generation HTML multi-pages via Claude
 - `lib/netlify-deploy.ts` : deploiement multi-pages via Netlify File Digest API (SHA1, sans zip)
 - `POST /api/maquettes/generate` : orchestration complete avec cap a 3 maquettes par prospect
 - `GET /api/maquettes/[id]` : detail maquette ; `GET /api/maquettes/[id]/preview` : redirect 302 vers demoUrl
 - Reutilisation du `netlifySiteId` pour v2/v3 (mise a jour du meme site Netlify)
 - Timeout client 5 min avec message d'erreur, toast de confirmation sur copie URL
-- Variables d'environnement : `STITCH_API_KEY`, `NETLIFY_TOKEN`
+- Variables d'environnement : `PEXELS_API_KEY`, `PAPPERS_API_KEY`, `NETLIFY_TOKEN`
 
 ### Session 10 — Dashboard
 - **Page Dashboard** (`/`) : vue d'ensemble du pipeline commercial
@@ -131,7 +131,8 @@ CRM_PASSWORD_HASH=<hash bcrypt, echapper les $ avec \$ pour Next.js>
 GOOGLE_PLACES_KEY=<cle API Google Places (New)>
 ANTHROPIC_API_KEY=<cle API Anthropic>
 FIRECRAWL_API_KEY=<cle API Firecrawl>
-STITCH_API_KEY=<cle API Google Stitch>
+PEXELS_API_KEY=<cle API Pexels>
+PAPPERS_API_KEY=<cle API Pappers>
 NETLIFY_TOKEN=<personal access token Netlify>
 RESEND_API_KEY=<cle API Resend>
 RESEND_FROM_EMAIL=<adresse email verifee dans Resend>
@@ -175,7 +176,7 @@ src/
     ├── scrape.ts           # Client Firecrawl
     ├── scoring.ts          # Scoring multi-axes
     ├── validation.ts       # Validation + allowlists
-    ├── stitch/             # Google Stitch SDK (buildPrompt + generateMaquette)
+    ├── maquette/           # Generation de maquettes (buildPrompt, generateSite, pexels, pappers)
     ├── netlify-deploy.ts   # Deploiement multi-pages Netlify
     ├── email.ts            # generateProspectionEmail, buildEmailHtml, sendEmail
     ├── dashboard.ts        # getDashboardStats, getDashboardRelances, getDashboardActivites

@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { requireAuth } from "@/lib/auth"
 import { prisma } from "@/lib/db"
-import { generateMaquette } from "@/lib/stitch"
 import { deployToNetlify } from "@/lib/netlify-deploy"
 
 export const maxDuration = 300
@@ -39,7 +38,9 @@ export async function POST(request: NextRequest) {
     const lastAnalyse = prospect.analyses[0] ?? null
     const lastMaquette = prospect.maquettes[prospect.maquettes.length - 1] ?? null
 
-    const { screens, promptUsed } = await generateMaquette(prospect, lastAnalyse)
+    // TODO step 8: replace with new generation pipeline (Pexels + Claude + Netlify)
+    const screens: { name: string; html: string }[] = []
+    const promptUsed = ""
     const { url, siteId } = await deployToNetlify(
       screens,
       prospect.nom,

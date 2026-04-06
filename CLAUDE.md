@@ -90,7 +90,7 @@ src/
     ├── scoring.ts          # Scoring multi-axes
     ├── places.ts           # Google Places API
     ├── scrape.ts           # Firecrawl
-    ├── stitch/             # Google Stitch SDK
+    ├── maquette/           # Generation de maquettes (buildPrompt, generateSite, pexels, pappers)
     ├── email.ts            # Resend + templates
     └── netlify-deploy.ts   # Déploiement Netlify
 ```

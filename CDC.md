@@ -65,7 +65,6 @@ L'audit concurrentiel est réalisé systématiquement en interne pour alimenter 
 | Google PageSpeed Insights | Audit technique des sites | Score performance, accessibilité, SEO, bonnes pratiques |
 | Firecrawl | Scraping de sites web | Contenu HTML pour analyse IA du design/UX |
 | Anthropic (Claude Sonnet) | IA générative | Analyse concurrentielle, prompt builder maquettes, emails, scoring |
-| Google Stitch SDK | Génération de maquettes UI | Multi-écrans HTML depuis prompt dynamique |
 | Netlify API | Déploiement des démos | URL unique par prospect, free tier |
 | Plausible Analytics API | Statistiques des sites clients | Auto-hébergé sur VPS Hostinger, RGPD-friendly, pas de bannière cookie |
 | Stripe API | Paiement récurrent maintenance | Abonnements mensuels 49€, liens de paiement ou API |
