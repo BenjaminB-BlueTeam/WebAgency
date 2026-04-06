@@ -29,5 +29,5 @@ export interface EmailProspectItem {
     createdAt: string
   }[]
   relance: RelanceInfo
-  relanceType: RelanceType | null
+  relanceType?: RelanceType | null
 }
