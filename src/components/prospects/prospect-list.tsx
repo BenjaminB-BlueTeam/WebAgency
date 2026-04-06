@@ -1,8 +1,9 @@
 "use client"
 
 import React, { useState, useEffect, useCallback, useRef } from "react"
+import { useRouter } from "next/navigation"
 import { motion, AnimatePresence } from "motion/react"
-import { ChevronUp, ChevronDown, Trash2 } from "lucide-react"
+import { ChevronUp, ChevronDown, Trash2, Plus } from "lucide-react"
 import { toast } from "sonner"
 import { staggerContainer } from "@/lib/animations"
 import { Button } from "@/components/ui/button"
@@ -11,6 +12,7 @@ import { ProspectRow } from "@/components/prospects/prospect-row"
 import { ProspectCardMobile } from "@/components/prospects/prospect-card-mobile"
 import { ProspectExpand } from "@/components/prospects/prospect-expand"
 import { EmptyState } from "@/components/prospects/empty-state"
+import { AddProspectModal } from "@/components/prospects/add-prospect-modal"
 import type { Prospect } from "@/types/prospect"
 
 type SortKey = "nom" | "scoreGlobal" | "createdAt"
@@ -48,6 +50,7 @@ const SORTABLE_COLUMNS: { label: string; key: SortKey | null; className?: string
 ]
 
 export function ProspectList({ initialProspects }: ProspectListProps) {
+  const router = useRouter()
   const [prospects, setProspects] = useState<Prospect[]>(initialProspects)
   const [loading, setLoading] = useState(false)
   const [initialLoad] = useState(false)
@@ -64,6 +67,7 @@ export function ProspectList({ initialProspects }: ProspectListProps) {
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
   const [confirmingDelete, setConfirmingDelete] = useState(false)
   const [deleting, setDeleting] = useState(false)
+  const [showAddModal, setShowAddModal] = useState(false)
 
   const searchDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const isFirstRender = useRef(true)
@@ -204,6 +208,18 @@ export function ProspectList({ initialProspects }: ProspectListProps) {
 
   return (
     <div>
+      {/* Add prospect button */}
+      <div className="flex justify-end mb-4">
+        <button
+          type="button"
+          onClick={() => setShowAddModal(true)}
+          className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-black bg-white rounded-[6px] hover:bg-[#e5e5e5] transition-colors"
+        >
+          <Plus size={14} />
+          Ajouter un prospect
+        </button>
+      </div>
+
       <ProspectFilters
         search={search}
         onSearchChange={handleSearchChange}
@@ -400,6 +416,17 @@ export function ProspectList({ initialProspects }: ProspectListProps) {
           </>
         )}
       </div>
+
+      {/* Add prospect modal */}
+      {showAddModal && (
+        <AddProspectModal
+          onCancel={() => setShowAddModal(false)}
+          onSuccess={() => {
+            setShowAddModal(false)
+            router.refresh()
+          }}
+        />
+      )}
     </div>
   )
 }
