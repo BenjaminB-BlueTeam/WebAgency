@@ -82,16 +82,31 @@ CRM interne pour la prospection de clients web dans la region des Flandres. Rech
 - 2 nouvelles API routes : `POST /api/prospects/[id]/email/generate` et `POST /api/prospects/[id]/email/send`
 - 26 tests unitaires (lib/email, route generate, route send)
 
-### Session 7 — Generation de maquettes (Claude + Pexels + Netlify)
-- **Onglet Maquette** sur la fiche prospect : 3 etats (vide / generation en cours / maquette disponible)
-- `lib/maquette/build-prompt.ts` : Claude Sonnet genere un prompt de design UI adapte au metier du prospect
-- `lib/maquette/generate-site.ts` : generation HTML multi-pages via Claude
-- `lib/netlify-deploy.ts` : deploiement multi-pages via Netlify File Digest API (SHA1, sans zip)
+### Session 7 — Generation de maquettes (Netlify + Claude)
+- **Onglet Maquette** sur la fiche prospect : generation, preview iframe, gestion versions
+- `lib/netlify-deploy.ts` : deploiement multi-fichiers via Netlify File Digest API (SHA1, sans zip)
 - `POST /api/maquettes/generate` : orchestration complete avec cap a 3 maquettes par prospect
 - `GET /api/maquettes/[id]` : detail maquette ; `GET /api/maquettes/[id]/preview` : redirect 302 vers demoUrl
 - Reutilisation du `netlifySiteId` pour v2/v3 (mise a jour du meme site Netlify)
-- Timeout client 5 min avec message d'erreur, toast de confirmation sur copie URL
-- Variables d'environnement : `PEXELS_API_KEY`, `PAPPERS_API_KEY`, `NETLIFY_TOKEN`
+- Timeout client 5 min, toast sur copie URL
+- Variables d'environnement : `NETLIFY_TOKEN`
+
+### Session 14 — Investigation profonde + generation de sites vitrines (refonte complete)
+- **Pipeline d'investigation** en 4 sources parallelisees (`Promise.allSettled`) :
+  - `lib/maquette/scrape-identity.ts` : scraping Firecrawl + Claude → 16 champs (couleurs, polices, logo, services, tarifs, horaires, equipe, certifications…)
+  - `lib/maquette/pappers.ts` : matching Pappers cascade 5 niveaux (nom+CP → NAF+geo → adresse → departement → Claude) avec `matchConfidence: high/medium/low`
+  - `lib/maquette/pexels.ts` : images paysage + video 5-30s MP4 via API Pexels
+  - `lib/maquette/investigate.ts` : orchestration + analyse perception client (avis Google + analyse concurrentielle)
+- `lib/maquette/build-prompt.ts` : Claude assemble toutes les donnees en prompt structure (## CONTENU / ## DESIGN / ## SEO)
+- `lib/maquette/generate-site.ts` : Claude genere site HTML/CSS/JS complet avec GSAP ScrollTrigger, effets scroll, responsive mobile-first (max_tokens 32000)
+- `lib/netlify-deploy.ts` adapte : accepte paths avec sous-dossiers (`css/style.css`, `js/main.js`), sans injection de nav
+- **Nouveau flow UI 5 etats** sur l'onglet Maquette :
+  1. Vide → bouton "Generer une maquette"
+  2. Investigation (POST `/api/maquettes/generate/prompt`) → spinner "Investigation en cours..."
+  3. Modale d'edition → textarea 70vh pre-remplie avec le prompt, entierement editable
+  4. Generation (POST `/api/maquettes/generate`) → spinner jusqu'a 5 min
+  5. Resultat → selecteur version, badge statut, iframe preview, plein ecran / copier URL / regenerer
+- Variables d'environnement ajoutees : `PEXELS_API_KEY`, `PAPPERS_API_KEY`
 
 ### Session 10 — Dashboard
 - **Page Dashboard** (`/`) : vue d'ensemble du pipeline commercial
@@ -104,6 +119,12 @@ CRM interne pour la prospection de clients web dans la region des Flandres. Rech
 - Page Server Component avec chargement parallele (`Promise.all`)
 - 16 tests unitaires
 
+### Session 12 — Ameliorations UX + corrections production
+- **Bug fixes production** : `deleteMany` LibSQL silencieuse → boucle de `delete()` individuels ; `DriverAdapterError` UNIQUE constraint → helper `isUniqueConstraintError` ; pages Server Component statiquement cachees → `export const dynamic = "force-dynamic"` sur toutes les pages de donnees
+- **Page Parametres** : section "Outils & APIs" avec statut de configuration de chaque cle API (10 services, lien dashboard, variable d'env manquante affichee)
+- **Page Prospects** : filtres dropdown Activite + Ville (valeurs distinctes depuis la base, `GET /api/prospects/filters`)
+- **Page Recherche** : historique des 10 dernieres recherches (cliquables pour re-lancer, × pour supprimer), modele `Recherche` enrichi avec champ `rayon`, `GET/DELETE /api/recherches`
+
 ### Session 11 — Analyse concurrentielle
 - **Onglet Analyse** sur la fiche prospect : recherche jusqu'a 5 concurrents locaux avec site web
 - Scraping de leurs sites via Firecrawl, analyse IA via Claude (forces, faiblesses, positionnement)
@@ -114,6 +135,7 @@ CRM interne pour la prospection de clients web dans la region des Flandres. Rech
 - Bouton "Analyser concurrence" dans le panneau expand de la liste des prospects
 - `analyzeWithClaude` : parametre optionnel `maxTokens` (defaut 1024, 4096 pour l'analyse)
 - 15 tests unitaires (lib + route)
+- **Total tests : 238**
 
 ## Demarrage
 
@@ -176,8 +198,8 @@ src/
     ├── scrape.ts           # Client Firecrawl
     ├── scoring.ts          # Scoring multi-axes
     ├── validation.ts       # Validation + allowlists
-    ├── maquette/           # Generation de maquettes (buildPrompt, generateSite, pexels, pappers)
-    ├── netlify-deploy.ts   # Deploiement multi-pages Netlify
+    ├── maquette/           # investigate, build-prompt, generate-site, scrape-identity, pappers, pexels
+    ├── netlify-deploy.ts   # Deploiement multi-fichiers Netlify (path/content, SHA1)
     ├── email.ts            # generateProspectionEmail, buildEmailHtml, sendEmail
     ├── dashboard.ts        # getDashboardStats, getDashboardRelances, getDashboardActivites
     └── analyse.ts          # findCompetitorCandidates, scrapeCompetitors, buildAnalyseResult
