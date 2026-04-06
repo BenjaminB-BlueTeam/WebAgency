@@ -29,7 +29,7 @@ describe("getDashboardStats", () => {
     expect(stats.tauxConversion).toBe(0)
   })
 
-  it("calculates tauxConversion excluding A_DEMARCHER from denominator", async () => {
+  it("calculates tauxConversion on email-sent+ prospects only", async () => {
     vi.mocked(prisma.prospect.groupBy).mockResolvedValue([
       { statutPipeline: "A_DEMARCHER", _count: { _all: 6 } },
       { statutPipeline: "NEGOCIATION", _count: { _all: 2 } },
@@ -38,8 +38,30 @@ describe("getDashboardStats", () => {
     const stats = await getDashboardStats()
     expect(stats.totalProspects).toBe(10)
     expect(stats.clientsSignes).toBe(2)
-    // denominator = 10 - 6 (A_DEMARCHER) = 4 → 2/4 = 50%
+    // denominator = NEGOCIATION(2) + CLIENT(2) = 4 → 2/4 = 50%
     expect(stats.tauxConversion).toBe(50)
+  })
+
+  it("returns tauxConversion=0 when no email-sent+ prospects", async () => {
+    vi.mocked(prisma.prospect.groupBy).mockResolvedValue([
+      { statutPipeline: "A_DEMARCHER", _count: { _all: 5 } },
+    ] as any)
+    const stats = await getDashboardStats()
+    expect(stats.tauxConversion).toBe(0)
+  })
+
+  it("calculates tauxConversion including MAQUETTE_EMAIL_ENVOYES, REPONDU, RDV_PLANIFIE, PERDU", async () => {
+    vi.mocked(prisma.prospect.groupBy).mockResolvedValue([
+      { statutPipeline: "MAQUETTE_EMAIL_ENVOYES", _count: { _all: 4 } },
+      { statutPipeline: "REPONDU", _count: { _all: 2 } },
+      { statutPipeline: "RDV_PLANIFIE", _count: { _all: 2 } },
+      { statutPipeline: "PERDU", _count: { _all: 2 } },
+      { statutPipeline: "CLIENT", _count: { _all: 2 } },
+    ] as any)
+    const stats = await getDashboardStats()
+    expect(stats.clientsSignes).toBe(2)
+    // denominator = 4+2+2+2+2 = 12 → 2/12 ≈ 17%
+    expect(stats.tauxConversion).toBe(17)
   })
 
   it("returns pipeline with 7 entries, zero-filling missing statuts", async () => {

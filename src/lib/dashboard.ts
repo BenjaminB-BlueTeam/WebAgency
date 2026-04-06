@@ -82,8 +82,16 @@ export async function getDashboardStats(): Promise<DashboardStats> {
   }
 
   const clientsSignes = countByStatut["CLIENT"] ?? 0
-  const contacted = total - (countByStatut["A_DEMARCHER"] ?? 0)
-  const tauxConversion = contacted > 0 ? Math.round((clientsSignes / contacted) * 100) : 0
+  const EMAIL_SENT_PLUS: string[] = [
+    "MAQUETTE_EMAIL_ENVOYES",
+    "REPONDU",
+    "RDV_PLANIFIE",
+    "NEGOCIATION",
+    "CLIENT",
+    "PERDU",
+  ]
+  const emailSentPlus = EMAIL_SENT_PLUS.reduce((acc, s) => acc + (countByStatut[s] ?? 0), 0)
+  const tauxConversion = emailSentPlus > 0 ? Math.round((clientsSignes / emailSentPlus) * 100) : 0
 
   const pipeline: PipelineSlice[] = PIPELINE_ORDER.map((statut) => ({
     statut,
