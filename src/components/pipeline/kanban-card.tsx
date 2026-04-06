@@ -4,6 +4,7 @@ import { useDraggable } from "@dnd-kit/core"
 import { CSS } from "@dnd-kit/utilities"
 import { useRouter } from "next/navigation"
 import { ScorePastille } from "@/components/prospects/score-pastille"
+import { RelanceDot } from "@/components/pipeline/relance-dot"
 import { timeAgo } from "@/lib/date"
 import type { Prospect } from "@/types/prospect"
 
@@ -55,7 +56,10 @@ function CardContent({ prospect }: { prospect: Prospect }) {
     <>
       <div className="flex items-start justify-between gap-2 mb-1">
         <p className="text-sm font-medium text-[#fafafa] truncate">{prospect.nom}</p>
-        <ScorePastille score={prospect.scoreGlobal} size={20} />
+        <div className="flex items-center gap-1 flex-shrink-0">
+          <RelanceDot prochaineRelance={prospect.prochaineRelance} />
+          <ScorePastille score={prospect.scoreGlobal} size={20} />
+        </div>
       </div>
       <p className="text-xs text-[#737373] truncate">{prospect.activite} — {prospect.ville}</p>
       <p className="text-xs text-[#555555] mt-1">{timeAgo(prospect.updatedAt)}</p>
