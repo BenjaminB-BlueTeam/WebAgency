@@ -35,14 +35,13 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const lastAnalyse = prospect.analyses[0] ?? null
     const lastMaquette = prospect.maquettes[prospect.maquettes.length - 1] ?? null
 
     // TODO step 8: replace with new generation pipeline (Pexels + Claude + Netlify)
-    const screens: { name: string; html: string }[] = []
+    const files: { path: string; content: string }[] = []
     const promptUsed = ""
     const { url, siteId } = await deployToNetlify(
-      screens,
+      files,
       prospect.nom,
       prospect.ville,
       lastMaquette?.netlifySiteId ?? null
@@ -53,7 +52,7 @@ export async function POST(request: NextRequest) {
     const maquette = await prisma.maquette.create({
       data: {
         prospectId,
-        html: JSON.stringify(screens),
+        html: JSON.stringify(files),
         demoUrl: url,
         netlifySiteId: siteId,
         version,

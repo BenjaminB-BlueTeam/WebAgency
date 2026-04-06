@@ -51,11 +51,11 @@ describe("injectNav", () => {
 })
 
 describe("deployToNetlify", () => {
-  const screens = [
-    { name: "accueil", html: "<html><body>Accueil</body></html>" },
-    { name: "services", html: "<html><body>Services</body></html>" },
-    { name: "contact", html: "<html><body>Contact</body></html>" },
-    { name: "a-propos", html: "<html><body>A propos</body></html>" },
+  const files = [
+    { path: "index.html", content: "<html><body>Accueil</body></html>" },
+    { path: "services.html", content: "<html><body>Services</body></html>" },
+    { path: "css/style.css", content: "body { margin: 0; }" },
+    { path: "js/main.js", content: "console.log('ready');" },
   ]
 
   beforeEach(() => {
@@ -79,14 +79,14 @@ describe("deployToNetlify", () => {
   })
 
   it("creates a Netlify site with slugified name", async () => {
-    await deployToNetlify(screens, "Plomberie Martin", "Steenvoorde")
+    await deployToNetlify(files, "Plomberie Martin", "Steenvoorde")
     const firstCall = (global.fetch as ReturnType<typeof vi.fn>).mock.calls[0]
     expect(firstCall[0]).toContain("/sites")
     expect(JSON.parse(firstCall[1].body).name).toBe("fwa-plomberie-martin-steenvoorde")
   })
 
   it("uploads exactly 4 files", async () => {
-    await deployToNetlify(screens, "Martin", "Lille")
+    await deployToNetlify(files, "Martin", "Lille")
     const allCalls = (global.fetch as ReturnType<typeof vi.fn>).mock.calls
     // call 0: POST /sites, call 1: POST /deploys, calls 2-5: PUT files
     const putCalls = allCalls.slice(2)
@@ -94,7 +94,7 @@ describe("deployToNetlify", () => {
   })
 
   it("returns url built from site name and siteId", async () => {
-    const result = await deployToNetlify(screens, "Plomberie Martin", "Steenvoorde")
+    const result = await deployToNetlify(files, "Plomberie Martin", "Steenvoorde")
     expect(result.url).toBe("https://fwa-plomberie-martin-steenvoorde.netlify.app")
     expect(result.siteId).toBe("site-abc")
   })
@@ -109,7 +109,7 @@ describe("deployToNetlify", () => {
       })
       .mockResolvedValue({ ok: true, json: () => Promise.resolve({}), text: () => Promise.resolve("") })
 
-    const result = await deployToNetlify(screens, "Martin", "Lille", "existing-site-id")
+    const result = await deployToNetlify(files, "Martin", "Lille", "existing-site-id")
     expect(result.siteId).toBe("existing-site-id")
     // Only 1 + 4 = 5 calls (no POST /sites)
     expect((global.fetch as ReturnType<typeof vi.fn>).mock.calls).toHaveLength(5)

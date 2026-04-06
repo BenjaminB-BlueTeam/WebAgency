@@ -53,27 +53,18 @@ async function netlifyRequest(path: string, options: RequestInit): Promise<unkno
   return res.json()
 }
 
-const NAME_TO_FILE: Record<string, string> = {
-  accueil: "index.html",
-  services: "services.html",
-  contact: "contact.html",
-  "a-propos": "a-propos.html",
-}
-
 export async function deployToNetlify(
-  screens: { name: string; html: string }[],
+  files: { path: string; content: string }[],
   prospectName: string,
   ville: string,
   existingSiteId?: string | null
 ): Promise<DeployResult> {
   const siteName = `fwa-${slugify(`${prospectName}-${ville}`)}`
 
-  // Build file map with nav injected
+  // Build file map: /index.html → content, /css/style.css → content, etc.
   const fileMap: Record<string, string> = {}
-  for (const screen of screens) {
-    const file = NAME_TO_FILE[screen.name]
-    if (!file) continue // skip unknown screen names
-    fileMap[`/${file}`] = injectNav(screen.html, screen.name)
+  for (const file of files) {
+    fileMap[`/${file.path}`] = file.content
   }
 
   // Get or create site
