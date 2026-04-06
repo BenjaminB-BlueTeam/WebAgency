@@ -114,7 +114,6 @@ export async function POST(request: NextRequest) {
     if (err instanceof Error && err.message === "Unauthorized") {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
-    console.error("[prospection/save] unhandled error:", err)
     return NextResponse.json({ error: "Erreur interne du serveur" }, { status: 500 })
   }
 }

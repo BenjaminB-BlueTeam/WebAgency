@@ -194,7 +194,7 @@ export default function RecherchePage() {
       }
 
       setScoringState("done")
-      setTimeout(() => setScoringState("idle"), 3000)
+      setTimeout(() => setScoringState("idle"), 5000)
     } catch {
       setScoringState("idle")
     }
