@@ -5,10 +5,20 @@ import { generateProspectionEmail, buildEmailHtml } from "@/lib/email"
 
 type RouteParams = { params: Promise<{ id: string }> }
 
-export async function POST(_request: NextRequest, { params }: RouteParams) {
+export async function POST(request: NextRequest, { params }: RouteParams) {
   try {
     await requireAuth()
     const { id } = await params
+
+    let isRelance = false
+    try {
+      const body: unknown = await request.json()
+      if (body && typeof body === "object" && (body as Record<string, unknown>).relance === true) {
+        isRelance = true
+      }
+    } catch {
+      // Body absent ou invalide — isRelance reste false
+    }
 
     const prospect = await prisma.prospect.findUnique({
       where: { id },
@@ -28,7 +38,8 @@ export async function POST(_request: NextRequest, { params }: RouteParams) {
     const { sujet, corps } = await generateProspectionEmail(
       prospect,
       lastMaquette ? { demoUrl: lastMaquette.demoUrl, version: lastMaquette.version } : null,
-      lastAnalyse ? { recommandations: lastAnalyse.recommandations } : null
+      lastAnalyse ? { recommandations: lastAnalyse.recommandations } : null,
+      isRelance
     )
 
     const htmlContent = buildEmailHtml(corps, prospect, lastMaquette?.demoUrl ?? null)

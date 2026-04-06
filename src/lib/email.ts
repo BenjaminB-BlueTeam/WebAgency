@@ -18,7 +18,8 @@ interface MaquetteInput {
 export async function generateProspectionEmail(
   prospect: ProspectInput,
   maquette?: MaquetteInput | null,
-  analyse?: { recommandations: string } | null
+  analyse?: { recommandations: string } | null,
+  isRelance?: boolean
 ): Promise<{ sujet: string; corps: string }> {
   const contextParts: string[] = [
     `activité = ${prospect.activite}`,
@@ -27,8 +28,12 @@ export async function generateProspectionEmail(
   if (maquette?.demoUrl) contextParts.push(`lien démo: ${maquette.demoUrl}`)
   if (analyse) contextParts.push(`recommandations: ${analyse.recommandations}`)
 
+  const systemPrompt = isRelance
+    ? `Tu rédiges des emails de relance pour Flandre Web Agency. Ton professionnel mais chaleureux. Court (max 120 mots). Tu rappelles que tu avais envoyé une présentation de site web et proposes de discuter. Pas de ton commercial agressif. Réponds en JSON : {"sujet": string, "corps": string}`
+    : `Tu rédiges des emails de prospection pour Flandre Web Agency. Ton professionnel mais chaleureux, personnalisé au métier du prospect. Court (max 150 mots). Pas de ton commercial agressif — tu es un voisin qui propose un service utile. Réponds en JSON : {"sujet": string, "corps": string}`
+
   const response = await analyzeWithClaude(
-    "Tu rédiges des emails de prospection pour Flandre Web Agency. Ton professionnel mais chaleureux, personnalisé au métier du prospect. Court (max 150 mots). Pas de ton commercial agressif — tu es un voisin qui propose un service utile. Réponds en JSON : {\"sujet\": string, \"corps\": string}",
+    systemPrompt,
     `Génère un email de prospection pour ${prospect.nom}, ${contextParts.join(", ")}`
   )
   const parsed = parseClaudeJSON<{ sujet: string; corps: string }>(response)

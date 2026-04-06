@@ -90,4 +90,21 @@ describe("POST /api/prospects/[id]/email/generate", () => {
       "https://test.netlify.app"
     )
   })
+
+  it("passes relance:false to generateProspectionEmail when no body", async () => {
+    await POST(makeReq() as any, { params })
+    const calls = vi.mocked(generateProspectionEmail).mock.calls
+    expect(calls[0][3]).toBe(false)
+  })
+
+  it("passes relance:true to generateProspectionEmail when body has relance:true", async () => {
+    const req = new Request("http://localhost/api/prospects/p1/email/generate", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ relance: true }),
+    })
+    await POST(req as any, { params })
+    const calls = vi.mocked(generateProspectionEmail).mock.calls
+    expect(calls[0][3]).toBe(true)
+  })
 })
