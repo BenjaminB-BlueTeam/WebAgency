@@ -1,5 +1,7 @@
 // src/types/emails.ts
 
+export type RelanceType = "EMAIL" | "MAQUETTE" | "RDV" | "DEVIS"
+
 export interface RelanceInfo {
   due: boolean
   urgente: boolean
@@ -27,4 +29,5 @@ export interface EmailProspectItem {
     createdAt: string
   }[]
   relance: RelanceInfo
+  relanceType: RelanceType | null
 }
