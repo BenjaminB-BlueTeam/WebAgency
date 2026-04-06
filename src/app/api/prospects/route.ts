@@ -18,6 +18,8 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url)
     const search = searchParams.get("search")?.toLowerCase().trim() ?? null
     const statut = searchParams.get("statut")
+    const activite = searchParams.get("activite")
+    const ville = searchParams.get("ville")
     const scoreMinRaw = searchParams.get("scoreMin")
     const sortRaw = searchParams.get("sort") ?? "createdAt"
     const orderRaw = searchParams.get("order") ?? "desc"
@@ -30,6 +32,9 @@ export async function GET(request: NextRequest) {
       }
       where.statutPipeline = statut
     }
+
+    if (activite) where.activite = activite
+    if (ville) where.ville = ville
 
     if (scoreMinRaw !== null) {
       const scoreMin = parseFloat(scoreMinRaw)

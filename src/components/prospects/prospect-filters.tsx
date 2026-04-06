@@ -29,6 +29,12 @@ interface ProspectFiltersProps {
   onStatutChange: (value: string) => void
   scoreMin: number
   onScoreMinChange: (value: number) => void
+  activite: string
+  onActiviteChange: (value: string) => void
+  ville: string
+  onVilleChange: (value: string) => void
+  activites: string[]
+  villes: string[]
 }
 
 export function ProspectFilters({
@@ -38,6 +44,12 @@ export function ProspectFilters({
   onStatutChange,
   scoreMin,
   onScoreMinChange,
+  activite,
+  onActiviteChange,
+  ville,
+  onVilleChange,
+  activites,
+  villes,
 }: ProspectFiltersProps) {
   return (
     <div className="flex flex-col md:flex-row gap-3 mb-6">
@@ -62,6 +74,32 @@ export function ProspectFilters({
           {STATUT_PIPELINE_VALUES.map((s) => (
             <SelectItem key={s} value={s}>
               {STATUT_LABELS[s]}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+      <Select value={activite} onValueChange={onActiviteChange}>
+        <SelectTrigger className="w-full md:w-[180px] bg-[#0a0a0a] border-[#1a1a1a]">
+          <SelectValue placeholder="Toutes les activités" />
+        </SelectTrigger>
+        <SelectContent className="bg-[#0a0a0a] border-[#1a1a1a]">
+          <SelectItem value="all">Toutes les activités</SelectItem>
+          {activites.map((a) => (
+            <SelectItem key={a} value={a}>
+              {a}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+      <Select value={ville} onValueChange={onVilleChange}>
+        <SelectTrigger className="w-full md:w-[180px] bg-[#0a0a0a] border-[#1a1a1a]">
+          <SelectValue placeholder="Toutes les villes" />
+        </SelectTrigger>
+        <SelectContent className="bg-[#0a0a0a] border-[#1a1a1a]">
+          <SelectItem value="all">Toutes les villes</SelectItem>
+          {villes.map((v) => (
+            <SelectItem key={v} value={v}>
+              {v}
             </SelectItem>
           ))}
         </SelectContent>

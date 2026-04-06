@@ -57,6 +57,10 @@ export function ProspectList({ initialProspects }: ProspectListProps) {
   const [scoreMin, setScoreMin] = useState(0)
   const [sort, setSort] = useState<SortKey>("createdAt")
   const [order, setOrder] = useState<SortOrder>("desc")
+  const [activite, setActivite] = useState("all")
+  const [ville, setVille] = useState("all")
+  const [activites, setActivites] = useState<string[]>([])
+  const [villes, setVilles] = useState<string[]>([])
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
   const [confirmingDelete, setConfirmingDelete] = useState(false)
   const [deleting, setDeleting] = useState(false)
@@ -71,6 +75,8 @@ export function ProspectList({ initialProspects }: ProspectListProps) {
       scoreMin: number
       sort: SortKey
       order: SortOrder
+      activite: string
+      ville: string
     }) => {
       setLoading(true)
       try {
@@ -78,6 +84,8 @@ export function ProspectList({ initialProspects }: ProspectListProps) {
         if (params.search) url.searchParams.set("search", params.search)
         if (params.statut !== "all") url.searchParams.set("statut", params.statut)
         if (params.scoreMin > 0) url.searchParams.set("scoreMin", String(params.scoreMin))
+        if (params.activite && params.activite !== "all") url.searchParams.set("activite", params.activite)
+        if (params.ville && params.ville !== "all") url.searchParams.set("ville", params.ville)
         url.searchParams.set("sort", params.sort)
         url.searchParams.set("order", params.order)
 
@@ -94,27 +102,42 @@ export function ProspectList({ initialProspects }: ProspectListProps) {
     []
   )
 
+  // Load filter options on mount
+  useEffect(() => {
+    void (async () => {
+      try {
+        const res = await fetch("/api/prospects/filters")
+        if (!res.ok) return
+        const json = await res.json() as { data: { activites: string[]; villes: string[] } }
+        setActivites(json.data.activites)
+        setVilles(json.data.villes)
+      } catch {
+        // silently ignore
+      }
+    })()
+  }, [])
+
   // Debounce search
   const handleSearchChange = useCallback(
     (value: string) => {
       setSearch(value)
       if (searchDebounceRef.current) clearTimeout(searchDebounceRef.current)
       searchDebounceRef.current = setTimeout(() => {
-        void fetchProspects({ search: value, statut, scoreMin, sort, order })
+        void fetchProspects({ search: value, statut, scoreMin, sort, order, activite, ville })
       }, 300)
     },
-    [statut, scoreMin, sort, order, fetchProspects]
+    [statut, scoreMin, sort, order, activite, ville, fetchProspects]
   )
 
-  // Immediate fetch on filter changes (statut, scoreMin, sort, order)
+  // Immediate fetch on filter changes (statut, scoreMin, sort, order, activite, ville)
   useEffect(() => {
     if (isFirstRender.current) {
       isFirstRender.current = false
       return
     }
-    void fetchProspects({ search, statut, scoreMin, sort, order })
+    void fetchProspects({ search, statut, scoreMin, sort, order, activite, ville })
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [statut, scoreMin, sort, order])
+  }, [statut, scoreMin, sort, order, activite, ville])
 
   const handleSortClick = useCallback(
     (key: SortKey) => {
@@ -160,7 +183,7 @@ export function ProspectList({ initialProspects }: ProspectListProps) {
       toast.success(`${json.data.deleted} prospect${json.data.deleted > 1 ? "s" : ""} supprimé${json.data.deleted > 1 ? "s" : ""}`)
       setSelectedIds(new Set())
       setConfirmingDelete(false)
-      await fetchProspects({ search, statut, scoreMin, sort, order })
+      await fetchProspects({ search, statut, scoreMin, sort, order, activite, ville })
     } catch {
       toast.error("Erreur lors de la suppression")
     } finally {
@@ -168,7 +191,7 @@ export function ProspectList({ initialProspects }: ProspectListProps) {
     }
   }
 
-  const hasFilters = search !== "" || statut !== "all" || scoreMin > 0
+  const hasFilters = search !== "" || statut !== "all" || scoreMin > 0 || activite !== "all" || ville !== "all"
   const allSelected = prospects.length > 0 && selectedIds.size === prospects.length
   const someSelected = selectedIds.size > 0
 
@@ -188,6 +211,12 @@ export function ProspectList({ initialProspects }: ProspectListProps) {
         onStatutChange={(v) => setStatut(v)}
         scoreMin={scoreMin}
         onScoreMinChange={(v) => setScoreMin(v)}
+        activite={activite}
+        onActiviteChange={(v) => setActivite(v)}
+        ville={ville}
+        onVilleChange={(v) => setVille(v)}
+        activites={activites}
+        villes={villes}
       />
 
       {/* Bulk delete bar */}
