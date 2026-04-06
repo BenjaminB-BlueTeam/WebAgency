@@ -8,7 +8,7 @@ export function RelanceDot({ prochaineRelance }: RelanceDotProps) {
 
   return (
     <span
-      style={{ width: 6, height: 6, borderRadius: 9999, backgroundColor: "#f87171", flexShrink: 0 }}
+      style={{ display: "inline-block", width: 6, height: 6, borderRadius: 9999, backgroundColor: "#f87171", flexShrink: 0 }}
     />
   )
 }
