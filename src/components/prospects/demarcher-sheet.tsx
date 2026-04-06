@@ -59,7 +59,7 @@ export function DemarcherSheet({ prospect, onClose, isRelance }: Props) {
       }
     }
     generate()
-  }, [prospect.id])
+  }, [prospect.id, isRelance])
 
   async function handleSend() {
     if (!draft) return
