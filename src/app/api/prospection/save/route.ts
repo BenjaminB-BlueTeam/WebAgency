@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { requireAuth } from "@/lib/auth"
 import { prisma } from "@/lib/db"
 import { validateString } from "@/lib/validation"
+import { Prisma } from "@prisma/client"
 import type { PlaceResult } from "@/types/places"
 
 function extractVille(adresse: string): string {
@@ -65,31 +66,42 @@ export async function POST(request: NextRequest) {
       const ville = extractVille(p.adresse)
       const activite = extractActivite(p.types)
 
-      const created = await prisma.prospect.create({
-        data: {
-          nom: p.nom,
-          activite,
-          ville,
-          adresse: p.adresse || undefined,
-          telephone: p.telephone || undefined,
-          siteUrl: p.siteUrl || undefined,
-          placeId: p.placeId || undefined,
-          noteGoogle: p.noteGoogle ?? undefined,
-          nbAvisGoogle: p.nbAvisGoogle ?? undefined,
-          statutPipeline: "A_DEMARCHER",
-          scorePresenceWeb: p.siteUrl ? 3 : 10,
-        },
-      })
+      try {
+        const created = await prisma.prospect.create({
+          data: {
+            nom: p.nom,
+            activite,
+            ville,
+            adresse: p.adresse || undefined,
+            telephone: p.telephone || undefined,
+            siteUrl: p.siteUrl || undefined,
+            placeId: p.placeId || undefined,
+            noteGoogle: p.noteGoogle ?? undefined,
+            nbAvisGoogle: p.nbAvisGoogle ?? undefined,
+            statutPipeline: "A_DEMARCHER",
+            scorePresenceWeb: p.siteUrl ? 3 : 10,
+          },
+        })
 
-      await prisma.activite.create({
-        data: {
-          prospectId: created.id,
-          type: "RECHERCHE",
-          description: `Prospect ajouté via recherche Google Places — ${p.nom} (${ville})`,
-        },
-      })
+        await prisma.activite.create({
+          data: {
+            prospectId: created.id,
+            type: "RECHERCHE",
+            description: `Prospect ajouté via recherche Google Places — ${p.nom} (${ville})`,
+          },
+        })
 
-      saved++
+        saved++
+      } catch (createErr) {
+        if (
+          createErr instanceof Prisma.PrismaClientKnownRequestError &&
+          createErr.code === "P2002"
+        ) {
+          skipped++
+        } else {
+          throw createErr
+        }
+      }
     }
 
     if (saved > 0) {
@@ -104,6 +116,7 @@ export async function POST(request: NextRequest) {
     if (err instanceof Error && err.message === "Unauthorized") {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
+    console.error("[prospection/save] unhandled error:", err)
     return NextResponse.json({ error: "Erreur interne du serveur" }, { status: 500 })
   }
 }
