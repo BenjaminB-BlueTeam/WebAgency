@@ -109,6 +109,28 @@ Après génération d'une maquette, pouvoir donner des instructions de correctio
 - L'historique des ajustements est stocké (prompt initial + corrections successives)
 - Ne compte pas dans la limite des 3 versions (c'est un ajustement, pas une régénération)
 
+## Audit cybersécurité OWASP (priorité : moyenne)
+Audit complet du CRM basé sur le Top 10 OWASP 2025.
+
+RÈGLES ABSOLUES :
+- Aucun email envoyé (ne pas toucher aux routes Resend)
+- Aucun contact avec les prospects réels (pas d'appel API Google Places, Pappers, Pexels avec des vrais prospects)
+- Aucune modification des données en base (lecture seule, ou utiliser des données de test)
+- Tous les tests sur un environnement de test ou avec des mocks
+- Ne rien casser : chaque correction est accompagnée d'un test qui prouve que la feature fonctionne toujours
+
+Checklist :
+- Injection (SQL, XSS) : vérifier toutes les entrées utilisateur, sanitization
+- Broken Authentication : audit JWT, expiration, brute force protection
+- Broken Access Control : requireAuth sur toutes les routes, IDOR
+- Security Misconfiguration : headers HTTP, env vars, error messages
+- Cryptographic Failures : bcrypt, HTTPS, données sensibles
+- Vulnerable Components : npm audit, dépendances
+- SSRF : appels vers APIs externes
+- API Security : rate limiting, validation inputs, taille payloads
+- Logging & Monitoring : logs accès, tentatives échouées
+- Rapport avec corrections appliquées + tests de non-régression
+
 ## Fix mineurs post-sessions
 - Dashboard tauxConversion : calculer sur prospects email envoyé+, pas total
 - computeProchainRelance : description.includes("NEGOCIATION") fragile → filtre robuste
