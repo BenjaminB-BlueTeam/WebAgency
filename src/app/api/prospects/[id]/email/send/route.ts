@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { requireAuth } from "@/lib/auth"
 import { prisma } from "@/lib/db"
 import { sendEmail, buildEmailHtml } from "@/lib/email"
+import { refreshProchainRelance } from "@/lib/relance-writer"
 
 type RouteParams = { params: Promise<{ id: string }> }
 
@@ -72,6 +73,8 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
         data: { statutPipeline: "MAQUETTE_EMAIL_ENVOYES" },
       })
     }
+
+    refreshProchainRelance(id).catch(console.error)
 
     return NextResponse.json({ data: { success: true } })
   } catch (error) {

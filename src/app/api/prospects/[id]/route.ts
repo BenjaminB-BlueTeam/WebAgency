@@ -3,6 +3,7 @@ import { requireAuth } from "@/lib/auth"
 import { prisma } from "@/lib/db"
 import { validateProspectUpdate } from "@/lib/validation"
 import { Prisma } from "@prisma/client"
+import { refreshProchainRelance } from "@/lib/relance-writer"
 
 type RouteParams = { params: Promise<{ id: string }> }
 
@@ -91,6 +92,10 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
         where: { id },
         data: data! as Prisma.ProspectUpdateInput,
       })
+    }
+
+    if (data!.statutPipeline !== undefined || data!.dateRdv !== undefined) {
+      refreshProchainRelance(id).catch(console.error)
     }
 
     return NextResponse.json({ data: prospect })

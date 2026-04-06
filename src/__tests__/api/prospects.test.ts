@@ -5,6 +5,7 @@ import { NextRequest } from "next/server"
 vi.mock("@/lib/auth", () => ({
   requireAuth: vi.fn(),
 }))
+vi.mock("@/lib/relance-writer", () => ({ refreshProchainRelance: vi.fn().mockResolvedValue(undefined) }))
 
 // Mock Prisma with hoisting-safe approach using vi.hoisted
 const { mockPrismaProspect, mockPrismaActivite, mockTransaction } = vi.hoisted(() => {

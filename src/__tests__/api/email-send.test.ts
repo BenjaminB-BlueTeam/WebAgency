@@ -14,6 +14,7 @@ vi.mock("@/lib/email", () => ({
   sendEmail: vi.fn(),
   buildEmailHtml: vi.fn(),
 }))
+vi.mock("@/lib/relance-writer", () => ({ refreshProchainRelance: vi.fn().mockResolvedValue(undefined) }))
 
 import { POST } from "@/app/api/prospects/[id]/email/send/route"
 import { requireAuth } from "@/lib/auth"
