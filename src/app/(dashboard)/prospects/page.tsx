@@ -1,6 +1,8 @@
 import { prisma } from "@/lib/db"
 import { ProspectList } from "@/components/prospects/prospect-list"
 
+export const dynamic = "force-dynamic"
+
 async function getProspects() {
   try {
     return await prisma.prospect.findMany({

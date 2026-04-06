@@ -1,4 +1,5 @@
 // src/app/(dashboard)/emails/page.tsx
+export const dynamic = "force-dynamic"
 import { prisma } from "@/lib/db"
 import { computeRelance, computeProchainRelance } from "@/lib/relance"
 import { EmailsClient } from "@/components/emails/emails-client"
