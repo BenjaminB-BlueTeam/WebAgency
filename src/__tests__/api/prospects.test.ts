@@ -97,30 +97,66 @@ describe("POST /api/prospects — validation", () => {
     expect(mockPrismaProspect.create).not.toHaveBeenCalled()
   })
 
-  it("returns 400 when activite is missing", async () => {
+  it("creates a prospect with nom only (activite and ville optional) → 201", async () => {
+    const created = {
+      id: "clx456",
+      nom: "Boulangerie Dupont",
+      activite: "",
+      ville: "",
+      statutPipeline: "A_DEMARCHER",
+    }
+    mockPrismaProspect.create.mockResolvedValue(created)
+
     const req = makeRequest("http://localhost:3000/api/prospects", {
       method: "POST",
-      body: { nom: "Boulangerie Dupont", ville: "Lille" },
+      body: { nom: "Boulangerie Dupont" },
     })
     const res = await POST(req)
 
-    expect(res.status).toBe(400)
+    expect(res.status).toBe(201)
     const json = await res.json()
-    expect(json.error).toHaveProperty("activite")
-    expect(mockPrismaProspect.create).not.toHaveBeenCalled()
+    expect(json.data).toEqual(created)
+    expect(mockPrismaProspect.create).toHaveBeenCalledOnce()
   })
 
-  it("returns 400 when ville is missing", async () => {
+  it("accepts activite when provided, defaults to empty string if missing", async () => {
+    const created = {
+      id: "clx457",
+      nom: "Garage Martin",
+      activite: "Garage",
+      ville: "",
+      statutPipeline: "A_DEMARCHER",
+    }
+    mockPrismaProspect.create.mockResolvedValue(created)
+
     const req = makeRequest("http://localhost:3000/api/prospects", {
       method: "POST",
-      body: { nom: "Boulangerie Dupont", activite: "Boulangerie" },
+      body: { nom: "Garage Martin", activite: "Garage" },
     })
     const res = await POST(req)
 
-    expect(res.status).toBe(400)
-    const json = await res.json()
-    expect(json.error).toHaveProperty("ville")
-    expect(mockPrismaProspect.create).not.toHaveBeenCalled()
+    expect(res.status).toBe(201)
+    expect(mockPrismaProspect.create).toHaveBeenCalledOnce()
+  })
+
+  it("accepts ville when provided, defaults to empty string if missing", async () => {
+    const created = {
+      id: "clx458",
+      nom: "Salon Beauté",
+      activite: "",
+      ville: "Paris",
+      statutPipeline: "A_DEMARCHER",
+    }
+    mockPrismaProspect.create.mockResolvedValue(created)
+
+    const req = makeRequest("http://localhost:3000/api/prospects", {
+      method: "POST",
+      body: { nom: "Salon Beauté", ville: "Paris" },
+    })
+    const res = await POST(req)
+
+    expect(res.status).toBe(201)
+    expect(mockPrismaProspect.create).toHaveBeenCalledOnce()
   })
 
   it("returns 409 on duplicate nom+ville (P2002)", async () => {

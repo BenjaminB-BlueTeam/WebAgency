@@ -106,21 +106,17 @@ export function validateProspectCreate(body: Record<string, unknown>): {
   const nom = validateString(body.nom, 100);
   if (!nom) errors.nom = "Le nom est requis (max 100 caractères)";
 
-  const activite = validateString(body.activite, 100);
-  if (!activite)
-    errors.activite = "L'activité est requise (max 100 caractères)";
-
-  const ville = validateString(body.ville, 100);
-  if (!ville) errors.ville = "La ville est requise (max 100 caractères)";
-
   if (Object.keys(errors).length > 0) {
     return { data: null, errors };
   }
 
+  const activite = validateOptionalString(body.activite, 100) ?? "";
+  const ville = validateOptionalString(body.ville, 100) ?? "";
+
   const data: ProspectCreateData = {
     nom: nom!,
-    activite: activite!,
-    ville: ville!,
+    activite,
+    ville,
   };
 
   if (body.adresse !== undefined) {
