@@ -3,6 +3,8 @@ import type { RelanceInfo, RelanceType } from "@/types/emails"
 
 export const DELAI_JOURS = 7
 
+const MS_PER_DAY = 86_400_000
+
 type EmailLike = { statut: string; dateEnvoi: Date | null }
 
 export function computeRelance(
@@ -10,7 +12,6 @@ export function computeRelance(
   emails: EmailLike[]
 ): RelanceInfo {
   const now = new Date()
-  const MS_PER_DAY = 86_400_000
 
   if (prochaineRelance) {
     const diff = Math.floor((now.getTime() - prochaineRelance.getTime()) / MS_PER_DAY)
@@ -46,8 +47,6 @@ export type ProchainRelanceResult = {
   relanceType: RelanceType | null
 }
 
-const MS_PER_DAY_MULTI = 86_400_000
-
 export function computeProchainRelance(input: ProspectRelanceInput): ProchainRelanceResult {
   const now = new Date()
 
@@ -58,7 +57,7 @@ export function computeProchainRelance(input: ProspectRelanceInput): ProchainRel
       [0]
     if (activite) {
       return {
-        prochaineRelance: new Date(activite.createdAt.getTime() + 10 * MS_PER_DAY_MULTI),
+        prochaineRelance: new Date(activite.createdAt.getTime() + 10 * MS_PER_DAY),
         relanceType: "DEVIS",
       }
     }
@@ -67,7 +66,7 @@ export function computeProchainRelance(input: ProspectRelanceInput): ProchainRel
   // RDV — priorité 2
   if (input.dateRdv && input.dateRdv < now) {
     return {
-      prochaineRelance: new Date(input.dateRdv.getTime() + 3 * MS_PER_DAY_MULTI),
+      prochaineRelance: new Date(input.dateRdv.getTime() + 3 * MS_PER_DAY),
       relanceType: "RDV",
     }
   }
@@ -75,7 +74,7 @@ export function computeProchainRelance(input: ProspectRelanceInput): ProchainRel
   // MAQUETTE — priorité 3
   if (input.dateMaquetteEnvoi) {
     return {
-      prochaineRelance: new Date(input.dateMaquetteEnvoi.getTime() + 5 * MS_PER_DAY_MULTI),
+      prochaineRelance: new Date(input.dateMaquetteEnvoi.getTime() + 5 * MS_PER_DAY),
       relanceType: "MAQUETTE",
     }
   }
@@ -86,7 +85,7 @@ export function computeProchainRelance(input: ProspectRelanceInput): ProchainRel
     .sort((a, b) => b.dateEnvoi!.getTime() - a.dateEnvoi!.getTime())[0]
   if (lastSent?.dateEnvoi) {
     return {
-      prochaineRelance: new Date(lastSent.dateEnvoi.getTime() + 7 * MS_PER_DAY_MULTI),
+      prochaineRelance: new Date(lastSent.dateEnvoi.getTime() + 7 * MS_PER_DAY),
       relanceType: "EMAIL",
     }
   }
