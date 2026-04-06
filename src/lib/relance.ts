@@ -1,5 +1,5 @@
 // src/lib/relance.ts
-import type { RelanceInfo } from "@/types/emails"
+import type { RelanceInfo, RelanceType } from "@/types/emails"
 
 export const DELAI_JOURS = 7
 
@@ -31,4 +31,65 @@ export function computeRelance(
 
   if (joursRetard < 0) return { due: false, urgente: false, joursRetard: 0 }
   return { due: true, urgente: joursRetard > DELAI_JOURS, joursRetard }
+}
+
+export type ProspectRelanceInput = {
+  statutPipeline: string
+  dateMaquetteEnvoi: Date | null
+  dateRdv: Date | null
+  emails: { statut: string; dateEnvoi: Date | null }[]
+  activites: { type: string; description: string; createdAt: Date }[]
+}
+
+export type ProchainRelanceResult = {
+  prochaineRelance: Date | null
+  relanceType: RelanceType | null
+}
+
+const MS_PER_DAY_MULTI = 86_400_000
+
+export function computeProchainRelance(input: ProspectRelanceInput): ProchainRelanceResult {
+  const now = new Date()
+
+  // DEVIS — priorité 1
+  if (input.statutPipeline === "NEGOCIATION") {
+    const activite = input.activites
+      .filter((a) => a.type === "PIPELINE" && a.description.includes("NEGOCIATION"))
+      [0]
+    if (activite) {
+      return {
+        prochaineRelance: new Date(activite.createdAt.getTime() + 10 * MS_PER_DAY_MULTI),
+        relanceType: "DEVIS",
+      }
+    }
+  }
+
+  // RDV — priorité 2
+  if (input.dateRdv && input.dateRdv < now) {
+    return {
+      prochaineRelance: new Date(input.dateRdv.getTime() + 3 * MS_PER_DAY_MULTI),
+      relanceType: "RDV",
+    }
+  }
+
+  // MAQUETTE — priorité 3
+  if (input.dateMaquetteEnvoi) {
+    return {
+      prochaineRelance: new Date(input.dateMaquetteEnvoi.getTime() + 5 * MS_PER_DAY_MULTI),
+      relanceType: "MAQUETTE",
+    }
+  }
+
+  // EMAIL — priorité 4
+  const lastSent = input.emails
+    .filter((e) => e.statut === "ENVOYE" && e.dateEnvoi !== null)
+    .sort((a, b) => b.dateEnvoi!.getTime() - a.dateEnvoi!.getTime())[0]
+  if (lastSent?.dateEnvoi) {
+    return {
+      prochaineRelance: new Date(lastSent.dateEnvoi.getTime() + 7 * MS_PER_DAY_MULTI),
+      relanceType: "EMAIL",
+    }
+  }
+
+  return { prochaineRelance: null, relanceType: null }
 }
