@@ -22,6 +22,133 @@ interface Props {
 
 type State = "idle" | "investigating" | "editing" | "generating"
 
+// ─── AdjustModal ──────────────────────────────────────────────────────────────
+
+interface AdjustModalProps {
+  adjusting: boolean
+  instructions: string
+  onInstructionsChange: (v: string) => void
+  onCancel: () => void
+  onApply: () => void
+}
+
+function AdjustModal({
+  adjusting,
+  instructions,
+  onInstructionsChange,
+  onCancel,
+  onApply,
+}: AdjustModalProps) {
+  return (
+    <div
+      style={{
+        position: "fixed",
+        inset: 0,
+        background: "rgba(0,0,0,0.8)",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        zIndex: 1000,
+        padding: 16,
+      }}
+    >
+      <div
+        style={{
+          background: "#0a0a0a",
+          border: "1px solid #1a1a1a",
+          borderRadius: 6,
+          padding: 24,
+          width: "100%",
+          maxWidth: 520,
+          display: "flex",
+          flexDirection: "column",
+          gap: 16,
+        }}
+      >
+        <h2 style={{ color: "#fafafa", fontSize: 16, fontWeight: 600, margin: 0 }}>
+          Ajuster la maquette
+        </h2>
+        <textarea
+          value={instructions}
+          onChange={(e) => onInstructionsChange(e.target.value)}
+          maxLength={2000}
+          placeholder="Ex: Change la couleur principale en bleu, Ajoute une page Tarifs..."
+          disabled={adjusting}
+          style={{
+            background: "#000000",
+            color: "#fafafa",
+            border: "1px solid #1a1a1a",
+            borderRadius: 6,
+            padding: "10px 12px",
+            fontSize: 14,
+            fontFamily: "inherit",
+            resize: "vertical",
+            minHeight: 120,
+            outline: "none",
+            width: "100%",
+            boxSizing: "border-box",
+          }}
+        />
+        <p style={{ color: "#555555", fontSize: 12, margin: 0, textAlign: "right" }}>
+          {instructions.length}/2000
+        </p>
+        <div style={{ display: "flex", gap: 8, justifyContent: "flex-end" }}>
+          <button
+            onClick={onCancel}
+            disabled={adjusting}
+            style={{
+              background: "#0a0a0a",
+              color: "#737373",
+              border: "1px solid #1a1a1a",
+              borderRadius: 6,
+              padding: "8px 16px",
+              fontSize: 14,
+              cursor: adjusting ? "not-allowed" : "pointer",
+            }}
+          >
+            Annuler
+          </button>
+          <button
+            onClick={onApply}
+            disabled={adjusting || instructions.trim().length === 0}
+            style={{
+              background: adjusting || instructions.trim().length === 0 ? "#1a1a1a" : "#ffffff",
+              color: adjusting || instructions.trim().length === 0 ? "#555555" : "#000000",
+              border: "none",
+              borderRadius: 6,
+              padding: "8px 16px",
+              fontSize: 14,
+              fontWeight: 500,
+              cursor: adjusting || instructions.trim().length === 0 ? "not-allowed" : "pointer",
+              display: "flex",
+              alignItems: "center",
+              gap: 8,
+            }}
+          >
+            {adjusting && (
+              <>
+                <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+                <span
+                  style={{
+                    width: 14,
+                    height: 14,
+                    border: "2px solid #555555",
+                    borderTopColor: "#000",
+                    borderRadius: "50%",
+                    animation: "spin 1s linear infinite",
+                    display: "inline-block",
+                  }}
+                />
+              </>
+            )}
+            Appliquer
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 const STATUT_COLORS: Record<string, string> = {
   BROUILLON: "#737373",
   ENVOYEE: "#60a5fa",
@@ -37,6 +164,9 @@ export function ProspectMaquetteTab({ prospect }: Props) {
   const [prompt, setPrompt] = useState("")
   const [context, setContext] = useState<GenerationContext | null>(null)
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const [adjusting, setAdjusting] = useState(false)
+  const [showAdjustModal, setShowAdjustModal] = useState(false)
+  const [adjustInstructions, setAdjustInstructions] = useState("")
 
   const maquettes = [...prospect.maquettes].sort((a, b) => a.version - b.version)
   const selected = maquettes[selectedIndex] ?? null
@@ -101,6 +231,31 @@ export function ProspectMaquetteTab({ prospect }: Props) {
     if (!selected?.demoUrl) return
     navigator.clipboard.writeText(selected.demoUrl)
     toast("URL copiée")
+  }
+
+  async function handleAdjust() {
+    if (!selected) return
+    setAdjusting(true)
+    setShowAdjustModal(false)
+    try {
+      const res = await fetch(`/api/maquettes/${selected.id}/adjust`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ instructions: adjustInstructions }),
+      })
+      const json = await res.json() as { data?: { demoUrl: string }; error?: string }
+      if (!res.ok) {
+        toast.error(json.error ?? "Erreur lors de l'ajustement")
+      } else {
+        router.refresh()
+        toast("Maquette ajustée")
+        setAdjustInstructions("")
+      }
+    } catch {
+      toast.error("Erreur réseau")
+    } finally {
+      setAdjusting(false)
+    }
   }
 
   if (state === "generating") {
@@ -191,6 +346,15 @@ export function ProspectMaquetteTab({ prospect }: Props) {
           error={null}
         />
       )}
+      {showAdjustModal && (
+        <AdjustModal
+          adjusting={adjusting}
+          instructions={adjustInstructions}
+          onInstructionsChange={setAdjustInstructions}
+          onCancel={() => setShowAdjustModal(false)}
+          onApply={() => void handleAdjust()}
+        />
+      )}
       <motion.div
         variants={fadeInUp}
         initial="initial"
@@ -266,6 +430,42 @@ export function ProspectMaquetteTab({ prospect }: Props) {
                   Copier l&apos;URL
                 </button>
               </>
+            )}
+            {selected?.demoUrl && (
+              <button
+                onClick={() => setShowAdjustModal(true)}
+                disabled={adjusting}
+                style={{
+                  background: "#0a0a0a",
+                  color: adjusting ? "#555555" : "#fafafa",
+                  border: "1px solid #1a1a1a",
+                  borderRadius: 6,
+                  padding: "6px 12px",
+                  fontSize: 13,
+                  cursor: adjusting ? "not-allowed" : "pointer",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 6,
+                }}
+              >
+                {adjusting && (
+                  <>
+                    <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+                    <span
+                      style={{
+                        width: 12,
+                        height: 12,
+                        border: "2px solid #333",
+                        borderTopColor: "#fafafa",
+                        borderRadius: "50%",
+                        animation: "spin 1s linear infinite",
+                        display: "inline-block",
+                      }}
+                    />
+                  </>
+                )}
+                Ajuster
+              </button>
             )}
             {maquettes.length < 3 && (
               <button
