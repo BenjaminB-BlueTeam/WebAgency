@@ -135,7 +135,50 @@ CRM interne pour la prospection de clients web dans la region des Flandres. Rech
 - Bouton "Analyser concurrence" dans le panneau expand de la liste des prospects
 - `analyzeWithClaude` : parametre optionnel `maxTokens` (defaut 1024, 4096 pour l'analyse)
 - 15 tests unitaires (lib + route)
-- **Total tests : 238**
+
+### Session 15 — Ameliorations pipeline prospect + fix mineurs
+- **Fix tauxConversion** : denominateur = prospects ayant recu au moins un email (statuts EMAIL_ENVOYE+), pas le total — calcul plus representatif
+- **Fix computeProchainRelance** : comparaison directe `statutPipeline === "NEGOCIATION"` au lieu de `description.includes("NEGOCIATION")` — plus robuste
+- **Fix page Emails** : modale au lieu du split view
+- **Ajout manuel de prospect** : bouton "Ajouter un prospect" sur la page Prospects → modale formulaire (nom obligatoire, activite/ville/telephone/email/site optionnels) → POST /api/prospects → refresh liste
+- `src/components/prospects/add-prospect-modal.tsx` : nouveau composant
+
+### Session 16 — Recherche avancee + scoring automatique
+- **Scoring automatique** : apres sauvegarde de prospects depuis la recherche Google Places, scoring en arriere-plan sur tous les resultats → scores affiches une fois termines, tri par score decroissant
+- `POST /api/prospection/score-batch` : scoring par lot (sequentiel, gestion des echecs individuels)
+- **Recherche par lot / region** : activite optionnelle, selecteur de zone (ville unique / departement Nord / Hauts-de-France), recherche multi-villes avec deduplication par placeId
+- `src/lib/zones.ts` : constantes `VILLES_NORD` (12 villes) et `VILLES_HAUTS_DE_FRANCE` (~25 villes)
+- **Filtres resultats** : dropdown ville, score minimum, sous-chaine activite, note Google minimum, checkbox "Pas de site"
+- **Ajustement maquette** : bouton "Ajuster" sur l'onglet Maquette → textarea instructions → Claude modifie le code existant sans tout regenerer → redploiement Netlify
+- `src/lib/maquette/adjust-site.ts` : `adjustSiteCode(currentFiles, instructions)` — max_tokens 32000, fallback = code inchange
+- `POST /api/maquettes/[id]/adjust` : orchestration ajustement + mise a jour DB + activite
+
+### Session 17 — Veille prospects + page Parametres complete
+- **Widget Veille** sur le dashboard : entreprises creees dans les dernieres 24h (departement 59) via Pappers → bouton "Ajouter" cree le prospect + scoring automatique
+- Vercel Cron quotidien a 8h (`/api/cron/veille-prospects`) — upsert par SIREN, evite les doublons
+- Modele `NouveauProspect` : SIREN unique, nom, activite, NAF, ville, dateCreation, ajouteComme
+- **Page Parametres complete** : 6 sections editables en temps reel via API PATCH /api/parametres
+  - Profil agence (nom, contact, email, telephone, adresse, logo)
+  - Coefficients de scoring (5 sliders 0–5)
+  - Regles de relance (delais en jours)
+  - Zone de prospection (villes + rayon)
+  - Offres commerciales (Vitrine / Visibilite)
+  - Templates email Claude (system prompts modifiables)
+- `src/lib/params.ts` : `getParam(cle, default)` / `setParam(cle, valeur)` — jamais throws, fallback sur default
+- Table `Parametre` : `{cle (unique), valeur (JSON string), updatedAt}`
+
+### Session 18 — Audit cybersecurite OWASP Top 10
+- **7 corrections** sur les 10 categories OWASP 2025 analysees
+- **(A05) Headers HTTP** : CSP, HSTS, X-Frame-Options, X-Content-Type-Options, Referrer-Policy, Permissions-Policy dans `next.config.ts`
+- **(A10 SSRF)** : URL de preview maquette validee — whitelist `*.netlify.app` / `*.netlify.com` HTTPS uniquement
+- **(A07) Brute-force login** : 5 tentatives / 15 min par IP (Map en memoire) → HTTP 429
+- **(A04) Timing-safe cron** : `crypto.timingSafeEqual` + SHA-256 pour la validation du `CRON_SECRET`
+- **(A02) Secret JWT** : validation a l'initialisation (`throw` si < 32 chars) — fail-fast au demarrage
+- **(A03)** Cle API Pappers en query param — risque documente, accepte (API ne supporte pas Authorization header)
+- **(A09)** Suppression de tous les `console.error(raw_err)` dans les routes API et libs
+- 2 nouveaux fichiers de tests securite : `src/__tests__/security/`
+- Rapport complet : `docs/security-audit.md`
+- **Total tests : 303/303 passing**
 
 ## Demarrage
 
