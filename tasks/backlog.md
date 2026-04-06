@@ -62,6 +62,22 @@ Chaque modification prend effet immédiatement sans redéploiement.
 - Les valeurs par défaut sont codées dans le code comme fallback
 - Si la clé n'existe pas en base, le fallback s'applique → rien ne casse jamais
 
+## Scoring automatique à la recherche (priorité : haute)
+Quand des prospects sont trouvés via Google Places, le scoring se lance automatiquement.
+- Phase 1 : recherche Google Places → affichage des résultats → message "Recherche terminée. Scoring en cours..."
+- Phase 2 : scoring en arrière-plan sur tous les résultats → quand terminé, les scores apparaissent et la liste se trie par score décroissant
+- Pas d'affichage progressif : les résultats s'affichent une fois la recherche finie, les scores apparaissent tous ensemble une fois le scoring fini
+
+## Recherche par lot / région (priorité : haute)
+- Champ activité OPTIONNEL : si vide, recherche toutes les entreprises locales de la zone (Google Places "business" ou catégories larges)
+- Sélection zone : ville unique, département, ou région entière
+- Si département ou région : le CRM cherche dans toutes les villes principales
+- Dédoublonnage automatique entre les résultats
+- Scoring automatique sur tous les résultats
+- Filtres sur les résultats : par ville, par score, par activité, par note Google, par présence de site web
+- Résultats triés par score décroissant par défaut
+- Cas d'usage : "Je veux voir tous les prospects potentiels à Hazebrouck peu importe leur activité"
+
 ## Ajout manuel de prospect (priorité : haute)
 Bouton "Ajouter un prospect" sur la page Prospects.
 - Ouvre une modale avec un formulaire : nom, activité, ville, téléphone, email, site web (tous optionnels sauf nom)
