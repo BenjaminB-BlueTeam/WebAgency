@@ -5,6 +5,7 @@ import { motion } from "motion/react"
 import { toast } from "sonner"
 import { SearchForm } from "@/components/recherche/search-form"
 import { SearchResults } from "@/components/recherche/search-results"
+import { SearchHistory } from "@/components/recherche/search-history"
 import { Skeleton } from "@/components/ui/skeleton"
 import { fadeInUp } from "@/lib/animations"
 import type { SearchResult } from "@/types/places"
@@ -19,9 +20,9 @@ export default function RecherchePage() {
   const [rechercheId, setRechercheId] = useState<string | null>(null)
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
   const [expandedId, setExpandedId] = useState<string | null>(null)
+  const [historyKey, setHistoryKey] = useState(0)
 
-  async function handleSearch(e: React.FormEvent) {
-    e.preventDefault()
+  async function runSearch(q: string, v: string, r: string) {
     setLoading(true)
     setResultats(null)
     setSelectedIds(new Set())
@@ -31,7 +32,7 @@ export default function RecherchePage() {
       const res = await fetch("/api/prospection/search", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ query, ville, rayon: Number(rayon) }),
+        body: JSON.stringify({ query: q, ville: v, rayon: Number(r) }),
       })
       const json = await res.json() as { data?: { resultats: SearchResult[]; rechercheId: string }; error?: string }
       if (!res.ok) {
@@ -40,11 +41,24 @@ export default function RecherchePage() {
       }
       setResultats(json.data!.resultats)
       setRechercheId(json.data!.rechercheId)
+      setHistoryKey((k) => k + 1)
     } catch {
       toast.error("Erreur réseau")
     } finally {
       setLoading(false)
     }
+  }
+
+  async function handleSearch(e: React.FormEvent) {
+    e.preventDefault()
+    await runSearch(query, ville, rayon)
+  }
+
+  async function handleReplay(q: string, v: string, r: string) {
+    setQuery(q)
+    setVille(v)
+    setRayon(r)
+    await runSearch(q, v, r)
   }
 
   function handleToggleSelect(id: string) {
@@ -114,6 +128,8 @@ export default function RecherchePage() {
         onSubmit={handleSearch}
         loading={loading}
       />
+
+      <SearchHistory key={historyKey} onReplay={(q, v, r) => void handleReplay(q, v, r)} />
 
       {loading && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-2">

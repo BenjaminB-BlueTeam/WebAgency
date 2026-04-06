@@ -57,6 +57,7 @@ export async function POST(request: NextRequest) {
       data: {
         query,
         ville,
+        rayon: rayonRaw as number,
         resultatsCount: resultats.length,
         prospectsAjoutes: 0,
       },

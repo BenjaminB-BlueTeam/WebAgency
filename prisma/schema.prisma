@@ -108,6 +108,7 @@ model Recherche {
   id               String   @id @default(cuid())
   query            String
   ville            String?
+  rayon            Int?
   resultatsCount   Int
   prospectsAjoutes Int
   createdAt        DateTime @default(now())
