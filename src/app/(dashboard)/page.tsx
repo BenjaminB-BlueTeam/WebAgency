@@ -3,6 +3,7 @@ import { StatsGrid } from "@/components/dashboard/stats-grid"
 import { PipelineBar } from "@/components/dashboard/pipeline-bar"
 import { RelancesWidget } from "@/components/dashboard/relances-widget"
 import { ActivityTimeline } from "@/components/dashboard/activity-timeline"
+import { VeilleWidget } from "@/components/dashboard/veille-widget"
 
 async function loadDashboardData() {
   const [stats, relances, activites] = await Promise.all([
@@ -31,6 +32,11 @@ export default async function DashboardPage() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mt-4">
             <PipelineBar pipeline={stats.pipeline} />
             <RelancesWidget relances={relances} />
+          </div>
+
+          {/* Veille nouveaux prospects */}
+          <div className="mt-4">
+            <VeilleWidget />
           </div>
 
           {/* Timeline */}
