@@ -78,12 +78,12 @@ export default function RecherchePage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ rechercheId, prospects }),
       })
-      const json = await res.json() as { data?: { count: number }; error?: string }
+      const json = await res.json() as { data?: { saved: number; skipped: number }; error?: string }
       if (!res.ok) {
         toast.error(json.error ?? "Erreur lors de l'enregistrement")
         return
       }
-      const count = json.data?.count ?? selectedIds.size
+      const count = json.data?.saved ?? selectedIds.size
       toast.success(`${count} prospect${count > 1 ? "s" : ""} enregistré${count > 1 ? "s" : ""}`)
       setResultats((prev) =>
         prev
