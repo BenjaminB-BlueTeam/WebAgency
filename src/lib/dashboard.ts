@@ -82,7 +82,8 @@ export async function getDashboardStats(): Promise<DashboardStats> {
   }
 
   const clientsSignes = countByStatut["CLIENT"] ?? 0
-  const tauxConversion = total > 0 ? Math.round((clientsSignes / total) * 100) : 0
+  const contacted = total - (countByStatut["A_DEMARCHER"] ?? 0)
+  const tauxConversion = contacted > 0 ? Math.round((clientsSignes / contacted) * 100) : 0
 
   const pipeline: PipelineSlice[] = PIPELINE_ORDER.map((statut) => ({
     statut,

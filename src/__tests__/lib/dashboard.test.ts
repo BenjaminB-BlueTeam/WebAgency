@@ -29,15 +29,17 @@ describe("getDashboardStats", () => {
     expect(stats.tauxConversion).toBe(0)
   })
 
-  it("calculates tauxConversion as percentage rounded", async () => {
+  it("calculates tauxConversion excluding A_DEMARCHER from denominator", async () => {
     vi.mocked(prisma.prospect.groupBy).mockResolvedValue([
-      { statutPipeline: "A_DEMARCHER", _count: { _all: 8 } },
+      { statutPipeline: "A_DEMARCHER", _count: { _all: 6 } },
+      { statutPipeline: "NEGOCIATION", _count: { _all: 2 } },
       { statutPipeline: "CLIENT", _count: { _all: 2 } },
     ] as any)
     const stats = await getDashboardStats()
     expect(stats.totalProspects).toBe(10)
     expect(stats.clientsSignes).toBe(2)
-    expect(stats.tauxConversion).toBe(20)
+    // denominator = 10 - 6 (A_DEMARCHER) = 4 → 2/4 = 50%
+    expect(stats.tauxConversion).toBe(50)
   })
 
   it("returns pipeline with 7 entries, zero-filling missing statuts", async () => {
