@@ -105,8 +105,5 @@ export async function sendEmail(
     subject,
     html: htmlContent,
   })
-  if (error) {
-    console.error("Resend error:", error)
-  }
   return error === null
 }

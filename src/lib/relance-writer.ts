@@ -29,7 +29,7 @@ export async function refreshProchainRelance(prospectId: string): Promise<void> 
       where: { id: prospectId },
       data: { prochaineRelance },
     })
-  } catch (error) {
-    console.error("[relance-writer] error:", error)
+  } catch {
+    // silent failure — background task
   }
 }
