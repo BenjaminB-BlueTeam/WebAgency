@@ -56,7 +56,7 @@ describe("POST /api/prospects/[id]/email/send", () => {
     vi.mocked(requireAuth).mockResolvedValue(undefined)
     vi.mocked(prisma.prospect.findUnique).mockResolvedValue(mockProspect as any)
     vi.mocked(prisma.email.findUnique).mockResolvedValue(mockEmail as any)
-    vi.mocked(buildEmailHtml).mockReturnValue("<html>rebuilt</html>")
+    vi.mocked(buildEmailHtml).mockResolvedValue("<html>rebuilt</html>")
     vi.mocked(sendEmail).mockResolvedValue({ success: true, messageId: "mock-id" })
     vi.mocked(prisma.email.update).mockResolvedValue({} as any)
     vi.mocked(prisma.activite.create).mockResolvedValue({} as any)

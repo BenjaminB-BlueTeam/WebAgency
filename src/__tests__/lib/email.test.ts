@@ -1,6 +1,10 @@
 // src/__tests__/lib/email.test.ts
 import { describe, it, expect, vi, beforeEach } from "vitest"
 
+vi.mock("@/lib/params", () => ({
+  getParam: vi.fn((_key: string, defaultValue: string) => Promise.resolve(defaultValue)),
+}))
+
 vi.mock("@/lib/anthropic", () => ({
   analyzeWithClaude: vi.fn(),
   parseClaudeJSON: vi.fn(),
@@ -12,6 +16,7 @@ vi.mock("resend", () => ({
 
 import { generateProspectionEmail, buildEmailHtml, sendEmail } from "@/lib/email"
 import { analyzeWithClaude, parseClaudeJSON } from "@/lib/anthropic"
+import { getParam } from "@/lib/params"
 import { Resend } from "resend"
 
 const mockProspect = {
@@ -84,27 +89,51 @@ describe("generateProspectionEmail", () => {
 })
 
 describe("buildEmailHtml", () => {
-  it("returns HTML string containing corps text", () => {
-    const html = buildEmailHtml("Bonjour, je vous contacte.", mockProspect)
+  beforeEach(() => {
+    vi.clearAllMocks()
+    vi.mocked(getParam).mockImplementation((_key: string, def: string) => Promise.resolve(def))
+  })
+
+  it("returns HTML string containing corps text", async () => {
+    const html = await buildEmailHtml("Bonjour, je vous contacte.", mockProspect)
     expect(typeof html).toBe("string")
     expect(html).toContain("Bonjour, je vous contacte.")
   })
 
-  it("includes demo link when maquetteDemoUrl provided", () => {
-    const html = buildEmailHtml("Test", mockProspect, "https://demo.netlify.app")
+  it("includes demo link when maquetteDemoUrl provided", async () => {
+    const html = await buildEmailHtml("Test", mockProspect, "https://demo.netlify.app")
     expect(html).toContain("https://demo.netlify.app")
     expect(html).toContain("Voir la démo")
   })
 
-  it("excludes demo section when maquetteDemoUrl is null", () => {
-    const html = buildEmailHtml("Test", mockProspect, null)
+  it("excludes demo section when maquetteDemoUrl is null", async () => {
+    const html = await buildEmailHtml("Test", mockProspect, null)
     expect(html).not.toContain("Voir la démo")
   })
 
-  it("contains Benjamin B. signature", () => {
-    const html = buildEmailHtml("Test", mockProspect)
+  it("contains Benjamin B. signature", async () => {
+    const html = await buildEmailHtml("Test", mockProspect)
     expect(html).toContain("Benjamin B.")
     expect(html).toContain("Flandre Web Agency")
+  })
+
+  it("uses agence.contact param for signature", async () => {
+    vi.mocked(getParam).mockImplementation((_key: string, def: string) => {
+      if (_key === "agence.contact") return Promise.resolve("Marie D.")
+      return Promise.resolve(def)
+    })
+    const html = await buildEmailHtml("Test", mockProspect)
+    expect(html).toContain("Marie D.")
+    expect(html).not.toContain("Benjamin B.")
+  })
+
+  it("includes telephone when agence.telephone param is set", async () => {
+    vi.mocked(getParam).mockImplementation((_key: string, def: string) => {
+      if (_key === "agence.telephone") return Promise.resolve("03 28 50 00 00")
+      return Promise.resolve(def)
+    })
+    const html = await buildEmailHtml("Test", mockProspect)
+    expect(html).toContain("03 28 50 00 00")
   })
 })
 

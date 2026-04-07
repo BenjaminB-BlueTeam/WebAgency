@@ -10,6 +10,8 @@ const PIPELINE_ORDER = [
   "PERDU",
 ] as const
 
+// Pipeline labels and colors are structural constants — not configurable via Paramètres by design.
+// They map to DB enum values and must stay in sync with prisma/schema.prisma.
 const PIPELINE_LABELS: Record<string, string> = {
   A_DEMARCHER: "À démarcher",
   MAQUETTE_EMAIL_ENVOYES: "Email envoyé",

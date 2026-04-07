@@ -47,7 +47,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     }
 
     const lastMaquetteDemoUrl = prospect.maquettes[0]?.demoUrl ?? null
-    const htmlContent = buildEmailHtml(corps, prospect, lastMaquetteDemoUrl)
+    const htmlContent = await buildEmailHtml(corps, prospect, lastMaquetteDemoUrl)
 
     const result = await sendEmail(prospect.email, sujet, htmlContent)
     if (!result.success) {
