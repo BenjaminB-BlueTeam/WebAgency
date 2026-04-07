@@ -198,11 +198,11 @@ CRM interne pour la prospection de clients web dans la region des Flandres. Rech
 - Rapport complet : `docs/security-audit.md`
 - **Total tests : 303/303 passing**
 
-### Sessions A-D — Maintenance & nettoyage final
-- **Session A** : a venir
-- **Session B** : a venir
-- **Session C** : a venir
-- **Session D — Nettoyage final** : migration warning Next.js 16 `middleware` -> `proxy` (rename `src/middleware.ts` -> `src/proxy.ts`, fonction `middleware()` -> `proxy()`), `npm audit fix` (vulnerabilite high `vite` path traversal resolue), nettoyage CI (`STITCH_API_KEY` retire), README mis a jour. Build + 302 tests verts.
+### Sessions A-D — Maintenance & finalisation Phase 1
+- **Session A — Export PDF audit concurrentiel** : composant React-PDF (`src/lib/pdf/audit-pdf.tsx`) page de garde + infos prospect + bloc par concurrent + synthese/recommandations, route `GET /api/prospects/[id]/analyse/pdf` protegee par `requireAuth()` (404 si analyse absente, `Content-Disposition: attachment`), bouton "Exporter en PDF" dans l'onglet Analyse. Lib `@react-pdf/renderer` (server-side, pas de chromium). +5 tests.
+- **Session B — Page Clients** : routes CRUD `/api/clients` + `/api/clients/[id]` (allowlist stricte, 404, 409 si deja client), modale au drop colonne "Client" du kanban (annulation = rollback visuel), page `/clients` avec filtres offreType/maintenance + toggle maintenance optimiste + lien fiche prospect, animations fadeInUp/stagger. +21 tests. Modele `Client` Prisma deja present (legacy Stripe ignore via allowlist).
+- **Session C — Tests E2E Playwright** : `@playwright/test` + chromium, `playwright.config.ts` (webServer reuseExistingServer, retries 1), `e2e/auth.spec.ts` complet et passing (4 tests : mauvais mdp, bon mdp, logout, redirect sans auth), 9 specs scaffoldees `test.skip` avec TODO precis (prospects, recherche, kanban, maquette), job CI `e2e` (hash bcrypt a la volee, upload artifact si echec).
+- **Session D — Nettoyage final** : migration warning Next.js 16 `middleware` -> `proxy` (rename `src/middleware.ts` -> `src/proxy.ts`, fonction `middleware()` -> `proxy()`), `npm audit fix` (vulnerabilite high `vite` path traversal resolue), nettoyage CI (`STITCH_API_KEY` retire). Build + 332 tests verts.
 
 ## Demarrage
 
