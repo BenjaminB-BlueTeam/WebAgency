@@ -184,7 +184,6 @@ CRM interne pour la prospection de clients web dans la region des Flandres. Rech
   - Templates email Claude (system prompts modifiables)
 - `src/lib/params.ts` : `getParam(cle, default)` / `setParam(cle, valeur)` — jamais throws, fallback sur default
 - Table `Parametre` : `{cle (unique), valeur (JSON string), updatedAt}`
-- **Paramètres dynamiques** — Les poids de scoring, délais de relance et templates email sont maintenant modifiables à chaud via la page Paramètres, sans redéploiement. Les modifications sont prises en compte immédiatement (cache 60s).
 
 ### Session 18 — Audit cybersecurite OWASP Top 10
 - **7 corrections** sur les 10 categories OWASP 2025 analysees
@@ -204,6 +203,20 @@ CRM interne pour la prospection de clients web dans la region des Flandres. Rech
 - **Session B — Page Clients** : routes CRUD `/api/clients` + `/api/clients/[id]` (allowlist stricte, 404, 409 si deja client), modale au drop colonne "Client" du kanban (annulation = rollback visuel), page `/clients` avec filtres offreType/maintenance + toggle maintenance optimiste + lien fiche prospect, animations fadeInUp/stagger. +21 tests. Modele `Client` Prisma deja present (legacy Stripe ignore via allowlist).
 - **Session C — Tests E2E Playwright** : `@playwright/test` + chromium, `playwright.config.ts` (webServer reuseExistingServer, retries 1), `e2e/auth.spec.ts` complet et passing (4 tests : mauvais mdp, bon mdp, logout, redirect sans auth), 9 specs scaffoldees `test.skip` avec TODO precis (prospects, recherche, kanban, maquette), job CI `e2e` (hash bcrypt a la volee, upload artifact si echec).
 - **Session D — Nettoyage final** : migration warning Next.js 16 `middleware` -> `proxy` (rename `src/middleware.ts` -> `src/proxy.ts`, fonction `middleware()` -> `proxy()`), `npm audit fix` (vulnerabilite high `vite` path traversal resolue), nettoyage CI (`STITCH_API_KEY` retire). Build + 332 tests verts.
+
+### Session 19 — Corrections d'audit (robustesse + performance + parametres dynamiques)
+
+- **Parametres dynamiques** : les poids de scoring, delais de relance et templates email sont desormais lus depuis la base via `getParam` a chaque execution — la page Parametres a un effet immediat sans redeploi. Cache memoire 60s pour eviter le hammering DB.
+- **`calculateGlobalScore` async** : accepte un objet `poids` optionnel ; sans argument, charge les 5 poids (`scoring.poids.*`) depuis les parametres avec fallback et borne [0,10]
+- **`computeProchainRelance` async** : charge les 4 delais (`relance.delai.*`) depuis les parametres en parallele
+- **`generateProspectionEmail`** : charge le system prompt Claude depuis les parametres selon le type de relance, avec substitution `{{nom}}` / `{{activite}}` / `{{ville}}`
+- **`buildEmailHtml` async** : charge nom, contact, email et telephone agence depuis les parametres pour la signature
+- **`sendEmail`** : retourne `{ success, error?, messageId? }` au lieu d'un boolean — wrapper `Promise.race` avec timeout 15s, logs sanitises (jamais l'adresse destinataire)
+- **Parallelisation scoring** : les 4 premiers axes (`presenceWeb`, `seo`, `design`, `financier`) tournent en `Promise.all` — `potentiel` reste sequentiel (depend des 3 premiers)
+- **Troncature HTML** : `scrape-identity.ts` tronque a 8000 caracteres avant l'appel Claude (mention ajoutee au prompt si tronque)
+- **Index DB** : `@@index([createdAt])` sur le modele `Activite` (optimise `getDashboardActivites`)
+- **Nettoyage** : `console.error` retire de `prospects/page.tsx` ; `locale=fr-FR` retire de l'API Pexels (plus de resultats) ; commentaire sur `computeRelance` legacy
+- **Total tests : 317/317 passing**
 
 ## Demarrage
 
