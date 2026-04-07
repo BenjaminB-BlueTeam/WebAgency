@@ -10,7 +10,7 @@ export async function analyzeWithClaude(
   maxTokens: number = 1024
 ): Promise<string> {
   const response = await client.messages.create({
-    model: "claude-sonnet-4-20250514",
+    model: "claude-opus-4-6",
     max_tokens: maxTokens,
     system: systemPrompt,
     messages: [{ role: "user", content: userPrompt }],
