@@ -41,3 +41,9 @@ prisma/dev.db-journal
 
 /src/generated/prisma
 .superpowers/
+
+# playwright (le dossier e2e/ est versionné, mais pas les outputs)
+/playwright-report/
+/test-results/
+/blob-report/
+/playwright/.cache/
