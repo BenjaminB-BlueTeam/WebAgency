@@ -93,6 +93,8 @@ export async function POST(request: NextRequest) {
     if (error instanceof Error && error.message === "Unauthorized") {
       return NextResponse.json({ error: "Non autorisé" }, { status: 401 })
     }
-    return NextResponse.json({ error: "Erreur serveur" }, { status: 500 })
+    console.error("[/api/maquettes/generate] error:", error)
+    const message = error instanceof Error ? error.message : "Erreur serveur"
+    return NextResponse.json({ error: message }, { status: 500 })
   }
 }
