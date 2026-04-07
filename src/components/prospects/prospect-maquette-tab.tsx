@@ -303,7 +303,7 @@ export function ProspectMaquetteTab({ prospect }: Props) {
           }}
         />
         <p style={{ color: "#737373", fontSize: 14, margin: 0 }}>
-          Génération en cours… (jusqu&apos;à 2 min)
+          Génération en cours… (jusqu&apos;à 5 min)
         </p>
       </div>
     )
