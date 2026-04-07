@@ -70,33 +70,10 @@ export async function deployToNetlify(
     fileMap[`/${file.path}`] = file.content
   }
 
-  // Get or create site (recreate if existing site was deleted on Netlify)
-  let siteId: string
-  let siteUrl: string
-  if (existingSiteId) {
-    try {
-      const existing = (await netlifyRequest(`/sites/${existingSiteId}`, { method: "GET" })) as {
-        id: string
-        ssl_url?: string
-        url?: string
-        name?: string
-      }
-      siteId = existing.id
-      siteUrl = existing.ssl_url ?? existing.url ?? `https://${existing.name ?? siteName}.netlify.app`
-    } catch (e) {
-      if (e instanceof NetlifyError && e.status === 404) {
-        const created = await createSite(siteName)
-        siteId = created.id
-        siteUrl = created.url
-      } else {
-        throw e
-      }
-    }
-  } else {
-    const created = await createSite(siteName)
-    siteId = created.id
-    siteUrl = created.url
-  }
+  // Always create a fresh site — réutiliser un site existant pose problème
+  // (sites supprimés/soft-deleted, perms upload qui passent en 401, etc.)
+  void existingSiteId
+  const { id: siteId, url: siteUrl } = await createSite(siteName)
 
   // Compute SHA1 digests
   const digests: Record<string, string> = {}
