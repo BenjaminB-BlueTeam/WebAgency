@@ -15,6 +15,7 @@ import { toast } from "sonner"
 import { KanbanColumn } from "@/components/pipeline/kanban-column"
 import { KanbanCard } from "@/components/pipeline/kanban-card"
 import { LostReasonModal } from "@/components/pipeline/lost-reason-modal"
+import { ClientCreateModal, type ClientCreateValues } from "@/components/pipeline/client-create-modal"
 import type { Prospect } from "@/types/prospect"
 
 const COLUMNS: { id: string; label: string }[] = [
@@ -33,6 +34,13 @@ interface LostModalState {
   targetColumn: string
 }
 
+interface PendingClientDrop {
+  prospectId: string
+  prospectName: string
+  prospectSiteUrl?: string | null
+  previousStatut: string
+}
+
 interface KanbanBoardProps {
   initialProspects: Prospect[]
 }
@@ -41,6 +49,7 @@ export function KanbanBoard({ initialProspects }: KanbanBoardProps) {
   const [prospects, setProspects] = useState<Prospect[]>(initialProspects)
   const [activeId, setActiveId] = useState<string | null>(null)
   const [lostModal, setLostModal] = useState<LostModalState | null>(null)
+  const [pendingClientDrop, setPendingClientDrop] = useState<PendingClientDrop | null>(null)
 
   const sensors = useSensors(
     useSensor(MouseSensor, { activationConstraint: { distance: 5 } }),
@@ -105,9 +114,44 @@ export function KanbanBoard({ initialProspects }: KanbanBoardProps) {
 
     if (targetColumn === "PERDU") {
       setLostModal({ prospectId, prospectName: prospect.nom, targetColumn })
+    } else if (targetColumn === "CLIENT") {
+      setPendingClientDrop({
+        prospectId,
+        prospectName: prospect.nom,
+        prospectSiteUrl: prospect.siteUrl,
+        previousStatut: prospect.statutPipeline,
+      })
     } else {
       moveProspect(prospectId, targetColumn)
     }
+  }
+
+  async function handleClientConfirm(values: ClientCreateValues) {
+    if (!pendingClientDrop) return
+    const res = await fetch("/api/clients", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        prospectId: pendingClientDrop.prospectId,
+        siteUrl: values.siteUrl,
+        offreType: values.offreType,
+        dateLivraison: new Date(values.dateLivraison).toISOString(),
+      }),
+    })
+    if (!res.ok) {
+      const json = await res.json().catch(() => ({}))
+      throw new Error(
+        typeof json.error === "string" ? json.error : "Erreur lors de la création du client"
+      )
+    }
+    const id = pendingClientDrop.prospectId
+    setPendingClientDrop(null)
+    await moveProspect(id, "CLIENT")
+    toast.success("Client créé")
+  }
+
+  function handleClientCancel() {
+    setPendingClientDrop(null)
   }
 
   function handleLostConfirm(reason: string) {
@@ -153,6 +197,15 @@ export function KanbanBoard({ initialProspects }: KanbanBoardProps) {
           prospectName={lostModal.prospectName}
           onConfirm={handleLostConfirm}
           onCancel={handleLostCancel}
+        />
+      )}
+
+      {pendingClientDrop && (
+        <ClientCreateModal
+          prospectName={pendingClientDrop.prospectName}
+          initialSiteUrl={pendingClientDrop.prospectSiteUrl ?? ""}
+          onConfirm={handleClientConfirm}
+          onCancel={handleClientCancel}
         />
       )}
     </>
