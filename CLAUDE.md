@@ -95,3 +95,24 @@ src/
     ├── email.ts            # Resend + templates
     └── netlify-deploy.ts   # Déploiement Netlify
 ```
+
+### Architecture 3-phases de `lib/maquette/generate-site.ts`
+
+Pour éviter les timeouts Vercel Hobby (300s) liés aux gros appels Claude, la
+génération de maquettes est découpée en 3 phases parallélisables :
+
+1. **`planSite()`** (`lib/maquette/plan.ts`) — 1 appel Claude (4k tokens) qui
+   produit le `SitePlan` : liste des pages, design system verrouillé (couleurs,
+   typo, spacing), `classNames` exhaustif, et `sharedHeaderHtml` /
+   `sharedFooterHtml` réutilisés tels quels par toutes les pages.
+2. **`generatePage()`** (`lib/maquette/generate-page.ts`) — N appels Claude
+   parallèles (8k tokens chacun) via `Promise.allSettled`. Chaque appel ne
+   produit que le HTML d'une page, en injectant le header/footer partagé et
+   en utilisant EXCLUSIVEMENT les classes du plan.
+3. **`generateCss()` + `generateJs()`** (`lib/maquette/generate-assets.ts`) —
+   2 appels Claude en parallèle (16k + 8k tokens). `generateCss` scanne au
+   préalable les HTML générés et logge un warning pour toute classe inventée
+   hors `plan.classNames`.
+
+L'orchestrateur retourne le `FALLBACK` historique si le plan échoue, si plus
+de 50% des pages échouent, ou si la phase 3 échoue.
