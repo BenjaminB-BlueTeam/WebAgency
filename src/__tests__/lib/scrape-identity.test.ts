@@ -144,4 +144,28 @@ describe("scrapeIdentity", () => {
     expect(userPrompt).toContain("<html>content</html>")
     expect(userPrompt).toContain("SiteIdentity")
   })
+
+  it("tronque le HTML à 8000 caractères et ajoute la mention si trop long", async () => {
+    const longHtml = "a".repeat(10000)
+    vi.mocked(scrapeUrl).mockResolvedValue(longHtml)
+    vi.mocked(analyzeWithClaude).mockResolvedValue(fullClaudeResponse)
+
+    await scrapeIdentity("https://example.com")
+
+    const [, userPrompt] = vi.mocked(analyzeWithClaude).mock.calls[0]
+    // The html portion in the prompt must be ≤ 8000 chars
+    const htmlPortion = userPrompt.split("\n\n")[1]
+    expect(htmlPortion.length).toBeLessThanOrEqual(8000 + "(HTML tronqué à 8000 caractères)".length + 1)
+    expect(userPrompt).toContain("(HTML tronqué à 8000 caractères)")
+  })
+
+  it("ne tronque pas le HTML court et n'ajoute pas la mention de troncature", async () => {
+    vi.mocked(scrapeUrl).mockResolvedValue("<html>short</html>")
+    vi.mocked(analyzeWithClaude).mockResolvedValue(fullClaudeResponse)
+
+    await scrapeIdentity("https://example.com")
+
+    const [, userPrompt] = vi.mocked(analyzeWithClaude).mock.calls[0]
+    expect(userPrompt).not.toContain("(HTML tronqué à 8000 caractères)")
+  })
 })

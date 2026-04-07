@@ -62,7 +62,9 @@ export async function scrapeIdentity(siteUrl: string): Promise<SiteIdentity> {
     return emptySiteIdentity()
   }
 
-  const userPrompt = `Extrait toutes les informations de ce site web:\n\n${html}\n\nRéponds avec un JSON SiteIdentity.`
+  const truncatedHtml = html.slice(0, 8000)
+  const truncationNotice = html.length > 8000 ? "\n(HTML tronqué à 8000 caractères)" : ""
+  const userPrompt = `Extrait toutes les informations de ce site web:\n\n${truncatedHtml}${truncationNotice}\n\nRéponds avec un JSON SiteIdentity.`
 
   let claudeResponse: string
   try {
