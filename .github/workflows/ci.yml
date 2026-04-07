@@ -40,7 +40,6 @@ jobs:
           GOOGLE_PLACES_KEY: "placeholder"
           ANTHROPIC_API_KEY: "placeholder"
           FIRECRAWL_API_KEY: "placeholder"
-          STITCH_API_KEY: "placeholder"
           NETLIFY_TOKEN: "placeholder"
           RESEND_API_KEY: "placeholder"
           RESEND_FROM_EMAIL: "noreply@example.com"
