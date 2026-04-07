@@ -50,7 +50,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       relanceType
     )
 
-    const htmlContent = buildEmailHtml(corps, prospect, lastMaquette?.demoUrl ?? null)
+    const htmlContent = await buildEmailHtml(corps, prospect, lastMaquette?.demoUrl ?? null)
 
     const email = await prisma.email.create({
       data: {

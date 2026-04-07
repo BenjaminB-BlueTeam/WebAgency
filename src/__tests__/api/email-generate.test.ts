@@ -41,7 +41,7 @@ describe("POST /api/prospects/[id]/email/generate", () => {
     vi.mocked(requireAuth).mockResolvedValue(undefined)
     vi.mocked(prisma.prospect.findUnique).mockResolvedValue(mockProspect as any)
     vi.mocked(generateProspectionEmail).mockResolvedValue({ sujet: "Votre site web", corps: "Bonjour Martin" })
-    vi.mocked(buildEmailHtml).mockReturnValue("<html>preview</html>")
+    vi.mocked(buildEmailHtml).mockResolvedValue("<html>preview</html>")
     vi.mocked(prisma.email.create).mockResolvedValue({
       id: "e1", sujet: "Votre site web", contenu: "<html>preview</html>", statut: "BROUILLON",
     } as any)
