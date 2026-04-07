@@ -9,15 +9,18 @@ export async function analyzeWithClaude(
   userPrompt: string,
   maxTokens: number = 1024
 ): Promise<string> {
-  const response = await client.messages.create({
+  // Streaming requis dès qu'on dépasse ~10 min de génération potentielle
+  // (cas Opus + max_tokens élevé). On stream et on concatène le texte.
+  const stream = client.messages.stream({
     model: "claude-opus-4-6",
     max_tokens: maxTokens,
     system: systemPrompt,
     messages: [{ role: "user", content: userPrompt }],
   })
 
-  const block = response.content[0]
-  if (block.type !== "text") {
+  const final = await stream.finalMessage()
+  const block = final.content[0]
+  if (!block || block.type !== "text") {
     throw new Error("Réponse Claude inattendue")
   }
   return block.text

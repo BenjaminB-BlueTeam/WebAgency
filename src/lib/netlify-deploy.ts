@@ -101,18 +101,21 @@ export async function deployToNetlify(
     body: JSON.stringify({ files: digests }),
   })) as { id: string }
 
-  // Upload files
+  // Upload files (body en Buffer pour éviter les conneries de charset/streaming)
   for (const [path, content] of Object.entries(fileMap)) {
+    const buf = Buffer.from(content, "utf-8")
     const uploadRes = await fetch(`${NETLIFY_API}/deploys/${deploy.id}/files${path}`, {
       method: "PUT",
       headers: {
         Authorization: `Bearer ${process.env.NETLIFY_TOKEN}`,
         "Content-Type": "application/octet-stream",
+        "Content-Length": String(buf.length),
       },
-      body: content,
+      body: buf,
     })
     if (!uploadRes.ok) {
-      throw new Error(`Failed to upload ${path}: ${uploadRes.status}`)
+      const body = await uploadRes.text().catch(() => "")
+      throw new Error(`Failed to upload ${path}: ${uploadRes.status} ${body}`)
     }
   }
 
