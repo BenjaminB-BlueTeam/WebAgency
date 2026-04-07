@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from "vitest"
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest"
 
 // ─── Mock db ──────────────────────────────────────────────────────────────────
 
@@ -18,12 +18,15 @@ vi.mock("@/lib/db", () => ({
 
 // ─── Imports after mocks ──────────────────────────────────────────────────────
 
-import { getParam, setParam } from "@/lib/params"
+import { getParam, setParam, _clearParamCacheForTesting } from "@/lib/params"
 
 // ─── Tests ────────────────────────────────────────────────────────────────────
 
 describe("getParam", () => {
-  beforeEach(() => vi.clearAllMocks())
+  beforeEach(() => {
+    vi.clearAllMocks()
+    _clearParamCacheForTesting()
+  })
 
   it("1. returns DB value when key exists", async () => {
     mockParametre.findUnique.mockResolvedValue({ id: "1", cle: "agence.nom", valeur: "Flandre Web" })
@@ -56,5 +59,61 @@ describe("setParam", () => {
       update: { valeur: "New Value" },
       create: { cle: "agence.nom", valeur: "New Value" },
     })
+  })
+})
+
+describe("getParam cache", () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+    vi.useFakeTimers()
+    _clearParamCacheForTesting()
+  })
+  afterEach(() => {
+    vi.useRealTimers()
+  })
+
+  it("5. returns cached value on second call without hitting DB", async () => {
+    mockParametre.findUnique.mockResolvedValue({ id: "1", cle: "test.key", valeur: "cached-value" })
+
+    await getParam("test.key", "default")
+    await getParam("test.key", "default")
+
+    // Should only call DB once
+    expect(mockParametre.findUnique).toHaveBeenCalledTimes(1)
+  })
+
+  it("6. setParam invalidates the cache key", async () => {
+    mockParametre.findUnique.mockResolvedValue({ id: "1", cle: "test.key", valeur: "old-value" })
+    mockParametre.upsert.mockResolvedValue({ id: "1", cle: "test.key", valeur: "new-value" })
+
+    // Prime the cache
+    await getParam("test.key", "default")
+    expect(mockParametre.findUnique).toHaveBeenCalledTimes(1)
+
+    // Invalidate via setParam
+    await setParam("test.key", "new-value")
+
+    // Change mock to return new value
+    mockParametre.findUnique.mockResolvedValue({ id: "1", cle: "test.key", valeur: "new-value" })
+
+    // Next getParam should hit DB again
+    const result = await getParam("test.key", "default")
+    expect(mockParametre.findUnique).toHaveBeenCalledTimes(2)
+    expect(result).toBe("new-value")
+  })
+
+  it("7. cache expires after 60 seconds", async () => {
+    mockParametre.findUnique.mockResolvedValue({ id: "1", cle: "test.key", valeur: "value" })
+
+    // First call - hits DB
+    await getParam("test.key", "default")
+    expect(mockParametre.findUnique).toHaveBeenCalledTimes(1)
+
+    // Advance time by 61s (past TTL)
+    vi.advanceTimersByTime(61_000)
+
+    // Should hit DB again
+    await getParam("test.key", "default")
+    expect(mockParametre.findUnique).toHaveBeenCalledTimes(2)
   })
 })
