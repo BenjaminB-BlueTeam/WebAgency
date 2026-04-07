@@ -1,3 +1,143 @@
+export const OFFRE_TYPE_VALUES = ["VITRINE", "VISIBILITE"] as const
+export type OffreType = (typeof OFFRE_TYPE_VALUES)[number]
+
+export function isValidOffreType(value: unknown): value is OffreType {
+  return (
+    typeof value === "string" &&
+    (OFFRE_TYPE_VALUES as readonly string[]).includes(value)
+  )
+}
+
+export function isValidUrl(value: unknown): boolean {
+  if (typeof value !== "string") return false
+  const trimmed = value.trim()
+  if (trimmed.length === 0 || trimmed.length > 500) return false
+  try {
+    const u = new URL(trimmed)
+    return u.protocol === "http:" || u.protocol === "https:"
+  } catch {
+    return false
+  }
+}
+
+export interface ClientCreateData {
+  prospectId: string
+  siteUrl: string
+  offreType: OffreType
+  dateLivraison: Date
+  maintenanceActive?: boolean
+}
+
+export interface ClientCreateErrors {
+  prospectId?: string
+  siteUrl?: string
+  offreType?: string
+  dateLivraison?: string
+  maintenanceActive?: string
+}
+
+export function validateClientCreate(body: Record<string, unknown>): {
+  data: ClientCreateData | null
+  errors: ClientCreateErrors
+} {
+  const errors: ClientCreateErrors = {}
+
+  const prospectId = validateString(body.prospectId, 100)
+  if (!prospectId) errors.prospectId = "prospectId est requis"
+
+  if (!isValidUrl(body.siteUrl)) {
+    errors.siteUrl = "siteUrl doit être une URL http(s) valide"
+  }
+
+  if (!isValidOffreType(body.offreType)) {
+    errors.offreType = "offreType doit être VITRINE ou VISIBILITE"
+  }
+
+  if (!isValidISODate(body.dateLivraison)) {
+    errors.dateLivraison = "dateLivraison doit être une date valide"
+  }
+
+  if (
+    body.maintenanceActive !== undefined &&
+    typeof body.maintenanceActive !== "boolean"
+  ) {
+    errors.maintenanceActive = "maintenanceActive doit être un booléen"
+  }
+
+  if (Object.keys(errors).length > 0) {
+    return { data: null, errors }
+  }
+
+  const data: ClientCreateData = {
+    prospectId: prospectId!,
+    siteUrl: (body.siteUrl as string).trim(),
+    offreType: body.offreType as OffreType,
+    dateLivraison: new Date(body.dateLivraison as string),
+  }
+  if (typeof body.maintenanceActive === "boolean") {
+    data.maintenanceActive = body.maintenanceActive
+  }
+
+  return { data, errors: {} }
+}
+
+export interface ClientUpdateData {
+  siteUrl?: string
+  offreType?: OffreType
+  maintenanceActive?: boolean
+}
+
+export interface ClientUpdateErrors {
+  siteUrl?: string
+  offreType?: string
+  maintenanceActive?: string
+  _general?: string
+}
+
+export function validateClientUpdate(body: Record<string, unknown>): {
+  data: ClientUpdateData | null
+  errors: ClientUpdateErrors
+} {
+  const errors: ClientUpdateErrors = {}
+  const data: ClientUpdateData = {}
+  let hasField = false
+
+  if ("siteUrl" in body) {
+    if (!isValidUrl(body.siteUrl)) {
+      errors.siteUrl = "siteUrl doit être une URL http(s) valide"
+    } else {
+      data.siteUrl = (body.siteUrl as string).trim()
+      hasField = true
+    }
+  }
+
+  if ("offreType" in body) {
+    if (!isValidOffreType(body.offreType)) {
+      errors.offreType = "offreType doit être VITRINE ou VISIBILITE"
+    } else {
+      data.offreType = body.offreType as OffreType
+      hasField = true
+    }
+  }
+
+  if ("maintenanceActive" in body) {
+    if (typeof body.maintenanceActive !== "boolean") {
+      errors.maintenanceActive = "maintenanceActive doit être un booléen"
+    } else {
+      data.maintenanceActive = body.maintenanceActive
+      hasField = true
+    }
+  }
+
+  if (Object.keys(errors).length > 0) {
+    return { data: null, errors }
+  }
+  if (!hasField) {
+    return { data: null, errors: { _general: "Aucun champ valide à modifier" } }
+  }
+  return { data, errors: {} }
+}
+
 export const STATUT_PIPELINE_VALUES = [
   "A_DEMARCHER",
   "MAQUETTE_EMAIL_ENVOYES",
