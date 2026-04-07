@@ -16,7 +16,7 @@ Intégrer un CMS headless (Decap CMS ou Tina CMS) optionnel sur les sites client
 - Installer Plausible (auto-hébergé ou Plausible Cloud) pour les rapports mensuels
 - Virer Coolify et OpenClaw du VPS Hostinger actuel
 
-## Page Paramètres complète (priorité : Session 17)
+## ✅ Page Paramètres complète — TERMINÉ
 Tous les paramètres sont stockés en base (modèle Parametre) et modifiables à chaud via l'UI.
 Les features lisent les valeurs depuis la base, jamais en dur dans le code.
 Chaque modification prend effet immédiatement sans redéploiement.

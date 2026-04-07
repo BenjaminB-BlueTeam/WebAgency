@@ -184,6 +184,7 @@ CRM interne pour la prospection de clients web dans la region des Flandres. Rech
   - Templates email Claude (system prompts modifiables)
 - `src/lib/params.ts` : `getParam(cle, default)` / `setParam(cle, valeur)` — jamais throws, fallback sur default
 - Table `Parametre` : `{cle (unique), valeur (JSON string), updatedAt}`
+- **Paramètres dynamiques** — Les poids de scoring, délais de relance et templates email sont maintenant modifiables à chaud via la page Paramètres, sans redéploiement. Les modifications sont prises en compte immédiatement (cache 60s).
 
 ### Session 18 — Audit cybersecurite OWASP Top 10
 - **7 corrections** sur les 10 categories OWASP 2025 analysees
