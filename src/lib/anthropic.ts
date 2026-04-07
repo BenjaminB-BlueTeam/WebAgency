@@ -12,7 +12,7 @@ export async function analyzeWithClaude(
   // Streaming requis dès qu'on dépasse ~10 min de génération potentielle
   // (cas Opus + max_tokens élevé). On stream et on concatène le texte.
   const stream = client.messages.stream({
-    model: "claude-opus-4-6",
+    model: "claude-sonnet-4-6",
     max_tokens: maxTokens,
     system: systemPrompt,
     messages: [{ role: "user", content: userPrompt }],

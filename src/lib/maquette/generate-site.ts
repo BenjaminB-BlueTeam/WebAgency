@@ -194,7 +194,7 @@ export async function generateSiteCode(
 
   let response: string
   try {
-    response = await analyzeWithClaude(SYSTEM_PROMPT, userPrompt, 32000)
+    response = await analyzeWithClaude(SYSTEM_PROMPT, userPrompt, 16000)
   } catch (e) {
     console.error("[generateSiteCode] analyzeWithClaude failed:", e)
     return FALLBACK
