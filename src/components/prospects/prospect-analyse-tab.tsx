@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { ExternalLink, Search } from "lucide-react"
+import { ExternalLink, Search, FileDown } from "lucide-react"
 import { motion } from "motion/react"
 import { Button } from "@/components/ui/button"
 import { staggerContainer, staggerItem, fadeInUp } from "@/lib/animations"
@@ -93,9 +93,19 @@ export function ProspectAnalyseTab({ prospect }: Props) {
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <p className="text-xs text-[#555555]">Analysé le {formatDate(analyse.createdAt)}</p>
-        <Button variant="outline" size="sm" onClick={handleAnalyse}>
-          Relancer l&apos;analyse
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => window.open(`/api/prospects/${prospect.id}/analyse/pdf`, "_blank")}
+          >
+            <FileDown size={14} className="mr-1" />
+            Exporter en PDF
+          </Button>
+          <Button variant="outline" size="sm" onClick={handleAnalyse}>
+            Relancer l&apos;analyse
+          </Button>
+        </div>
       </div>
 
       {error && <p className="text-xs text-[#f87171] mb-4">{error}</p>}
