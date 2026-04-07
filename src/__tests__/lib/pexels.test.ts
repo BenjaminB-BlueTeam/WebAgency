@@ -80,7 +80,7 @@ describe('Pexels API', () => {
       expect(url).toContain('query=');
       expect(url).toContain('per_page=10');
       expect(url).toContain('orientation=landscape');
-      expect(url).toContain('locale=fr-FR');
+      expect(url).not.toContain('locale=');
     });
 
     it('should return empty array if fetch fails', async () => {

@@ -7,6 +7,7 @@ const MS_PER_DAY = 86_400_000
 
 type EmailLike = { statut: string; dateEnvoi: Date | null }
 
+// Used by emails page for due/urgency display
 export function computeRelance(
   prochaineRelance: Date | null,
   emails: EmailLike[]

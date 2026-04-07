@@ -46,7 +46,6 @@ export async function searchPexelsImages(activite: string): Promise<string[]> {
     url.searchParams.set('query', activite);
     url.searchParams.set('per_page', '10');
     url.searchParams.set('orientation', 'landscape');
-    url.searchParams.set('locale', 'fr-FR');
 
     const response = await fetch(url.toString(), {
       headers: {

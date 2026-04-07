@@ -8,8 +8,7 @@ async function getProspects() {
     return await prisma.prospect.findMany({
       orderBy: { createdAt: "desc" },
     })
-  } catch (err) {
-    console.error("[prospects] getProspects error:", err)
+  } catch {
     return []
   }
 }
