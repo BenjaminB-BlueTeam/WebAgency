@@ -181,14 +181,12 @@ Score de 0 à 10 sa probabilité d'acheter un site web. 10 = besoin urgent et é
 export async function scoreProspect(
   prospect: ProspectData
 ): Promise<ScoringResult> {
-  const presenceWeb = await scorePresenceWeb(prospect.siteUrl)
-  const seo = await scoreSEO(prospect.siteUrl)
-  const design = await scoreDesign(
-    prospect.siteUrl,
-    prospect.activite,
-    prospect.ville
-  )
-  const financier = await scoreFinancier(prospect.activite, prospect.ville, prospect.noteGoogle, prospect.nbAvisGoogle)
+  const [presenceWeb, seo, design, financier] = await Promise.all([
+    scorePresenceWeb(prospect.siteUrl),
+    scoreSEO(prospect.siteUrl),
+    scoreDesign(prospect.siteUrl, prospect.activite, prospect.ville),
+    scoreFinancier(prospect.activite, prospect.ville, prospect.noteGoogle, prospect.nbAvisGoogle),
+  ])
   const potentiel = await scorePotentielAchat(prospect, {
     scorePresenceWeb: presenceWeb,
     scoreSEO: seo,

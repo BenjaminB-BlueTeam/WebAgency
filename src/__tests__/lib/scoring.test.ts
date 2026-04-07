@@ -1,5 +1,5 @@
-import { describe, it, expect, vi, beforeEach } from "vitest"
-import { calculateGlobalScore, scoreFinancier } from "@/lib/scoring"
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest"
+import { calculateGlobalScore, scoreFinancier, scoreProspect } from "@/lib/scoring"
 import { parseClaudeJSON } from "@/lib/anthropic"
 
 vi.mock("@/lib/anthropic", async (importOriginal) => {
@@ -79,6 +79,35 @@ describe("scoreFinancier", () => {
     const call = vi.mocked(analyzeWithClaude).mock.calls[0]
     expect(call[1]).toContain("fleuriste")
     expect(call[1]).toContain("Bailleul")
+  })
+})
+
+describe("scoreProspect", () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue({ ok: false }))
+  })
+  afterEach(() => {
+    vi.unstubAllGlobals()
+  })
+
+  it("returns all score fields when siteUrl is null", async () => {
+    vi.mocked(analyzeWithClaude).mockResolvedValue(
+      '{"score": 5, "justification": "test"}'
+    )
+    const result = await scoreProspect({
+      siteUrl: null,
+      activite: "boulanger",
+      ville: "Hazebrouck",
+      noteGoogle: 4.5,
+      nbAvisGoogle: 20,
+    })
+    expect(result).toHaveProperty("scorePresenceWeb")
+    expect(result).toHaveProperty("scoreSEO")
+    expect(result).toHaveProperty("scoreDesign")
+    expect(result).toHaveProperty("scoreFinancier")
+    expect(result).toHaveProperty("scorePotentiel")
+    expect(result).toHaveProperty("scoreGlobal")
   })
 })
 
