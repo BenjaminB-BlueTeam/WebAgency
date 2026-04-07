@@ -8,7 +8,7 @@ vi.mock("@/lib/db", () => ({
 }))
 vi.mock("@/lib/relance", () => ({
   computeRelance: vi.fn().mockReturnValue({ due: false, urgente: false, joursRetard: 0 }),
-  computeProchainRelance: vi.fn().mockReturnValue({ prochaineRelance: null, relanceType: null }),
+  computeProchainRelance: vi.fn().mockResolvedValue({ prochaineRelance: null, relanceType: null }),
 }))
 
 import { GET } from "@/app/api/emails/route"
@@ -40,7 +40,7 @@ describe("GET /api/emails", () => {
     vi.mocked(requireAuth).mockResolvedValue(undefined)
     vi.mocked(prisma.prospect.findMany).mockResolvedValue([] as any)
     vi.mocked(computeRelance).mockReturnValue({ due: false, urgente: false, joursRetard: 0 })
-    vi.mocked(computeProchainRelance).mockReturnValue({ prochaineRelance: null, relanceType: null })
+    vi.mocked(computeProchainRelance).mockResolvedValue({ prochaineRelance: null, relanceType: null })
   })
 
   it("returns 401 when not authenticated", async () => {
@@ -121,7 +121,7 @@ describe("GET /api/emails", () => {
 
   it("returns relanceType from computeProchainRelance", async () => {
     vi.mocked(prisma.prospect.findMany).mockResolvedValue([makeProspect()] as any)
-    vi.mocked(computeProchainRelance).mockReturnValue({ prochaineRelance: new Date(), relanceType: "MAQUETTE" })
+    vi.mocked(computeProchainRelance).mockResolvedValue({ prochaineRelance: new Date(), relanceType: "MAQUETTE" })
     const res = await GET()
     const json = await res.json()
     expect(json.data[0].relanceType).toBe("MAQUETTE")

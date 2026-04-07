@@ -21,9 +21,9 @@ async function getEmailProspects(): Promise<EmailProspectItem[]> {
       orderBy: { updatedAt: "desc" },
     })
 
-    const items: EmailProspectItem[] = prospects.map((p) => {
+    const items: EmailProspectItem[] = await Promise.all(prospects.map(async (p) => {
       const relance = computeRelance(p.prochaineRelance, p.emails)
-      const { relanceType } = computeProchainRelance({
+      const { relanceType } = await computeProchainRelance({
         statutPipeline: p.statutPipeline,
         dateMaquetteEnvoi: p.dateMaquetteEnvoi,
         dateRdv: p.dateRdv,
@@ -57,7 +57,7 @@ async function getEmailProspects(): Promise<EmailProspectItem[]> {
         relance,
         relanceType,
       }
-    })
+    }))
 
     items.sort((a, b) => {
       const score = (r: EmailProspectItem["relance"]) =>

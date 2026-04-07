@@ -24,7 +24,7 @@ export async function refreshProchainRelance(prospectId: string): Promise<void> 
       },
     })
     if (!prospect) return
-    const { prochaineRelance } = computeProchainRelance(prospect)
+    const { prochaineRelance } = await computeProchainRelance(prospect)
     await prisma.prospect.update({
       where: { id: prospectId },
       data: { prochaineRelance },

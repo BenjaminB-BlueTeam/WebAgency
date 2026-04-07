@@ -33,12 +33,12 @@ describe("refreshProchainRelance", () => {
     vi.clearAllMocks()
     vi.mocked(prisma.prospect.findUnique).mockResolvedValue(mockProspect as any)
     vi.mocked(prisma.prospect.update).mockResolvedValue({} as any)
-    vi.mocked(computeProchainRelance).mockReturnValue({ prochaineRelance: null, relanceType: null })
+    vi.mocked(computeProchainRelance).mockResolvedValue({ prochaineRelance: null, relanceType: null })
   })
 
   it("calls prisma.prospect.update with computed prochaineRelance", async () => {
     const date = new Date("2026-02-01")
-    vi.mocked(computeProchainRelance).mockReturnValue({ prochaineRelance: date, relanceType: "EMAIL" })
+    vi.mocked(computeProchainRelance).mockResolvedValue({ prochaineRelance: date, relanceType: "EMAIL" })
     await refreshProchainRelance("p1")
     expect(vi.mocked(prisma.prospect.update)).toHaveBeenCalledWith({
       where: { id: "p1" },

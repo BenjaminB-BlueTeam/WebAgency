@@ -1,5 +1,6 @@
 // src/lib/relance.ts
 import type { RelanceInfo, RelanceType } from "@/types/emails"
+import { getParam } from "@/lib/params"
 
 export const DELAI_JOURS = 7
 
@@ -48,15 +49,27 @@ export type ProchainRelanceResult = {
   relanceType: RelanceType | null
 }
 
-export function computeProchainRelance(input: ProspectRelanceInput): ProchainRelanceResult {
+export async function computeProchainRelance(input: ProspectRelanceInput): Promise<ProchainRelanceResult> {
   const now = new Date()
+
+  const [delaiDevis, delaiMaquette, delaiRdv, delaiEmail] = await Promise.all([
+    getParam("relance.delai.devis", "10"),
+    getParam("relance.delai.maquette", "5"),
+    getParam("relance.delai.rdv", "3"),
+    getParam("relance.delai.email", "7"),
+  ])
+
+  const DEVIS_JOURS = Math.max(0, parseInt(delaiDevis, 10) || 10) * MS_PER_DAY
+  const MAQUETTE_JOURS = Math.max(0, parseInt(delaiMaquette, 10) || 5) * MS_PER_DAY
+  const RDV_JOURS = Math.max(0, parseInt(delaiRdv, 10) || 3) * MS_PER_DAY
+  const EMAIL_JOURS = Math.max(0, parseInt(delaiEmail, 10) || 7) * MS_PER_DAY
 
   // DEVIS — priorité 1
   if (input.statutPipeline === "NEGOCIATION") {
     const activite = input.activites.find((a) => a.type === "PIPELINE")
     if (activite) {
       return {
-        prochaineRelance: new Date(activite.createdAt.getTime() + 10 * MS_PER_DAY),
+        prochaineRelance: new Date(activite.createdAt.getTime() + DEVIS_JOURS),
         relanceType: "DEVIS",
       }
     }
@@ -65,7 +78,7 @@ export function computeProchainRelance(input: ProspectRelanceInput): ProchainRel
   // RDV — priorité 2
   if (input.dateRdv && input.dateRdv < now) {
     return {
-      prochaineRelance: new Date(input.dateRdv.getTime() + 3 * MS_PER_DAY),
+      prochaineRelance: new Date(input.dateRdv.getTime() + RDV_JOURS),
       relanceType: "RDV",
     }
   }
@@ -73,7 +86,7 @@ export function computeProchainRelance(input: ProspectRelanceInput): ProchainRel
   // MAQUETTE — priorité 3
   if (input.dateMaquetteEnvoi) {
     return {
-      prochaineRelance: new Date(input.dateMaquetteEnvoi.getTime() + 5 * MS_PER_DAY),
+      prochaineRelance: new Date(input.dateMaquetteEnvoi.getTime() + MAQUETTE_JOURS),
       relanceType: "MAQUETTE",
     }
   }
@@ -84,7 +97,7 @@ export function computeProchainRelance(input: ProspectRelanceInput): ProchainRel
     .sort((a, b) => b.dateEnvoi!.getTime() - a.dateEnvoi!.getTime())[0]
   if (lastSent?.dateEnvoi) {
     return {
-      prochaineRelance: new Date(lastSent.dateEnvoi.getTime() + 7 * MS_PER_DAY),
+      prochaineRelance: new Date(lastSent.dateEnvoi.getTime() + EMAIL_JOURS),
       relanceType: "EMAIL",
     }
   }
