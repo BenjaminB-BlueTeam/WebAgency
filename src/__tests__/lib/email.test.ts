@@ -111,17 +111,47 @@ describe("buildEmailHtml", () => {
 describe("sendEmail", () => {
   beforeEach(() => vi.clearAllMocks())
 
-  it("returns true on successful send", async () => {
+  it("returns success with messageId on successful send", async () => {
     const mockSend = vi.fn().mockResolvedValue({ data: { id: "123" }, error: null })
     vi.mocked(Resend).mockImplementation(function () { return { emails: { send: mockSend } } as unknown as Resend })
     const result = await sendEmail("test@example.com", "Sujet", "<p>HTML</p>")
-    expect(result).toBe(true)
+    expect(result).toEqual({ success: true, messageId: "123" })
   })
 
-  it("returns false when Resend returns an error", async () => {
+  it("returns failure with error message when Resend returns an error", async () => {
     const mockSend = vi.fn().mockResolvedValue({ data: null, error: { message: "send failed" } })
     vi.mocked(Resend).mockImplementation(function () { return { emails: { send: mockSend } } as unknown as Resend })
     const result = await sendEmail("test@example.com", "Sujet", "<p>HTML</p>")
-    expect(result).toBe(false)
+    expect(result).toEqual({ success: false, error: "send failed" })
+  })
+
+  it("returns failure on timeout", async () => {
+    vi.useFakeTimers()
+    const hangingPromise = new Promise<never>(() => {}) // never resolves
+    const mockSend = vi.fn().mockReturnValue(hangingPromise)
+    vi.mocked(Resend).mockImplementation(function () { return { emails: { send: mockSend } } as unknown as Resend })
+
+    const resultPromise = sendEmail("test@example.com", "Sujet", "<p>HTML</p>")
+    vi.advanceTimersByTime(15001)
+    const result = await resultPromise
+
+    expect(result.success).toBe(false)
+    expect(result.error).toBe("Email timeout (15s)")
+    vi.useRealTimers()
+  })
+
+  it("does not log recipient email address in error", async () => {
+    const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+    const mockSend = vi.fn().mockResolvedValue({ data: null, error: { message: "send failed" } })
+    vi.mocked(Resend).mockImplementation(function () { return { emails: { send: mockSend } } as unknown as Resend })
+
+    await sendEmail("secret@example.com", "Sujet", "<p>HTML</p>")
+
+    // Check that no console.error call contains the recipient email
+    for (const call of consoleSpy.mock.calls) {
+      const logString = call.map(String).join(" ")
+      expect(logString).not.toContain("secret@example.com")
+    }
+    consoleSpy.mockRestore()
   })
 })

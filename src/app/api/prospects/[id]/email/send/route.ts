@@ -49,8 +49,8 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     const lastMaquetteDemoUrl = prospect.maquettes[0]?.demoUrl ?? null
     const htmlContent = buildEmailHtml(corps, prospect, lastMaquetteDemoUrl)
 
-    const success = await sendEmail(prospect.email, sujet, htmlContent)
-    if (!success) {
+    const result = await sendEmail(prospect.email, sujet, htmlContent)
+    if (!result.success) {
       return NextResponse.json({ error: "Échec de l'envoi de l'email" }, { status: 502 })
     }
 

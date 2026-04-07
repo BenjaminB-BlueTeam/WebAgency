@@ -57,7 +57,7 @@ describe("POST /api/prospects/[id]/email/send", () => {
     vi.mocked(prisma.prospect.findUnique).mockResolvedValue(mockProspect as any)
     vi.mocked(prisma.email.findUnique).mockResolvedValue(mockEmail as any)
     vi.mocked(buildEmailHtml).mockReturnValue("<html>rebuilt</html>")
-    vi.mocked(sendEmail).mockResolvedValue(true)
+    vi.mocked(sendEmail).mockResolvedValue({ success: true, messageId: "mock-id" })
     vi.mocked(prisma.email.update).mockResolvedValue({} as any)
     vi.mocked(prisma.activite.create).mockResolvedValue({} as any)
     vi.mocked(prisma.prospect.update).mockResolvedValue({} as any)
@@ -99,7 +99,7 @@ describe("POST /api/prospects/[id]/email/send", () => {
   })
 
   it("returns 502 when Resend fails", async () => {
-    vi.mocked(sendEmail).mockResolvedValue(false)
+    vi.mocked(sendEmail).mockResolvedValue({ success: false, error: "send failed" })
     const res = await POST(makeReq() as any, { params })
     expect(res.status).toBe(502)
   })

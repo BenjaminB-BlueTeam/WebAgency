@@ -97,13 +97,33 @@ export async function sendEmail(
   to: string,
   subject: string,
   htmlContent: string
-): Promise<boolean> {
+): Promise<{ success: boolean; error?: string; messageId?: string }> {
   const resend = new Resend(process.env.RESEND_API_KEY!)
-  const { error } = await resend.emails.send({
-    from: process.env.RESEND_FROM_EMAIL!,
-    to,
-    subject,
-    html: htmlContent,
-  })
-  return error === null
+
+  const timeoutPromise = new Promise<never>((_, reject) =>
+    setTimeout(() => reject(new Error("Email timeout (15s)")), 15000)
+  )
+
+  try {
+    const { data, error } = await Promise.race([
+      resend.emails.send({
+        from: process.env.RESEND_FROM_EMAIL!,
+        to,
+        subject,
+        html: htmlContent,
+      }),
+      timeoutPromise,
+    ])
+
+    if (error) {
+      console.error("[email] send error:", error.message)
+      return { success: false, error: error.message }
+    }
+
+    return { success: true, messageId: data?.id }
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Unknown error"
+    console.error("[email] send error:", message)
+    return { success: false, error: message }
+  }
 }
