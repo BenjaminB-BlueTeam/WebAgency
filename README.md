@@ -233,9 +233,42 @@ RESEND_FROM_EMAIL=<adresse email verifee dans Resend>
 npm run dev          # Serveur de developpement
 npm run build        # Build de production
 npm run test         # Tests Vitest
+npm run e2e          # Tests E2E Playwright
 npm run lint         # Linting ESLint
 npx prisma studio    # Visualiser la base de donnees
 ```
+
+## Tests E2E
+
+Les tests E2E utilisent Playwright (chromium uniquement) et tournent en parallele
+de Vitest. Ils sont situes dans `e2e/` et lancent un vrai serveur Next.js via le
+champ `webServer` de `playwright.config.ts` (avec `reuseExistingServer: true`).
+
+```bash
+# Premier setup (une seule fois)
+npx playwright install chromium
+
+# Lancer les tests
+npm run e2e
+
+# Mode UI interactif
+npx playwright test --ui
+
+# Lister les tests sans les executer
+npx playwright test --list
+```
+
+Variables d'environnement :
+
+- `E2E_PASSWORD` (defaut `test1234`) — mot de passe en clair correspondant
+  au `CRM_PASSWORD_HASH` du `.env.local`. L'auth n'est PAS mockee, on teste
+  le vrai flux JWT + bcrypt.
+- `E2E_BASE_URL` (defaut `http://localhost:3000`).
+
+Etat actuel des specs : `auth.spec.ts` est complet et passe en local.
+Les autres specs (`prospects`, `recherche`, `kanban`, `maquette`) sont
+scaffoldees avec `test.skip` + TODO precis sur les selecteurs a confirmer
+avant activation.
 
 ## Structure
 

@@ -44,3 +44,50 @@ jobs:
           RESEND_API_KEY: "placeholder"
           RESEND_FROM_EMAIL: "noreply@example.com"
           DATABASE_URL: "file:./dev.db"
+
+  e2e:
+    runs-on: ubuntu-latest
+    needs: ci
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+
+      - name: Generate password hash for E2E
+        id: e2e-hash
+        run: |
+          HASH=$(node -e "console.log(require('bcryptjs').hashSync('test1234', 10))")
+          echo "hash=$HASH" >> "$GITHUB_OUTPUT"
+
+      - name: Run Playwright tests
+        run: npx playwright test
+        env:
+          E2E_PASSWORD: "test1234"
+          CRM_SESSION_SECRET: "ci-placeholder-secret-minimum-256-bits-long-enough-for-jwt"
+          CRM_PASSWORD_HASH: ${{ steps.e2e-hash.outputs.hash }}
+          GOOGLE_PLACES_KEY: "placeholder"
+          ANTHROPIC_API_KEY: "placeholder"
+          FIRECRAWL_API_KEY: "placeholder"
+          NETLIFY_TOKEN: "placeholder"
+          RESEND_API_KEY: "placeholder"
+          RESEND_FROM_EMAIL: "noreply@example.com"
+          DATABASE_URL: "file:./dev.db"
+
+      - name: Upload Playwright report
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 7
