@@ -195,13 +195,26 @@ export async function generateSiteCode(
   let response: string
   try {
     response = await analyzeWithClaude(SYSTEM_PROMPT, userPrompt, 32000)
-  } catch {
+  } catch (e) {
+    console.error("[generateSiteCode] analyzeWithClaude failed:", e)
     return FALLBACK
   }
 
   const parsed = parseResponse(response)
 
-  if (!parsed || !validate(parsed)) {
+  if (!parsed) {
+    console.error(
+      "[generateSiteCode] parseResponse returned null. Response preview:",
+      response.slice(0, 500)
+    )
+    return FALLBACK
+  }
+
+  if (!validate(parsed)) {
+    console.error(
+      "[generateSiteCode] validate failed. Parsed shape:",
+      JSON.stringify(parsed).slice(0, 500)
+    )
     return FALLBACK
   }
 
