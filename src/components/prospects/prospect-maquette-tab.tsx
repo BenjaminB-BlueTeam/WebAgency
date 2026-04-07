@@ -167,6 +167,7 @@ export function ProspectMaquetteTab({ prospect }: Props) {
   const [adjusting, setAdjusting] = useState(false)
   const [showAdjustModal, setShowAdjustModal] = useState(false)
   const [adjustInstructions, setAdjustInstructions] = useState("")
+  const [deleting, setDeleting] = useState(false)
 
   const maquettes = [...prospect.maquettes].sort((a, b) => a.version - b.version)
   const selected = maquettes[selectedIndex] ?? null
@@ -231,6 +232,27 @@ export function ProspectMaquetteTab({ prospect }: Props) {
     if (!selected?.demoUrl) return
     navigator.clipboard.writeText(selected.demoUrl)
     toast("URL copiée")
+  }
+
+  async function handleDelete() {
+    if (!selected) return
+    if (!confirm(`Supprimer la maquette v${selected.version} ? Le site Netlify sera également supprimé.`)) return
+    setDeleting(true)
+    try {
+      const res = await fetch(`/api/maquettes/${selected.id}`, { method: "DELETE" })
+      const json = await res.json() as { error?: string }
+      if (!res.ok) {
+        toast.error(json.error ?? "Erreur lors de la suppression")
+      } else {
+        toast("Maquette supprimée")
+        setSelectedIndex(Math.max(0, selectedIndex - 1))
+        router.refresh()
+      }
+    } catch {
+      toast.error("Erreur réseau")
+    } finally {
+      setDeleting(false)
+    }
   }
 
   async function handleAdjust() {
@@ -481,6 +503,23 @@ export function ProspectMaquetteTab({ prospect }: Props) {
                 }}
               >
                 Régénérer
+              </button>
+            )}
+            {selected && (
+              <button
+                onClick={() => void handleDelete()}
+                disabled={deleting}
+                style={{
+                  background: "#0a0a0a",
+                  color: deleting ? "#555555" : "#f87171",
+                  border: "1px solid #1a1a1a",
+                  borderRadius: 6,
+                  padding: "6px 12px",
+                  fontSize: 13,
+                  cursor: deleting ? "not-allowed" : "pointer",
+                }}
+              >
+                {deleting ? "Suppression…" : "Supprimer"}
               </button>
             )}
           </div>

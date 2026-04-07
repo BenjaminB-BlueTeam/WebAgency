@@ -36,6 +36,20 @@ async function netlifyRequest(path: string, options: RequestInit): Promise<unkno
   return res.json()
 }
 
+export async function deleteNetlifySite(siteId: string): Promise<void> {
+  const res = await fetch(`${NETLIFY_API}/sites/${siteId}`, {
+    method: "DELETE",
+    headers: {
+      Authorization: `Bearer ${process.env.NETLIFY_TOKEN}`,
+    },
+  })
+  // 204 si supprimé, 404 si déjà absent : on considère les deux comme succès
+  if (!res.ok && res.status !== 404) {
+    const body = await res.text()
+    throw new NetlifyError(`Netlify DELETE /sites/${siteId}: ${res.status} ${body}`, res.status)
+  }
+}
+
 async function createSite(siteName: string): Promise<{ id: string; url: string }> {
   // Try preferred name; on conflict, let Netlify auto-generate
   try {
