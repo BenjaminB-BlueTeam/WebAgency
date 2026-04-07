@@ -1,17 +1,22 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest"
-import { calculateGlobalScore, scoreFinancier, scoreProspect } from "@/lib/scoring"
-import { parseClaudeJSON } from "@/lib/anthropic"
+
+vi.mock("@/lib/params", () => ({
+  getParam: vi.fn((_key: string, defaultValue: string) => Promise.resolve(defaultValue)),
+}))
 
 vi.mock("@/lib/anthropic", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@/lib/anthropic")>()
   return { ...actual, analyzeWithClaude: vi.fn() }
 })
 
+import { calculateGlobalScore, scoreFinancier, scoreProspect } from "@/lib/scoring"
+import { parseClaudeJSON } from "@/lib/anthropic"
 import { analyzeWithClaude } from "@/lib/anthropic"
+import { getParam } from "@/lib/params"
 
 describe("calculateGlobalScore", () => {
-  it("calculates weighted average with all axes", () => {
-    const result = calculateGlobalScore({
+  it("calculates weighted average with all axes", async () => {
+    const result = await calculateGlobalScore({
       scorePresenceWeb: 10,
       scoreSEO: 8,
       scoreDesign: 6,
@@ -22,8 +27,8 @@ describe("calculateGlobalScore", () => {
     expect(result).toBe(8)
   })
 
-  it("excludes null axes from calculation", () => {
-    const result = calculateGlobalScore({
+  it("excludes null axes from calculation", async () => {
+    const result = await calculateGlobalScore({
       scorePresenceWeb: 10,
       scoreSEO: null,
       scoreDesign: null,
@@ -34,8 +39,8 @@ describe("calculateGlobalScore", () => {
     expect(result).toBe(9)
   })
 
-  it("returns score with only scorePresenceWeb", () => {
-    const result = calculateGlobalScore({
+  it("returns score with only scorePresenceWeb", async () => {
+    const result = await calculateGlobalScore({
       scorePresenceWeb: 5,
       scoreSEO: null,
       scoreDesign: null,
@@ -43,6 +48,66 @@ describe("calculateGlobalScore", () => {
       scorePotentiel: null,
     })
     expect(result).toBe(5)
+  })
+})
+
+describe("calculateGlobalScore with params", () => {
+  beforeEach(() => vi.clearAllMocks())
+
+  it("uses passed poids argument directly (no DB call)", async () => {
+    const result = await calculateGlobalScore(
+      { scorePresenceWeb: 10, scoreSEO: null, scoreDesign: null, scoreFinancier: null, scorePotentiel: null },
+      { presenceWeb: 5, seo: 0, design: 0, financier: 0, potentiel: 0 }
+    )
+    expect(result).toBe(10)
+    // getParam was NOT called
+    expect(vi.mocked(getParam)).not.toHaveBeenCalled()
+  })
+
+  it("loads weights from getParam when no poids provided", async () => {
+    vi.mocked(getParam).mockImplementation((_key: string, _def: string) => Promise.resolve("5"))
+    const result = await calculateGlobalScore({
+      scorePresenceWeb: 10,
+      scoreSEO: 8,
+      scoreDesign: null,
+      scoreFinancier: null,
+      scorePotentiel: null,
+    })
+    expect(vi.mocked(getParam)).toHaveBeenCalled()
+    // Both axes have weight 5, result = (10*5 + 8*5) / (5+5) = 90/10 = 9
+    expect(result).toBe(9)
+  })
+
+  it("clamps invalid weight (above max) to 10", async () => {
+    vi.mocked(getParam).mockImplementation((_key: string, def: string) => {
+      if (_key === "scoring.poids.presenceWeb") return Promise.resolve("99")
+      return Promise.resolve(def)
+    })
+    const result = await calculateGlobalScore({
+      scorePresenceWeb: 10,
+      scoreSEO: null,
+      scoreDesign: null,
+      scoreFinancier: null,
+      scorePotentiel: null,
+    })
+    // presenceWeb weight clamped to 10, only one axis: result = 10
+    expect(result).toBe(10)
+  })
+
+  it("falls back to default when weight is not a number", async () => {
+    vi.mocked(getParam).mockImplementation((_key: string, def: string) => {
+      if (_key === "scoring.poids.presenceWeb") return Promise.resolve("not-a-number")
+      return Promise.resolve(def)
+    })
+    const result = await calculateGlobalScore({
+      scorePresenceWeb: 6,
+      scoreSEO: null,
+      scoreDesign: null,
+      scoreFinancier: null,
+      scorePotentiel: null,
+    })
+    // Falls back to default weight 3, result = 6
+    expect(result).toBe(6)
   })
 })
 

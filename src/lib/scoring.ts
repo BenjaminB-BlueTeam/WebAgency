@@ -1,5 +1,6 @@
 import { analyzeWithClaude, parseClaudeJSON } from "@/lib/anthropic"
 import { scrapeUrl } from "@/lib/scrape"
+import { getParam } from "@/lib/params"
 
 interface ProspectData {
   siteUrl: string | null
@@ -23,19 +24,55 @@ interface WeightedScore {
   poids: number
 }
 
-export function calculateGlobalScore(scores: {
-  scorePresenceWeb: number
-  scoreSEO: number | null
-  scoreDesign: number | null
-  scoreFinancier: number | null
-  scorePotentiel: number | null
-}): number | null {
+interface ScoringWeights {
+  presenceWeb: number
+  seo: number
+  design: number
+  financier: number
+  potentiel: number
+}
+
+function clampWeight(val: number, defaultVal: number): number {
+  const n = isNaN(val) ? defaultVal : val
+  return Math.max(0, Math.min(10, n))
+}
+
+export async function calculateGlobalScore(
+  scores: {
+    scorePresenceWeb: number
+    scoreSEO: number | null
+    scoreDesign: number | null
+    scoreFinancier: number | null
+    scorePotentiel: number | null
+  },
+  poids?: ScoringWeights
+): Promise<number | null> {
+  let weights: ScoringWeights
+  if (poids) {
+    weights = poids
+  } else {
+    const [pw, seo, design, fin, pot] = await Promise.all([
+      getParam("scoring.poids.presenceWeb", "3"),
+      getParam("scoring.poids.seo", "2"),
+      getParam("scoring.poids.design", "2"),
+      getParam("scoring.poids.financier", "1"),
+      getParam("scoring.poids.potentiel", "3"),
+    ])
+    weights = {
+      presenceWeb: clampWeight(parseInt(pw, 10), 3),
+      seo: clampWeight(parseInt(seo, 10), 2),
+      design: clampWeight(parseInt(design, 10), 2),
+      financier: clampWeight(parseInt(fin, 10), 1),
+      potentiel: clampWeight(parseInt(pot, 10), 3),
+    }
+  }
+
   const axes: WeightedScore[] = [
-    { score: scores.scorePresenceWeb, poids: 3 },
-    { score: scores.scoreSEO, poids: 2 },
-    { score: scores.scoreDesign, poids: 2 },
-    { score: scores.scoreFinancier, poids: 1 },
-    { score: scores.scorePotentiel, poids: 3 },
+    { score: scores.scorePresenceWeb, poids: weights.presenceWeb },
+    { score: scores.scoreSEO, poids: weights.seo },
+    { score: scores.scoreDesign, poids: weights.design },
+    { score: scores.scoreFinancier, poids: weights.financier },
+    { score: scores.scorePotentiel, poids: weights.potentiel },
   ]
 
   const valid = axes.filter(
@@ -45,6 +82,7 @@ export function calculateGlobalScore(scores: {
 
   const sum = valid.reduce((acc, a) => acc + a.score * a.poids, 0)
   const poidsTotal = valid.reduce((acc, a) => acc + a.poids, 0)
+  if (poidsTotal === 0) return null
   return Math.round(sum / poidsTotal)
 }
 
@@ -201,7 +239,7 @@ export async function scoreProspect(
     scorePotentiel: potentiel,
   }
 
-  const scoreGlobal = calculateGlobalScore(allScores)
+  const scoreGlobal = await calculateGlobalScore(allScores)
 
   return { ...allScores, scoreGlobal }
 }
