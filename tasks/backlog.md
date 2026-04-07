@@ -131,6 +131,12 @@ Checklist :
 - Logging & Monitoring : logs accès, tentatives échouées
 - Rapport avec corrections appliquées + tests de non-régression
 
+## Sessions complétées (avril 2026)
+- ✅ Session A — Export PDF audit concurrentiel (@react-pdf/renderer, route GET protégée, bouton onglet Analyse)
+- ✅ Session B — Page Clients (CRUD API, modale au drop kanban "Client", filtres, toggle maintenance)
+- ✅ Session C — Tests E2E Playwright (config + auth.spec actif, 9 specs scaffold skip+TODO, job CI)
+- ✅ Session D — Cleanup (middleware→proxy Next 16, npm audit fix, README)
+
 ## Fix mineurs post-sessions
 - Dashboard tauxConversion : calculer sur prospects email envoyé+, pas total
 - computeProchainRelance : description.includes("NEGOCIATION") fragile → filtre robuste
