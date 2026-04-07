@@ -102,6 +102,8 @@ model Activite {
   createdAt   DateTime @default(now())
 
   prospect Prospect? @relation(fields: [prospectId], references: [id], onDelete: Cascade)
+
+  @@index([createdAt])
 }
 
 model Recherche {
