@@ -198,6 +198,12 @@ CRM interne pour la prospection de clients web dans la region des Flandres. Rech
 - Rapport complet : `docs/security-audit.md`
 - **Total tests : 303/303 passing**
 
+### Sessions A-D — Maintenance & nettoyage final
+- **Session A** : a venir
+- **Session B** : a venir
+- **Session C** : a venir
+- **Session D — Nettoyage final** : migration warning Next.js 16 `middleware` -> `proxy` (rename `src/middleware.ts` -> `src/proxy.ts`, fonction `middleware()` -> `proxy()`), `npm audit fix` (vulnerabilite high `vite` path traversal resolue), nettoyage CI (`STITCH_API_KEY` retire), README mis a jour. Build + 302 tests verts.
+
 ## Demarrage
 
 ```bash
