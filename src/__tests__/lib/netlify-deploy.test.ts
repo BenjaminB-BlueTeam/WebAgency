@@ -68,19 +68,12 @@ describe("deployToNetlify", () => {
     expect(result.siteId).toBe("site-abc")
   })
 
-  it("reuses existing siteId when provided (skips site creation)", async () => {
-    // Reset mock: first call is now the deploy (not site creation)
-    global.fetch = vi.fn()
-      .mockResolvedValueOnce({
-        ok: true,
-        json: () => Promise.resolve({ id: "deploy-xyz" }),
-        text: () => Promise.resolve(""),
-      })
-      .mockResolvedValue({ ok: true, json: () => Promise.resolve({}), text: () => Promise.resolve("") })
-
-    const result = await deployToNetlify(files, "Martin", "Lille", "existing-site-id")
-    expect(result.siteId).toBe("existing-site-id")
-    // Only 1 + 4 = 5 calls (no POST /sites)
-    expect((global.fetch as ReturnType<typeof vi.fn>).mock.calls).toHaveLength(5)
+  it("ignores existingSiteId and always creates a fresh site", async () => {
+    // Même avec un siteId existant, on doit passer par POST /sites puis POST /deploys
+    const result = await deployToNetlify(files, "Martin", "Lille", "stale-site-id")
+    expect(result.siteId).toBe("site-abc")
+    const calls = (global.fetch as ReturnType<typeof vi.fn>).mock.calls
+    expect(calls[0][0]).toContain("/sites")
+    expect(calls[0][1].method).toBe("POST")
   })
 })
