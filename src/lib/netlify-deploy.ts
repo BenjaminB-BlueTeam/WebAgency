@@ -95,14 +95,21 @@ export async function deployToNetlify(
     digests[path] = createHash("sha1").update(content).digest("hex")
   }
 
-  // Create deploy
+  // Create deploy — Netlify renvoie `required` : la liste des SHA1 à uploader.
+  // Tout ce qui n'y est pas a déjà été uploadé sur le compte (dédupliqué).
   const deploy = (await netlifyRequest(`/sites/${siteId}/deploys`, {
     method: "POST",
     body: JSON.stringify({ files: digests }),
-  })) as { id: string }
+  })) as { id: string; required?: string[] }
 
-  // Upload files (body en Buffer pour éviter les conneries de charset/streaming)
+  const requiredSet = new Set(deploy.required ?? [])
+
+  // Upload uniquement les fichiers dont le SHA1 figure dans `required`
   for (const [path, content] of Object.entries(fileMap)) {
+    const sha1 = digests[path]
+    if (requiredSet.size > 0 && !requiredSet.has(sha1)) {
+      continue
+    }
     const buf = Buffer.from(content, "utf-8")
     const uploadRes = await fetch(`${NETLIFY_API}/deploys/${deploy.id}/files${path}`, {
       method: "PUT",
