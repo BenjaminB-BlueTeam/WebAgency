@@ -86,6 +86,7 @@ src/
     ├── animations.ts       # Variants Framer Motion
     ├── auth.ts             # JWT + bcrypt
     ├── db.ts               # Client Prisma
+    ├── validation.ts       # Validation inputs serveur
     ├── anthropic.ts        # Client Anthropic
     ├── scoring.ts          # Scoring multi-axes
     ├── places.ts           # Google Places API

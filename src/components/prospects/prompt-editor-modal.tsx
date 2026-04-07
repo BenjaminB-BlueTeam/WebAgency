@@ -81,7 +81,7 @@ export function PromptEditorModal({
               onChange={(e) => onPromptChange(e.target.value)}
               style={{
                 width: "100%",
-                height: "70vh",
+                height: "min(70vh, calc(100vh - 240px))",
                 background: "#000000",
                 border: "1px solid #1a1a1a",
                 borderRadius: 6,

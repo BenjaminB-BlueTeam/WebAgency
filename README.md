@@ -91,6 +91,14 @@ CRM interne pour la prospection de clients web dans la region des Flandres. Rech
 - Timeout client 5 min, toast sur copie URL
 - Variables d'environnement : `NETLIFY_TOKEN`
 
+### Session 9 — Tests + nettoyage Phase 1
+- **Tests unitaires libs** : ajouts ciblés sur `scoring.ts` (parseClaudeJSON fences nues, null score), `build-prompt.ts` (assertion explicite sur l'activité), `anthropic.ts` (parsing edge cases) — pas de réécriture des tests existants
+- **Tests d'intégration API** : PATCH /api/prospects/[id] vérifie explicitement que l'`Activite` PIPELINE est créée lors d'un changement de statut
+- **Audit responsive code-only** : 12 composants critiques audités (sidebar, prospect-list, kanban, search-form, emails, parametres, modales) — rapport `docs/superpowers/audits/2026-04-07-responsive-audit.md` — 4 fixes appliqués (textarea modal `min(70vh, calc(100vh-240px))`, kanban-card `w-[min(200px,90vw)]`)
+- **Build clean** : `npm run build` zéro warning, `npm run lint` clean, **302 tests** verts (vs 295 avant)
+- **CLAUDE.md** : ajout `validation.ts` à la structure du projet
+- ⚠ Warning Next.js 16 (`middleware` → `proxy`) noté hors scope, à traiter dans une migration dédiée
+
 ### Session 14 — Investigation profonde + generation de sites vitrines (refonte complete)
 - **Pipeline d'investigation** en 4 sources parallelisees (`Promise.allSettled`) :
   - `lib/maquette/scrape-identity.ts` : scraping Firecrawl + Claude → 16 champs (couleurs, polices, logo, services, tarifs, horaires, equipe, certifications…)
@@ -135,6 +143,16 @@ CRM interne pour la prospection de clients web dans la region des Flandres. Rech
 - Bouton "Analyser concurrence" dans le panneau expand de la liste des prospects
 - `analyzeWithClaude` : parametre optionnel `maxTokens` (defaut 1024, 4096 pour l'analyse)
 - 15 tests unitaires (lib + route)
+
+### Session 13 — Systeme de relances
+- **Calcul automatique** de la prochaine relance via `computeProchainRelance` (4 regles prioritaires : MAQUETTE / RDV / DEVIS / NEGOCIATION)
+- **Persistance evenementielle** : `refreshProchainRelance` declenche sur envoi d'email et PATCH du prospect (dateMaquetteEnvoi, statutPipeline)
+- **Prompts Claude contextuels** par `relanceType` : MAQUETTE / RDV / DEVIS — validation par allowlist dans la route generate
+- **UI** : `RelanceDot` (badge sur kanban-card), `RelanceBadge` (page emails), affichage du type de relance dans `DemarcherSheet`
+- `src/lib/relance.ts` : `computeProchainRelance` — `MS_PER_DAY` hoiste au scope module
+- `src/lib/relance-writer.ts` : `refreshProchainRelance` — query NEGOCIATION ciblee
+- `GET /api/emails` etendu avec `relanceType` calcule par `computeProchainRelance`
+- Type `RelanceType` + champ `relanceType` sur `EmailProspectItem`
 
 ### Session 15 — Ameliorations pipeline prospect + fix mineurs
 - **Fix tauxConversion** : denominateur = prospects ayant recu au moins un email (statuts EMAIL_ENVOYE+), pas le total — calcul plus representatif

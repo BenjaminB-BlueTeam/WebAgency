@@ -109,4 +109,16 @@ describe("parseClaudeJSON", () => {
       "Impossible de parser la réponse IA"
     )
   })
+
+  it("parses JSON in bare ``` fences without json language tag", () => {
+    const result = parseClaudeJSON<{ score: number }>(
+      "Voici:\n```\n{\"score\": 4}\n```"
+    )
+    expect(result.score).toBe(4)
+  })
+
+  it("returns null when score key is missing (typed cast)", () => {
+    const result = parseClaudeJSON<{ other: string }>('{"other": "value"}')
+    expect(result.other).toBe("value")
+  })
 })

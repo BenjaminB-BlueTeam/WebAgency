@@ -14,29 +14,6 @@ export function slugify(text: string): string {
     .slice(0, 63)
 }
 
-export function injectNav(html: string, currentPage: string): string {
-  const pages = [
-    { name: "accueil", file: "index.html", label: "Accueil" },
-    { name: "services", file: "services.html", label: "Services" },
-    { name: "contact", file: "contact.html", label: "Contact" },
-    { name: "a-propos", file: "a-propos.html", label: "À propos" },
-  ]
-  const links = pages
-    .map(
-      (p) =>
-        `<a href="${p.file}" style="color:${p.name === currentPage ? "#ffffff" : "#737373"};text-decoration:none;font-family:system-ui,sans-serif;font-size:14px;">${p.label}</a>`
-    )
-    .join("")
-  const nav =
-    `<nav style="position:fixed;top:0;left:0;right:0;background:#000;padding:12px 16px;display:flex;gap:16px;z-index:9999;border-bottom:1px solid #1a1a1a;">${links}</nav>` +
-    `<div style="height:48px;"></div>`
-
-  if (html.includes("</body>")) {
-    return html.replace("</body>", `${nav}\n</body>`)
-  }
-  return html + nav
-}
-
 async function netlifyRequest(path: string, options: RequestInit): Promise<unknown> {
   const res = await fetch(`${NETLIFY_API}${path}`, {
     ...options,

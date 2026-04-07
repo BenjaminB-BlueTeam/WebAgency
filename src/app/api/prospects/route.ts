@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { requireAuth } from "@/lib/auth"
-import { prisma, isUniqueConstraintError, isNotFoundError } from "@/lib/db"
+import { prisma, isUniqueConstraintError } from "@/lib/db"
 import { validateProspectCreate, isValidStatutPipeline } from "@/lib/validation"
 import { Prisma } from "@prisma/client"
 

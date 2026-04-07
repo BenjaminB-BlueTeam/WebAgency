@@ -350,6 +350,25 @@ describe("PATCH /api/prospects/[id] — status change creates activite", () => {
     expect(mockTransaction).toHaveBeenCalledOnce()
   })
 
+  it("creates a PIPELINE activite when statutPipeline changes", async () => {
+    const req = makeRequest("http://localhost:3000/api/prospects/clx123", {
+      method: "PATCH",
+      body: { statutPipeline: "MAQUETTE_EMAIL_ENVOYES" },
+    })
+    const params = Promise.resolve({ id: "clx123" })
+    const res = await PATCH(req, { params })
+
+    expect(res.status).toBe(200)
+    expect(mockPrismaActivite.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          prospectId: "clx123",
+          type: "PIPELINE",
+        }),
+      })
+    )
+  })
+
   it("does NOT use $transaction when statutPipeline unchanged", async () => {
     const req = makeRequest("http://localhost:3000/api/prospects/clx123", {
       method: "PATCH",

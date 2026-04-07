@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest"
-import { slugify, injectNav, deployToNetlify } from "@/lib/netlify-deploy"
+import { slugify, deployToNetlify } from "@/lib/netlify-deploy"
 
 describe("slugify", () => {
   it("lowercases and removes accents", () => {
@@ -16,37 +16,6 @@ describe("slugify", () => {
 
   it("removes leading and trailing hyphens", () => {
     expect(slugify("---test---")).toBe("test")
-  })
-})
-
-describe("injectNav", () => {
-  it("injects nav before </body>", () => {
-    const result = injectNav("<html><body><h1>Hello</h1></body></html>", "accueil")
-    expect(result).toContain("<nav")
-    expect(result.indexOf("<nav")).toBeLessThan(result.indexOf("</body>"))
-  })
-
-  it("highlights the current page link in white (#ffffff)", () => {
-    const result = injectNav("<body></body>", "services")
-    expect(result).toMatch(/href="services\.html"[^>]*#ffffff/)
-  })
-
-  it("shows other pages in grey (#737373)", () => {
-    const result = injectNav("<body></body>", "accueil")
-    expect(result).toMatch(/href="services\.html"[^>]*#737373/)
-  })
-
-  it("appends nav even when no </body> tag", () => {
-    const result = injectNav("<div>content</div>", "accueil")
-    expect(result).toContain("<nav")
-  })
-
-  it("includes links to all 4 pages", () => {
-    const result = injectNav("<body></body>", "accueil")
-    expect(result).toContain("index.html")
-    expect(result).toContain("services.html")
-    expect(result).toContain("contact.html")
-    expect(result).toContain("a-propos.html")
   })
 })
 

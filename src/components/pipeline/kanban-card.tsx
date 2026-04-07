@@ -31,7 +31,7 @@ export function KanbanCard({ prospect, isDragOverlay }: KanbanCardProps) {
 
   if (isDragOverlay) {
     return (
-      <div className="rounded-[6px] border border-[#333] bg-[#0a0a0a] p-3 w-[200px] cursor-grabbing">
+      <div className="rounded-[6px] border border-[#333] bg-[#0a0a0a] p-3 w-[min(200px,90vw)] sm:w-[200px] cursor-grabbing">
         <CardContent prospect={prospect} />
       </div>
     )

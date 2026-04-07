@@ -130,6 +130,15 @@ describe("buildMaquettePrompt", () => {
     expect(userPrompt).toContain("Cassel")
   })
 
+  it("2bis. inclut l'activité du prospect dans le prompt envoyé à Claude", async () => {
+    vi.mocked(analyzeWithClaude).mockResolvedValue(CLAUDE_RESPONSE)
+
+    await buildMaquettePrompt(makeInvestigation(), mockProspect)
+
+    const [, userPrompt] = vi.mocked(analyzeWithClaude).mock.calls[0]
+    expect(userPrompt).toContain("Plombier")
+  })
+
   it("3. inclut les données Pappers si disponibles", async () => {
     vi.mocked(analyzeWithClaude).mockResolvedValue(CLAUDE_RESPONSE)
 
