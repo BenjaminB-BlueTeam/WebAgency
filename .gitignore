@@ -48,3 +48,4 @@ prisma/dev.db-journal
 /blob-report/
 /playwright/.cache/
 dev.db
+.worktrees/
