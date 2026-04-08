@@ -7,7 +7,7 @@ datasource db {
 }
 
 model Prospect {
-  id                String     @id @default(cuid())
+  id                String    @id @default(cuid())
   nom               String
   activite          String
   ville             String
@@ -15,7 +15,7 @@ model Prospect {
   telephone         String?
   email             String?
   siteUrl           String?
-  placeId           String?    @unique
+  placeId           String?   @unique
   noteGoogle        Float?
   nbAvisGoogle      Int?
   scorePresenceWeb  Int?
@@ -24,7 +24,7 @@ model Prospect {
   scoreFinancier    Int?
   scorePotentiel    Int?
   scoreGlobal       Int?
-  statutPipeline    String     @default("A_DEMARCHER")
+  statutPipeline    String    @default("A_DEMARCHER")
   dateContact       DateTime?
   dateRdv           DateTime?
   dateMaquetteEnvoi DateTime?
@@ -32,15 +32,16 @@ model Prospect {
   raisonPerte       String?
   derniereRelance   DateTime?
   prochaineRelance  DateTime?
-  createdAt         DateTime   @default(now())
-  updatedAt         DateTime   @updatedAt
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
 
-  maquettes  Maquette[]
-  analyses   Analyse[]
-  emails     Email[]
-  notes      Note[]
-  activites  Activite[]
-  client     Client?
+  maquettes   Maquette[]
+  analyses    Analyse[]
+  analyseJobs AnalyseJob[]
+  emails      Email[]
+  notes       Note[]
+  activites   Activite[]
+  client      Client?
 
   @@unique([nom, ville])
   @@index([statutPipeline])
@@ -50,12 +51,27 @@ model Prospect {
 model Analyse {
   id              String   @id @default(cuid())
   prospectId      String   @unique
-  concurrents     String   // JSON
-  recommandations String   // JSON
+  concurrents     String // JSON
+  recommandations String // JSON
   promptUsed      String?
   createdAt       DateTime @default(now())
 
   prospect Prospect @relation(fields: [prospectId], references: [id], onDelete: Cascade)
+}
+
+model AnalyseJob {
+  id         String   @id @default(cuid())
+  prospectId String
+  statut     String // pending | running | done | failed
+  etapes     String   @default("[]") // JSON array of AnalyseStep
+  resultat   String? // JSON of final AnalyseResult
+  erreur     String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  prospect Prospect @relation(fields: [prospectId], references: [id], onDelete: Cascade)
+
+  @@index([prospectId])
 }
 
 model Maquette {
@@ -123,17 +139,17 @@ model Parametre {
 }
 
 model Client {
-  id                   String    @id @default(cuid())
-  prospectId           String    @unique
+  id                   String   @id @default(cuid())
+  prospectId           String   @unique
   siteUrl              String
   plausibleSiteId      String?
   dateLivraison        DateTime
   offreType            String
-  maintenanceActive    Boolean   @default(true)
+  maintenanceActive    Boolean  @default(true)
   stripeCustomerId     String?
   stripeSubscriptionId String?
   stripeStatus         String?
-  createdAt            DateTime  @default(now())
+  createdAt            DateTime @default(now())
 
   prospect Prospect  @relation(fields: [prospectId], references: [id], onDelete: Cascade)
   rapports Rapport[]
@@ -145,8 +161,8 @@ model Rapport {
   mois       String
   visiteurs  Int
   pagesVues  Int
-  topPages   String    // JSON
-  topSources String    // JSON
+  topPages   String // JSON
+  topSources String // JSON
   tendance   Float?
   resumeIA   String
   pdfUrl     String?
