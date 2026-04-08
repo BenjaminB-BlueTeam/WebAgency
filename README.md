@@ -204,6 +204,20 @@ CRM interne pour la prospection de clients web dans la region des Flandres. Rech
 - **Session C — Tests E2E Playwright** : `@playwright/test` + chromium, `playwright.config.ts` (webServer reuseExistingServer, retries 1), `e2e/auth.spec.ts` complet et passing (4 tests : mauvais mdp, bon mdp, logout, redirect sans auth), 9 specs scaffoldees `test.skip` avec TODO precis (prospects, recherche, kanban, maquette), job CI `e2e` (hash bcrypt a la volee, upload artifact si echec).
 - **Session D — Nettoyage final** : migration warning Next.js 16 `middleware` -> `proxy` (rename `src/middleware.ts` -> `src/proxy.ts`, fonction `middleware()` -> `proxy()`), `npm audit fix` (vulnerabilite high `vite` path traversal resolue), nettoyage CI (`STITCH_API_KEY` retire). Build + 332 tests verts.
 
+### Session 20 — Analyse concurrentielle transparente (polling)
+
+- **Nouveau modele `AnalyseJob`** : suivi async d'un pipeline d'analyse (`pending | running | done | failed`) avec `etapes` JSON et `resultat` JSON.
+- **Route POST `/api/prospects/[id]/analyse` async** : cree un `AnalyseJob`, lance `runAnalyseJob` en fire-and-forget, retourne immediatement `{ jobId }`.
+- **Route GET `/api/prospects/[id]/analyse/status/[jobId]`** : expose statut + etapes parsees + resultat (controle d'acces 403 si jobId ne correspond pas au prospect).
+- **`src/lib/analyse-job.ts`** : helpers `createAnalyseJob`, `appendStep`, `updateStep`, `markJobRunning`, `markJobDone`, `markJobFailed` + type `AnalyseStep`.
+- **`src/lib/run-analyse-job.ts`** : orchestrateur instrumente avec 4 etapes (`search_competitors`, `scrape_competitors` + sous-etapes par concurrent, `analyse`, `recommandations`). Fallback : `markJobFailed` capture toute erreur.
+- **`scrapeCompetitors`** : nouveau parametre `hook?` (`onStart`/`onSuccess`/`onFailure`/`onNoWebsite`) — retro-compatible.
+- **UI progressive** sur l'onglet Analyse :
+  - `AnalyseProgress` : liste des etapes en temps reel (loader / coche verte / warning) avec sous-etapes indentees
+  - `AnalyseDetailsPanel` : panneau collapsible (ferme par defaut) listant concurrents identifies, sites inaccessibles, et prompt systeme utilise
+  - `prospect-analyse-tab.tsx` : poll `/status/[jobId]` toutes les 2s, bascule sur le rendu classique quand `done`
+- **Tests** : 6 unit `analyse-job`, 6 routes (POST async + GET status), 3 `AnalyseProgress`, 1 polling integration. **356/356 passing**
+
 ### Session 19 — Corrections d'audit (robustesse + performance + parametres dynamiques)
 
 - **Parametres dynamiques** : les poids de scoring, delais de relance et templates email sont desormais lus depuis la base via `getParam` a chaque execution — la page Parametres a un effet immediat sans redeploi. Cache memoire 60s pour eviter le hammering DB.
