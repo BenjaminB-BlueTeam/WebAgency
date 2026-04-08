@@ -28,16 +28,34 @@ export async function findCompetitorCandidates(
     .slice(0, 8)
 }
 
+export interface ScrapeStepHook {
+  onStart?: (nom: string) => Promise<void> | void
+  onSuccess?: (nom: string) => Promise<void> | void
+  onFailure?: (nom: string, reason: string) => Promise<void> | void
+  onNoWebsite?: (nom: string) => Promise<void> | void
+}
+
 export async function scrapeCompetitors(
-  candidates: PlaceResult[]
+  candidates: PlaceResult[],
+  hook?: ScrapeStepHook
 ): Promise<{ nom: string; siteUrl: string; html: string }[]> {
+  for (const c of candidates.filter((c) => c.siteUrl === null)) {
+    await hook?.onNoWebsite?.(c.nom)
+  }
   const withSite = candidates.filter((c) => c.siteUrl !== null)
   const settled = await Promise.allSettled(
-    withSite.map(async (c) => ({
-      nom: c.nom,
-      siteUrl: c.siteUrl!,
-      html: await scrapeUrl(c.siteUrl!),
-    }))
+    withSite.map(async (c) => {
+      await hook?.onStart?.(c.nom)
+      try {
+        const html = await scrapeUrl(c.siteUrl!)
+        await hook?.onSuccess?.(c.nom)
+        return { nom: c.nom, siteUrl: c.siteUrl!, html }
+      } catch (err) {
+        const reason = err instanceof Error ? err.message : "erreur"
+        await hook?.onFailure?.(c.nom, reason)
+        throw err
+      }
+    })
   )
   return settled
     .filter(
@@ -47,7 +65,7 @@ export async function scrapeCompetitors(
     .map((r) => r.value)
 }
 
-const SYSTEM_PROMPT = `Tu es un expert en analyse concurrentielle pour petites entreprises locales en Flandre Intérieure.
+export const ANALYSE_SYSTEM_PROMPT = `Tu es un expert en analyse concurrentielle pour petites entreprises locales en Flandre Intérieure.
 Tu analyses des sites web de concurrents et identifies leurs forces, faiblesses et positionnement.
 Tu fournis des recommandations concrètes pour se démarquer.
 Réponds UNIQUEMENT avec du JSON valide, sans commentaires ni markdown.`
@@ -92,6 +110,6 @@ Réponds avec ce JSON exact :
   "recommandations": ["string"]
 }`
 
-  const response = await analyzeWithClaude(SYSTEM_PROMPT, userPrompt, 4096)
+  const response = await analyzeWithClaude(ANALYSE_SYSTEM_PROMPT, userPrompt, 4096)
   return parseClaudeJSON<AnalyseResult>(response)
 }
