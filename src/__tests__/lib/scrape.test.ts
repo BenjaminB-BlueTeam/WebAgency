@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest"
-import { selectRelevantPages, mapSite } from "@/lib/scrape"
+import { selectRelevantPages, mapSite, crawlSite } from "@/lib/scrape"
 
 const mockFetch = vi.fn()
 vi.stubGlobal("fetch", mockFetch)
@@ -123,5 +123,82 @@ describe("mapSite", () => {
     mockFetch.mockRejectedValue(new Error("Network error"))
     const urls = await mapSite("https://example.com")
     expect(urls).toEqual(["https://example.com"])
+  })
+})
+
+describe("crawlSite", () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+    process.env.FIRECRAWL_API_KEY = "test-key"
+  })
+
+  it("map + scrape les pages pertinentes en markdown", async () => {
+    // mapSite response
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: () => Promise.resolve({
+        success: true,
+        links: [
+          "https://example.com",
+          "https://example.com/services",
+          "https://example.com/blog/post",
+          "https://example.com/tarifs",
+        ],
+      }),
+    })
+    // scrapeUrl calls (homepage, services, tarifs — blog excluded)
+    mockFetch
+      .mockResolvedValueOnce({
+        ok: true,
+        json: () => Promise.resolve({ data: { markdown: "# Accueil" } }),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        json: () => Promise.resolve({ data: { markdown: "# Services" } }),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        json: () => Promise.resolve({ data: { markdown: "# Tarifs" } }),
+      })
+
+    const pages = await crawlSite("https://example.com")
+    expect(pages).toHaveLength(3)
+    expect(pages.map((p) => p.pageUrl)).toEqual([
+      "https://example.com",
+      "https://example.com/services",
+      "https://example.com/tarifs",
+    ])
+    expect(pages[0].content).toBe("# Accueil")
+  })
+
+  it("retourne au moins la homepage si map échoue", async () => {
+    mockFetch.mockResolvedValueOnce({ ok: false, status: 500 })
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: () => Promise.resolve({ data: { markdown: "# Home" } }),
+    })
+
+    const pages = await crawlSite("https://example.com")
+    expect(pages).toHaveLength(1)
+    expect(pages[0].content).toBe("# Home")
+  })
+
+  it("exclut les pages dont le scrape échoue", async () => {
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: () => Promise.resolve({
+        success: true,
+        links: ["https://example.com", "https://example.com/services"],
+      }),
+    })
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: () => Promise.resolve({ data: { markdown: "# Home" } }),
+    })
+    mockFetch.mockResolvedValueOnce({ ok: false, status: 500 })
+
+    const pages = await crawlSite("https://example.com")
+    expect(pages).toHaveLength(1)
+    expect(pages[0].pageUrl).toBe("https://example.com")
   })
 })

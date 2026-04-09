@@ -1,6 +1,6 @@
 const FIRECRAWL_ENDPOINT = "https://api.firecrawl.dev/v1/scrape"
 
-export async function scrapeUrl(url: string): Promise<string> {
+export async function scrapeUrl(url: string, format: "html" | "markdown" = "html"): Promise<string> {
   const apiKey = process.env.FIRECRAWL_API_KEY
   if (!apiKey) {
     throw new Error("Clé API Firecrawl non configurée")
@@ -16,7 +16,7 @@ export async function scrapeUrl(url: string): Promise<string> {
         "Content-Type": "application/json",
         Authorization: `Bearer ${apiKey}`,
       },
-      body: JSON.stringify({ url, formats: ["html"] }),
+      body: JSON.stringify({ url, formats: [format] }),
       signal: controller.signal,
     })
 
@@ -27,7 +27,7 @@ export async function scrapeUrl(url: string): Promise<string> {
     }
 
     const data = await res.json()
-    return data.data?.html ?? ""
+    return data.data?.[format] ?? ""
   } catch (error) {
     if (error instanceof Error && error.name === "AbortError") {
       throw new Error("Timeout Firecrawl (30s)")
@@ -68,6 +68,30 @@ export async function mapSite(url: string): Promise<string[]> {
   } finally {
     clearTimeout(timeout)
   }
+}
+
+export interface CrawledPage {
+  pageUrl: string
+  content: string
+}
+
+export async function crawlSite(url: string, maxPages: number = 5): Promise<CrawledPage[]> {
+  const allUrls = await mapSite(url)
+  const selected = selectRelevantPages(allUrls, url, maxPages)
+
+  const settled = await Promise.allSettled(
+    selected.map(async (pageUrl) => {
+      const content = await scrapeUrl(pageUrl, "markdown")
+      return { pageUrl, content }
+    })
+  )
+
+  return settled
+    .filter(
+      (r): r is PromiseFulfilledResult<CrawledPage> => r.status === "fulfilled"
+    )
+    .map((r) => r.value)
+    .filter((p) => p.content.length > 0)
 }
 
 const PRIORITY_1 = /service|prestation|tarif|prix|offre|formule/i
