@@ -217,7 +217,15 @@ CRM interne pour la prospection de clients web dans la region des Flandres. Rech
   - `AnalyseDetailsPanel` : panneau collapsible (ferme par defaut) listant concurrents identifies, sites inaccessibles, et prompt systeme utilise
   - `prospect-analyse-tab.tsx` : poll `/status/[jobId]` toutes les 2s, bascule sur le rendu classique quand `done`
 - **Atomicite** : `appendStep` et `updateStep` refactores avec `prisma.$transaction` — le read-modify-write sur `etapes` (JSON string) est desormais atomique, eliminant les race conditions lors de scrapes concurrents.
-- **Tests** : 7 unit `analyse-job` (dont 1 test de concurrence : 10 appels paralleles), 6 routes (POST async + GET status), 3 `AnalyseProgress`, 1 polling integration. **357/357 passing**
+- **Retry Anthropic** : `analyzeWithClaude` retente automatiquement 3x (backoff exponentiel 2s/4s/8s) sur erreurs 429/529/503. Messages d'erreur humanises dans l'UI (plus de JSON brut).
+- **Modele Haiku** : analyse concurrentielle basculee sur `claude-haiku-4-5` (plus rapide, moins d'overloads). Parametre `model` optionnel sur `analyzeWithClaude`.
+- **Crawl multi-pages** : scrape de 5 pages pertinentes par site concurrent (au lieu de la homepage seule) :
+  - `mapSite()` : recupere toutes les URLs du site via Firecrawl `/v1/map`
+  - `selectRelevantPages()` : priorise services/tarifs/realisations, exclut blog/CGV/admin
+  - `crawlSite()` : orchestre map + scrape selectif en parallele, format markdown
+  - Troncature a 6000 chars par concurrent (vs 3000 avant)
+  - Hooks de progression adaptes ("N pages analysees")
+- **Tests** : 7 unit `analyse-job` (dont 1 test de concurrence), 12 unit `scrape` (selectRelevantPages + mapSite + crawlSite), 14 unit `analyse`, 6 routes, 3 `AnalyseProgress`, 1 polling. **371/371 passing**
 
 ### Session 19 — Corrections d'audit (robustesse + performance + parametres dynamiques)
 
