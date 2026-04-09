@@ -29,25 +29,27 @@ export async function markJobRunning(jobId: string) {
   })
 }
 
-async function readEtapes(jobId: string): Promise<AnalyseStep[]> {
-  const job = await prisma.analyseJob.findUnique({
-    where: { id: jobId },
-    select: { etapes: true },
-  })
-  if (!job) return []
+function parseEtapes(raw: string): AnalyseStep[] {
   try {
-    return JSON.parse(job.etapes) as AnalyseStep[]
+    return JSON.parse(raw) as AnalyseStep[]
   } catch {
     return []
   }
 }
 
 export async function appendStep(jobId: string, step: AnalyseStep) {
-  const current = await readEtapes(jobId)
-  current.push(step)
-  await prisma.analyseJob.update({
-    where: { id: jobId },
-    data: { etapes: JSON.stringify(current) },
+  await prisma.$transaction(async (tx) => {
+    const job = await tx.analyseJob.findUnique({
+      where: { id: jobId },
+      select: { etapes: true },
+    })
+    if (!job) return
+    const current = parseEtapes(job.etapes)
+    current.push(step)
+    await tx.analyseJob.update({
+      where: { id: jobId },
+      data: { etapes: JSON.stringify(current) },
+    })
   })
 }
 
@@ -56,16 +58,23 @@ export async function updateStep(
   nom: string,
   patch: Partial<Omit<AnalyseStep, "nom">>
 ) {
-  const current = await readEtapes(jobId)
-  for (let i = current.length - 1; i >= 0; i--) {
-    if (current[i].nom === nom) {
-      current[i] = { ...current[i], ...patch }
-      break
+  await prisma.$transaction(async (tx) => {
+    const job = await tx.analyseJob.findUnique({
+      where: { id: jobId },
+      select: { etapes: true },
+    })
+    if (!job) return
+    const current = parseEtapes(job.etapes)
+    for (let i = current.length - 1; i >= 0; i--) {
+      if (current[i].nom === nom) {
+        current[i] = { ...current[i], ...patch }
+        break
+      }
     }
-  }
-  await prisma.analyseJob.update({
-    where: { id: jobId },
-    data: { etapes: JSON.stringify(current) },
+    await tx.analyseJob.update({
+      where: { id: jobId },
+      data: { etapes: JSON.stringify(current) },
+    })
   })
 }
 

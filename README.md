@@ -216,7 +216,8 @@ CRM interne pour la prospection de clients web dans la region des Flandres. Rech
   - `AnalyseProgress` : liste des etapes en temps reel (loader / coche verte / warning) avec sous-etapes indentees
   - `AnalyseDetailsPanel` : panneau collapsible (ferme par defaut) listant concurrents identifies, sites inaccessibles, et prompt systeme utilise
   - `prospect-analyse-tab.tsx` : poll `/status/[jobId]` toutes les 2s, bascule sur le rendu classique quand `done`
-- **Tests** : 6 unit `analyse-job`, 6 routes (POST async + GET status), 3 `AnalyseProgress`, 1 polling integration. **356/356 passing**
+- **Atomicite** : `appendStep` et `updateStep` refactores avec `prisma.$transaction` — le read-modify-write sur `etapes` (JSON string) est desormais atomique, eliminant les race conditions lors de scrapes concurrents.
+- **Tests** : 7 unit `analyse-job` (dont 1 test de concurrence : 10 appels paralleles), 6 routes (POST async + GET status), 3 `AnalyseProgress`, 1 polling integration. **357/357 passing**
 
 ### Session 19 — Corrections d'audit (robustesse + performance + parametres dynamiques)
 
