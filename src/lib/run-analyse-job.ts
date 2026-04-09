@@ -13,6 +13,16 @@ import {
   updateStep,
 } from "@/lib/analyse-job"
 
+function humanizeError(err: unknown): string {
+  if (!(err instanceof Error)) return "Erreur serveur"
+  const msg = err.message
+  if (msg.includes("overloaded")) return "Service IA temporairement surchargé — réessayez dans quelques minutes"
+  if (msg.includes("rate_limit")) return "Limite d'appels IA atteinte — réessayez dans quelques minutes"
+  if (msg.includes("timeout") || msg.includes("Timeout")) return "Délai d'attente dépassé — réessayez"
+  if (msg.length > 200) return "Erreur lors de l'analyse IA — réessayez"
+  return msg
+}
+
 interface RunParams {
   jobId: string
   prospect: { id: string; nom: string; activite: string; ville: string; placeId: string | null }
@@ -57,13 +67,13 @@ export async function runAnalyseJob({ jobId, prospect }: RunParams): Promise<voi
         await appendStep(jobId, {
           nom: `scrape_competitors:${nom}`,
           statut: "running",
-          message: `Analyse du site de ${nom}...`,
+          message: `Exploration du site de ${nom}...`,
         })
       },
-      onSuccess: async (nom) => {
+      onSuccess: async (nom, pageCount) => {
         await updateStep(jobId, `scrape_competitors:${nom}`, {
           statut: "done",
-          message: "Site analysé",
+          message: `${pageCount} page${pageCount > 1 ? "s" : ""} analysée${pageCount > 1 ? "s" : ""}`,
         })
       },
       onFailure: async (nom) => {
@@ -83,9 +93,9 @@ export async function runAnalyseJob({ jobId, prospect }: RunParams): Promise<voi
     const noSite = candidates.filter((c) => c.siteUrl === null)
     await updateStep(jobId, "scrape_competitors", {
       statut: "done",
-      message: `${scraped.length} site${scraped.length > 1 ? "s" : ""} analysé${scraped.length > 1 ? "s" : ""}`,
+      message: `${scraped.length} site${scraped.length > 1 ? "s" : ""} exploré${scraped.length > 1 ? "s" : ""}`,
       data: {
-        analysed: scraped.map((s) => s.nom),
+        analysed: scraped.map((s) => ({ nom: s.nom, pages: s.pages.length })),
         failed: candidates
           .filter((c) => c.siteUrl !== null && !scraped.some((s) => s.nom === c.nom))
           .map((c) => c.nom),
@@ -147,7 +157,7 @@ export async function runAnalyseJob({ jobId, prospect }: RunParams): Promise<voi
 
     await markJobDone(jobId, result)
   } catch (err) {
-    const message = err instanceof Error ? err.message : "Erreur serveur"
+    const message = humanizeError(err)
     await markJobFailed(jobId, message)
   }
 }
