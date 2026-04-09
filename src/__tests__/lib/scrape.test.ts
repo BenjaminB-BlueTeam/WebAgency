@@ -1,5 +1,8 @@
-import { describe, it, expect } from "vitest"
-import { selectRelevantPages } from "@/lib/scrape"
+import { describe, it, expect, vi, beforeEach } from "vitest"
+import { selectRelevantPages, mapSite } from "@/lib/scrape"
+
+const mockFetch = vi.fn()
+vi.stubGlobal("fetch", mockFetch)
 
 describe("selectRelevantPages", () => {
   const base = "https://example.com"
@@ -77,5 +80,48 @@ describe("selectRelevantPages", () => {
       (u) => u === "https://example.com" || u === "https://example.com/"
     ).length
     expect(homepageCount).toBe(1)
+  })
+})
+
+describe("mapSite", () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+    process.env.FIRECRAWL_API_KEY = "test-key"
+  })
+
+  it("retourne les URLs depuis Firecrawl /v1/map", async () => {
+    mockFetch.mockResolvedValue({
+      ok: true,
+      json: () => Promise.resolve({
+        success: true,
+        links: [
+          "https://example.com",
+          "https://example.com/services",
+          "https://example.com/contact",
+        ],
+      }),
+    })
+    const urls = await mapSite("https://example.com")
+    expect(urls).toEqual([
+      "https://example.com",
+      "https://example.com/services",
+      "https://example.com/contact",
+    ])
+    expect(mockFetch).toHaveBeenCalledWith(
+      "https://api.firecrawl.dev/v1/map",
+      expect.objectContaining({ method: "POST" })
+    )
+  })
+
+  it("retourne [url] en fallback si l'API échoue", async () => {
+    mockFetch.mockResolvedValue({ ok: false, status: 500 })
+    const urls = await mapSite("https://example.com")
+    expect(urls).toEqual(["https://example.com"])
+  })
+
+  it("retourne [url] en fallback si fetch throw", async () => {
+    mockFetch.mockRejectedValue(new Error("Network error"))
+    const urls = await mapSite("https://example.com")
+    expect(urls).toEqual(["https://example.com"])
   })
 })

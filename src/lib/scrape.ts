@@ -38,6 +38,38 @@ export async function scrapeUrl(url: string): Promise<string> {
   }
 }
 
+const FIRECRAWL_MAP_ENDPOINT = "https://api.firecrawl.dev/v1/map"
+
+export async function mapSite(url: string): Promise<string[]> {
+  const apiKey = process.env.FIRECRAWL_API_KEY
+  if (!apiKey) return [url]
+
+  const controller = new AbortController()
+  const timeout = setTimeout(() => controller.abort(), 30000)
+
+  try {
+    const res = await fetch(FIRECRAWL_MAP_ENDPOINT, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${apiKey}`,
+      },
+      body: JSON.stringify({ url }),
+      signal: controller.signal,
+    })
+
+    if (!res.ok) return [url]
+
+    const data = await res.json()
+    const links: string[] = data.links ?? []
+    return links.length > 0 ? links : [url]
+  } catch {
+    return [url]
+  } finally {
+    clearTimeout(timeout)
+  }
+}
+
 const PRIORITY_1 = /service|prestation|tarif|prix|offre|formule/i
 const PRIORITY_2 = /realisation|projet|portfolio|reference|galerie/i
 const PRIORITY_3 = /about|qui-sommes|equipe|contact|agence|entreprise|a-propos/i
